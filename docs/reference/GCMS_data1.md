@@ -60,6 +60,7 @@ Socioecology and Social Evolution, KU Leuven \\
 ## Examples
 
 ``` r
+library(L0glm)
 data(GCMS_data1)
 plotmat(GCMS_data1, 
       xlab = "Elution time (min)",

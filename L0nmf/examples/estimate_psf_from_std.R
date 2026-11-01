@@ -1,3 +1,4 @@
+library(L0glm)
 data(GCMS_data1)
 # total ion chromatogram of C9 to C40 alkane ladder
 tic <- attr(GCMS_data1, "alkanes_TIC")

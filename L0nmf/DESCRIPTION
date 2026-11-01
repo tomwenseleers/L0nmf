@@ -13,8 +13,8 @@ Description: Sparse nonnegative matrix factorization with hard log-concave profi
 License: GPL (>= 2)
 Encoding: UTF-8
 Depends: R (>= 4.1.0)
-Imports: L0glm (>= 0.2.0), Matrix, Rcpp, cobs, gsignal, methods, stats, graphics, grDevices, utils
-Suggests: ALS, testthat (>= 3.0.0), knitr, rmarkdown, pkgdown, mgcv, ncdf4, openxlsx, DBI, RSQLite, jsonlite
+Imports: L0glm (>= 0.2.0), Matrix, Rcpp, cobs, methods, stats, graphics, grDevices, utils
+Suggests: ALS, testthat (>= 3.0.0), knitr, rmarkdown, pkgdown, mgcv
 LinkingTo: L0glm, Rcpp, RcppEigen
 SystemRequirements: C++17, OpenMP
 URL: https://tomwenseleers.github.io/L0nmf/, https://github.com/tomwenseleers/L0nmf

@@ -9,7 +9,7 @@ and shark-fin peaks while retaining all original outcome channels."></head><body
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top bg-dark" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="../index.html">L0nmf</a>
 
@@ -22,11 +22,12 @@ and shark-fin peaks while retaining all original outcome channels."></head><body
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/log-concave-nmf.html">Get started</a></li>
-<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/log-concave-nmf.html">Sparse log-concave NMF</a></li>
   </ul></li>
+<li class="nav-item"><a class="nav-link" href="../articles/log-concave-nmf.html">Algorithm &amp; theory</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -117,8 +118,8 @@ and shark-fin peaks while retaining all original outcome channels.</p>
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
 
 
-<dl><dt id="arg-object">object<a class="anchor" aria-label="anchor" href="#arg-object"></a></dt>
-<dd><p>A fitted sparse log-concave model.</p></dd>
+<dl><dt id="arg-object-x">object, x<a class="anchor" aria-label="anchor" href="#arg-object-x"></a></dt>
+<dd><p>A fitted <code>splogconNMF</code> object.</p></dd>
 
 
 <dt id="arg-y">y<a class="anchor" aria-label="anchor" href="#arg-y"></a></dt>
@@ -254,10 +255,6 @@ and preclustering; nonnegative spectral entries can reopen during refitting.</p>
 <dt id="arg-k">k<a class="anchor" aria-label="anchor" href="#arg-k"></a></dt>
 <dd><p>Complexity multiplier for <code><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">stats::AIC()</a></code>.</p></dd>
 
-
-<dt id="arg-object-x">object, x<a class="anchor" aria-label="anchor" href="#arg-object-x"></a></dt>
-<dd><p>A fitted <code>splogconNMF</code> object.</p></dd>
-
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -392,7 +389,7 @@ local shape refinement, with no repetition of the reduced-space search.
 Worked full-channel fits to <a href="GCMS_data1.html">GCMS_data1</a> and <a href="GCMS_data2.html">GCMS_data2</a>, with traces,
 heatmaps, profiles and spectra, are shown in the
 <a href="../articles/gcms-deconvolution.html">GC/MS deconvolution tutorial</a> and
-the <code><a href="https://rdrr.io/pkg/GCMSprime/man/GCMSdeco.html" class="external-link">GCMSprime::GCMSdeco()</a></code> help page. <code>write_GCMS_cdf()</code> exports these matrices for
+the <a href="https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html" class="external-link">GCMSdeco()</a> help page. <a href="https://tomwenseleers.github.io/GCMSprime/reference/write_GCMS_cdf.html" class="external-link">write_GCMS_cdf()</a> exports these matrices for
 the complete file-based workflow.</p>
 <p><strong>Smooth local profiles.</strong> Original-channel refinement fits
 \(\eta(t)=a+bt-\tfrac12\sum_j c_j\{(t-u_j)_+^2-(t-v_j)_+^2\}\),
@@ -424,7 +421,7 @@ Biostatistics 27(1), kxag010. <a href="https://doi.org/10.1093/biostatistics/kxa
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="https://rdrr.io/pkg/GCMSprime/man/GCMSdeco.html" class="external-link">GCMSprime::GCMSdeco()</a></code>, <code><a href="L0glm_blind_deco.html">L0glm_blind_deco()</a></code>, <code><a href="https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html" class="external-link">L0glm.fit()</a></code>, <code><a href="https://tomwenseleers.github.io/L0glm/reference/glm_cluster.html" class="external-link">glm_cluster()</a></code></p></div>
+    <div class="dont-index"><p><a href="https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html" class="external-link">GCMSdeco()</a>, <code><a href="L0glm_blind_deco.html">L0glm_blind_deco()</a></code>, <code><a href="https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html" class="external-link">L0glm.fit()</a></code>, <code><a href="https://tomwenseleers.github.io/L0glm/reference/glm_cluster.html" class="external-link">glm_cluster()</a></code></p></div>
     </div>
 
     <div class="section level2">

@@ -385,7 +385,7 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #' Worked full-channel fits to [GCMS_data1] and [GCMS_data2], with traces,
 #' heatmaps, profiles and spectra, are shown in the
 #' [GC/MS deconvolution tutorial](../articles/gcms-deconvolution.html) and
-#' the [GCMSprime::GCMSdeco()] help page. [write_GCMS_cdf()] exports these matrices for
+#' the [GCMSdeco()](https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html) help page. [write_GCMS_cdf()](https://tomwenseleers.github.io/GCMSprime/reference/write_GCMS_cdf.html) exports these matrices for
 #' the complete file-based workflow.
 #'
 #' **Smooth local profiles.** Original-channel refinement fits
@@ -408,7 +408,7 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #'   `AIC()`, `BIC()`, `GIC()`, `EBIC()` and `MBIC()` score the returned model.
 #'   Columns of `H` and the matching rows of `S` are ordered by increasing apex
 #'   scan, also returned in `apex_scan`. Their labels identify the same compounds.
-#' @seealso [GCMSprime::GCMSdeco()], [L0glm_blind_deco()], [L0glm.fit()], [glm_cluster()]
+#' @seealso [GCMSdeco()](https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html), [L0glm_blind_deco()], [L0glm.fit()], [glm_cluster()]
 #' @references Wang, L. and Carvalho, L. E. (2023). Deviance matrix factorization.
 #'   Electronic Journal of Statistics 17(2), 3762--3810. \doi{10.1214/23-EJS2174}.
 #'   Li, X. and Tyagi, A. (2023). Block-active ADMM to minimize NMF with Bregman

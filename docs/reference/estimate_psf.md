@@ -199,7 +199,7 @@ trains with the L0 penalty. *Analytica Chimica Acta* 705, 218–226.
 
 ## See also
 
-[`GCMSprime::GCMSdeco()`](https://rdrr.io/pkg/GCMSprime/man/GCMSdeco.html),
+[GCMSdeco()](https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html),
 [`L0glm_blind_deco()`](https://tomwenseleers.github.io/L0nmf/reference/L0glm_blind_deco.md),
 [`estimate_psf_from_std()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf_from_std.md),
 [`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md),

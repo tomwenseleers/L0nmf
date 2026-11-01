@@ -64,7 +64,7 @@ splogconNMF(
 \method{print}{splogconNMF}(x, ...)
 }
 \arguments{
-\item{object}{A fitted sparse log-concave model.}
+\item{object, x}{A fitted \code{splogconNMF} object.}
 
 \item{y}{Numeric scans-by-channels matrix or a single-channel vector.}
 
@@ -159,8 +159,6 @@ and preclustering; nonnegative spectral entries can reopen during refitting.}
 \item{verbose}{Print stage timings, objective changes and compound counts.}
 
 \item{k}{Complexity multiplier for \code{\link[stats:AIC]{stats::AIC()}}.}
-
-\item{object, x}{A fitted \code{splogconNMF} object.}
 }
 \value{
 An object of class \code{splogconNMF}, containing sparse unit-sum profiles
@@ -308,7 +306,7 @@ local shape refinement, with no repetition of the reduced-space search.
 Worked full-channel fits to \link{GCMS_data1} and \link{GCMS_data2}, with traces,
 heatmaps, profiles and spectra, are shown in the
 \href{../articles/gcms-deconvolution.html}{GC/MS deconvolution tutorial} and
-the \code{\link[GCMSprime:GCMSdeco]{GCMSprime::GCMSdeco()}} help page. \code{\link[=write_GCMS_cdf]{write_GCMS_cdf()}} exports these matrices for
+the \href{https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html}{GCMSdeco()} help page. \href{https://tomwenseleers.github.io/GCMSprime/reference/write_GCMS_cdf.html}{write_GCMS_cdf()} exports these matrices for
 the complete file-based workflow.
 
 \strong{Smooth local profiles.} Original-channel refinement fits
@@ -396,5 +394,5 @@ models with application to single-cell RNA sequencing data.
 Biostatistics 27(1), kxag010. \doi{10.1093/biostatistics/kxag010}.
 }
 \seealso{
-\code{\link[GCMSprime:GCMSdeco]{GCMSprime::GCMSdeco()}}, \code{\link[=L0glm_blind_deco]{L0glm_blind_deco()}}, \code{\link[L0glm:L0glm.fit]{L0glm.fit()}}, \code{\link[L0glm:glm_cluster]{glm_cluster()}}
+\href{https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html}{GCMSdeco()}, \code{\link[=L0glm_blind_deco]{L0glm_blind_deco()}}, \code{\link[L0glm:L0glm.fit]{L0glm.fit()}}, \code{\link[L0glm:glm_cluster]{glm_cluster()}}
 }

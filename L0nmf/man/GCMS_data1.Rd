@@ -51,6 +51,7 @@ Co-eluting compounds present with retention times and diagnostic ions:
         }
 }
 \examples{
+library(L0glm)
 data(GCMS_data1)
 plotmat(GCMS_data1, 
       xlab = "Elution time (min)",

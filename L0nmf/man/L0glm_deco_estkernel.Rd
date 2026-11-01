@@ -100,6 +100,7 @@ following improvements:
 }
 }
 \examples{
+library(L0glm)
 ## ------------------------------------------------------------------------
 ## 1  Simulate a blurred spike-train with a BIGAUSSIAN PSF & Poisson noise
 ## ------------------------------------------------------------------------

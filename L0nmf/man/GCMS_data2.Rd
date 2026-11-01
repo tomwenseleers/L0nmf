@@ -40,6 +40,7 @@ co-elute in this interval, including by a prominent, triangular,
 see Schreurs et al. Nature Communications 2024.
 }
 \examples{
+library(L0glm)
 data(GCMS_data2)
 plotmat(GCMS_data2, 
       xlab = "Elution time (min)",

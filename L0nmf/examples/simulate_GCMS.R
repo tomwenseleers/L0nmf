@@ -1,3 +1,4 @@
+library(L0glm)
 data(simulated_spectra)
 sim <- simulate_GCMS(n = 10000,
                      k = 500,

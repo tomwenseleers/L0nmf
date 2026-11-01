@@ -177,6 +177,7 @@ parameter through information-criterion presets, and (iii) the possibility
 to exploit grouped-sparsity when several channels are deconvolved jointly.
 }
 \examples{
+library(L0glm)
 ## ------------------------------------------------------------------------
 ## 1  Simulate a blurred spike-train with a BIGAUSSIAN PSF & Poisson noise
 ## ------------------------------------------------------------------------

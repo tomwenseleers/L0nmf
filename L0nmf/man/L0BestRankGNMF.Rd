@@ -127,6 +127,7 @@ ungrouped penalty is the plain elementwise \eqn{L_0} penalty used by
 }
 
 \examples{
+library(L0glm)
 ## Small nonnegative Gaussian matrix factorization example
 if (requireNamespace("Matrix", quietly = TRUE)) {
   library(Matrix)

@@ -1,3 +1,4 @@
+library(L0glm)
 ## Small nonnegative Gaussian matrix factorization example
 if (requireNamespace("Matrix", quietly = TRUE)) {
   library(Matrix)

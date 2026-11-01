@@ -285,6 +285,7 @@ for the full alternating blind deconvolution,
 ## Examples
 
 ``` r
+library(L0glm)
 ## ------------------------------------------------------------------------
 ## 1  Simulate a blurred spike-train with a BIGAUSSIAN PSF & Poisson noise
 ## ------------------------------------------------------------------------

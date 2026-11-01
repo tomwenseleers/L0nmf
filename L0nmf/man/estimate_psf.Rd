@@ -187,6 +187,6 @@ Deconvolution of pulse trains with the L0 penalty.
 \emph{Analytica Chimica Acta} 705, 218--226. \doi{10.1016/j.aca.2011.05.030}.
 }
 \seealso{
-\code{\link[GCMSprime:GCMSdeco]{GCMSprime::GCMSdeco()}}, \code{\link[=L0glm_blind_deco]{L0glm_blind_deco()}}, \code{\link[=estimate_psf_from_std]{estimate_psf_from_std()}},
+\href{https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html}{GCMSdeco()}, \code{\link[=L0glm_blind_deco]{L0glm_blind_deco()}}, \code{\link[=estimate_psf_from_std]{estimate_psf_from_std()}},
 \code{\link[=splogconNMF]{splogconNMF()}}, \code{\link[L0glm:glm_cluster]{glm_cluster()}}
 }

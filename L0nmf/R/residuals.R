@@ -1,5 +1,4 @@
 #' @rdname splogconNMF
-#' @param object A fitted sparse log-concave model.
 #' @param type Residual scale: Pearson or response.
 #' @param rows,channels Optional row and channel indices for residual extraction.
 #' @param mu Optional fitted means for the selected block.

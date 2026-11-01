@@ -1,3 +1,4 @@
+library(L0glm)
 if (requireNamespace("cobs", quietly = TRUE)) {
 set.seed(1)
 x      <- seq(-5, 5, length.out = 101)

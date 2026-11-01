@@ -167,6 +167,7 @@ columns of \\W\\ are scaled back to keep \\W\\H\\ unchanged.
 ## Examples
 
 ``` r
+library(L0glm)
 ## Small nonnegative Gaussian matrix factorization example
 if (requireNamespace("Matrix", quietly = TRUE)) {
   library(Matrix)

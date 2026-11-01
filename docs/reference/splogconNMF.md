@@ -71,9 +71,9 @@ print(x, ...)
 
 ## Arguments
 
-- object:
+- object, x:
 
-  A fitted sparse log-concave model.
+  A fitted `splogconNMF` object.
 
 - y:
 
@@ -223,10 +223,6 @@ print(x, ...)
 
   Complexity multiplier for
   [`stats::AIC()`](https://rdrr.io/r/stats/AIC.html).
-
-- object, x:
-
-  A fitted `splogconNMF` object.
 
 ## Value
 
@@ -393,9 +389,10 @@ with traces, heatmaps, profiles and spectra, are shown in the [GC/MS
 deconvolution
 tutorial](https://tomwenseleers.github.io/L0nmf/articles/gcms-deconvolution.md)
 and the
-[`GCMSprime::GCMSdeco()`](https://rdrr.io/pkg/GCMSprime/man/GCMSdeco.html)
-help page. `write_GCMS_cdf()` exports these matrices for the complete
-file-based workflow.
+[GCMSdeco()](https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html)
+help page.
+[write_GCMS_cdf()](https://tomwenseleers.github.io/GCMSprime/reference/write_GCMS_cdf.html)
+exports these matrices for the complete file-based workflow.
 
 **Smooth local profiles.** Original-channel refinement fits
 \\\eta(t)=a+bt-\tfrac12\sum_j c_j\\(t-u_j)\_+^2-(t-v_j)\_+^2\\\\, with
@@ -427,7 +424,7 @@ to single-cell RNA sequencing data. Biostatistics 27(1), kxag010.
 
 ## See also
 
-[`GCMSprime::GCMSdeco()`](https://rdrr.io/pkg/GCMSprime/man/GCMSdeco.html),
+[GCMSdeco()](https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html),
 [`L0glm_blind_deco()`](https://tomwenseleers.github.io/L0nmf/reference/L0glm_blind_deco.md),
 [`L0glm.fit()`](https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html),
 [`glm_cluster()`](https://tomwenseleers.github.io/L0glm/reference/glm_cluster.html)

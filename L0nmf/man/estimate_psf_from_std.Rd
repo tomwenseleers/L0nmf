@@ -137,6 +137,7 @@ passed as the \code{X} argument to \code{\link{L0glm_sparse_deco}} for
 deconvolution with a time-varying PSF.
 }
 \examples{
+library(L0glm)
 data(GCMS_data1)
 # total ion chromatogram of C9 to C40 alkane ladder
 tic <- attr(GCMS_data1, "alkanes_TIC")

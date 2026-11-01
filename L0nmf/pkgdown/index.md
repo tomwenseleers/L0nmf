@@ -2,9 +2,9 @@
 
 <div class="l0-hero">
 <div class="l0-hero-copy">
-<p class="l0-eyebrow">SPARSE FACTORIZATION · LOG-CONCAVE PROFILES</p>
+<p class="l0-eyebrow">SPARSE NONNEGATIVE MATRIX FACTORIZATION · LOG-CONCAVE PROFILES</p>
 <h1>Sparse factors.<br><span>Interpretable signals.</span></h1>
-<p class="l0-lead">Sparse nonnegative matrix factorization, log-concave profiles and flexible observation models.</p>
+<p class="l0-lead">Sparse nonnegative matrix factorization, log-concave profiles and flexible noise models.</p>
 <div class="l0-actions"><a class="btn btn-primary" href="articles/log-concave-nmf.html">Get started <span aria-hidden="true">↗</span></a><a class="btn btn-outline-light" href="reference/index.html">Explore the methods</a></div>
 <p class="l0-hero-note">R · Local likelihood updates · Full spectra · Constant &amp; varying PSFs</p>
 </div>

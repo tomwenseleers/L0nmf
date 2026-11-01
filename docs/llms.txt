@@ -1,13 +1,13 @@
 # L0nmf
 
-SPARSE FACTORIZATION · LOG-CONCAVE PROFILES
+SPARSE NONNEGATIVE MATRIX FACTORIZATION · LOG-CONCAVE PROFILES
 
 Sparse factors.\
 Interpretable signals.
 ======================
 
 Sparse nonnegative matrix factorization, log-concave profiles and
-flexible observation models.
+flexible noise models.
 
 [Get started
 ↗](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md)[Explore

@@ -22,8 +22,6 @@ Authors:
 
 - Tom Wenseleers <tom.wenseleers@kuleuven.be>
 
-- Laura Lanzas <lauralanzasiolsina@gmail.com>
-
 - Christophe Vanderaa <christophe.vanderaa@kuleuven.be>
 
 Other contributors:

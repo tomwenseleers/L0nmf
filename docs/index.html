@@ -6,6 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Sparse nonnegative matrix factorization, log-concave profiles and flexible observation models. • L0nmf</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" sizes="any" href="favicon.ico">
+<link rel="manifest" href="site.webmanifest">
 <!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="katex-auto.js"></script><script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
@@ -15,6 +20,8 @@
 <meta property="og:title" content="Sparse nonnegative matrix factorization, log-concave profiles and flexible observation models.">
 <meta name="description" content="Sparse nonnegative matrix factorization with hard log-concave profiles, adaptive ridge selection, flexible noise models and point spread function estimation.">
 <meta property="og:description" content="Sparse nonnegative matrix factorization with hard log-concave profiles, adaptive ridge selection, flexible noise models and point spread function estimation.">
+<meta property="og:image" content="https://tomwenseleers.github.io/L0nmf/reference/figures/logo.png">
+<meta property="og:image:alt" content="L0nmf hex logo showing a sparse matrix factorized into profiles and spectral loadings">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -35,9 +42,10 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="articles/log-concave-nmf.html">Get started</a></li>
 <li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="articles/log-concave-nmf.html">Sparse log-concave NMF</a></li>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials">
+<li><a class="dropdown-item" href="articles/log-concave-nmf.html">Sparse log-concave factorization</a></li>
+    <li><a class="external-link dropdown-item" href="https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html">GC/MS workflow in GCMSprime</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="articles/log-concave-nmf.html">Algorithm &amp; theory</a></li>
@@ -58,13 +66,28 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
 
-<div class="package-banner">
+<div class="l0-hero">
+<div class="l0-hero-copy">
+<p class="l0-eyebrow">
+SPARSE FACTORIZATION · LOG-CONCAVE PROFILES
+</p>
 <h1>
-Sparse factors. Interpretable signals.
+Sparse factors.<br><span>Interpretable signals.</span>
 </h1>
-<p>
+<p class="l0-lead">
 Sparse nonnegative matrix factorization, log-concave profiles and flexible observation models.
 </p>
+<div class="l0-actions">
+<a class="btn btn-primary" href="articles/log-concave-nmf.html">Get started <span aria-hidden="true">↗</span></a><a class="btn btn-outline-light" href="reference/index.html">Explore the methods</a>
+</div>
+<p class="l0-hero-note">
+R · Local likelihood updates · Full spectra · Constant &amp; varying PSFs
+</p>
+</div>
+<p><img class="l0-hero-logo" src="logo-dark.svg" alt="L0nmf hex logo showing a sparse matrix factorized into profiles and spectral loadings" width="240" height="280"></p>
+</div>
+<div class="l0-stat-grid">
+<p><a href="reference/splogconNMF.html"><strong>Sparse rank</strong><span>Recover a parsimonious set of nonnegative components</span></a> <a href="reference/estimate_psf.html"><strong>Peak shapes</strong><span>Log-concave profiles and constant or time-varying PSFs</span></a> <a href="articles/log-concave-nmf.html"><strong>5 families</strong><span>Gaussian, Poisson, quasi-Poisson, negative binomial and Gamma</span></a></p>
 </div>
 <p>L0nmf is part of a focused three-package toolkit: <a href="https://tomwenseleers.github.io/L0glm/" class="external-link">L0glm</a> supplies fast sparse GLM selection, <a href="https://tomwenseleers.github.io/L0nmf/">L0nmf</a> supplies sparse factorization and PSF estimation, and <a href="https://tomwenseleers.github.io/GCMSprime/" class="external-link">GCMSprime</a> turns those methods into a chromatographic workflow.</p>
 <div class="section level2">
@@ -89,6 +112,10 @@ Sparse nonnegative matrix factorization, log-concave profiles and flexible obser
 <span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/model_criteria.html" class="external-link">GIC</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/matplot.html" class="external-link">matplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">H</span><span class="op">)</span>, type<span class="op">=</span><span class="st">"l"</span>, lty<span class="op">=</span><span class="fl">1</span>, xlab<span class="op">=</span><span class="st">"Scan"</span>, ylab<span class="op">=</span><span class="st">"Elution profile"</span><span class="op">)</span></span></code></pre></div>
 <p>The factors retain every original outcome channel. Profiles have unit area, nonnegative spectra carry their intensities, and a smooth unpenalized background captures baseline variation. Selection and fusion use a parsimonious rank criterion with local likelihood updates.</p>
+<div class="float">
+<img src="reference/figures/gcms-data1-profiles-spectra.png" alt="Recovered log-concave profiles and spectra"><div class="figcaption">Recovered log-concave profiles and spectra</div>
+</div>
+<p>The <a href="articles/log-concave-nmf.html">worked example</a> shows the model, likelihood and local updates in detail.</p>
 </div>
 <div class="section level2">
 <h2 id="methods-and-applications">Methods and applications<a class="anchor" aria-label="anchor" href="#methods-and-applications"></a>
@@ -121,7 +148,6 @@ Sparse nonnegative matrix factorization, log-concave profiles and flexible obser
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
 <li>Tom Wenseleers <br><small class="roles"> Author, maintainer </small>   </li>
-<li>Laura Lanzas <br><small class="roles"> Author </small>   </li>
 <li>Christophe Vanderaa <br><small class="roles"> Author </small>   </li>
 <li>Niamh Callinan Keenan <br><small class="roles"> Contributor </small>   </li>
 </ul>
@@ -139,7 +165,7 @@ Sparse nonnegative matrix factorization, log-concave profiles and flexible obser
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Tom Wenseleers, Laura Lanzas, Christophe Vanderaa.</p>
+  <p>Developed by Tom Wenseleers, Christophe Vanderaa.</p>
 </div>
 
 <div class="pkgdown-footer-right">

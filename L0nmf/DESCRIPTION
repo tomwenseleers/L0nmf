@@ -2,13 +2,13 @@ Package: L0nmf
 Type: Package
 Title: Sparse Log-Concave Matrix Factorization and Deconvolution
 Version: 0.1.0
-Authors@R: c(person("Tom", "Wenseleers", role = c("aut", "cre"),
-    	     email = "tom.wenseleers@kuleuven.be"),
-    	     person("Laura", "Lanzas", role = c("aut"),
-  	       email = "lauralanzasiolsina@gmail.com"),
-  	       person("Christophe", "Vanderaa", role = c("aut"),
+Date: 2026-11-01
+Authors@R: c(
+    person("Tom", "Wenseleers", role = c("aut", "cre"),
+           email = "tom.wenseleers@kuleuven.be"),
+    person("Christophe", "Vanderaa", role = "aut",
            email = "christophe.vanderaa@kuleuven.be"),
-           person("Niamh", "Callinan Keenan", role = "ctb"))
+    person("Niamh", "Callinan Keenan", role = "ctb"))
 Description: Sparse nonnegative matrix factorization with hard log-concave profiles, adaptive ridge selection, flexible noise models and point spread function estimation.
 License: GPL (>= 2)
 Encoding: UTF-8

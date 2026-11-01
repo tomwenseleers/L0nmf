@@ -1,6 +1,21 @@
 # L0nmf
 
-<div class="package-banner"><h1>Sparse factors. Interpretable signals.</h1><p>Sparse nonnegative matrix factorization, log-concave profiles and flexible observation models.</p></div>
+<div class="l0-hero">
+<div class="l0-hero-copy">
+<p class="l0-eyebrow">SPARSE FACTORIZATION · LOG-CONCAVE PROFILES</p>
+<h1>Sparse factors.<br><span>Interpretable signals.</span></h1>
+<p class="l0-lead">Sparse nonnegative matrix factorization, log-concave profiles and flexible observation models.</p>
+<div class="l0-actions"><a class="btn btn-primary" href="articles/log-concave-nmf.html">Get started <span aria-hidden="true">↗</span></a><a class="btn btn-outline-light" href="reference/index.html">Explore the methods</a></div>
+<p class="l0-hero-note">R · Local likelihood updates · Full spectra · Constant &amp; varying PSFs</p>
+</div>
+<img class="l0-hero-logo" src="logo-dark.svg" alt="L0nmf hex logo showing a sparse matrix factorized into profiles and spectral loadings" width="240" height="280">
+</div>
+
+<div class="l0-stat-grid">
+<a href="reference/splogconNMF.html"><strong>Sparse rank</strong><span>Recover a parsimonious set of nonnegative components</span></a>
+<a href="reference/estimate_psf.html"><strong>Peak shapes</strong><span>Log-concave profiles and constant or time-varying PSFs</span></a>
+<a href="articles/log-concave-nmf.html"><strong>5 families</strong><span>Gaussian, Poisson, quasi-Poisson, negative binomial and Gamma</span></a>
+</div>
 
 L0nmf is part of a focused three-package toolkit: [L0glm](https://tomwenseleers.github.io/L0glm/) supplies fast sparse GLM selection, [L0nmf](https://tomwenseleers.github.io/L0nmf/) supplies sparse factorization and PSF estimation, and [GCMSprime](https://tomwenseleers.github.io/GCMSprime/) turns those methods into a chromatographic workflow.
 
@@ -27,6 +42,11 @@ matplot(as.matrix(fit$H), type="l", lty=1, xlab="Scan", ylab="Elution profile")
 ```
 
 The factors retain every original outcome channel. Profiles have unit area, nonnegative spectra carry their intensities, and a smooth unpenalized background captures baseline variation. Selection and fusion use a parsimonious rank criterion with local likelihood updates.
+
+
+![Recovered log-concave profiles and spectra](reference/figures/gcms-data1-profiles-spectra.png)
+
+The [worked example](articles/log-concave-nmf.html) shows the model, likelihood and local updates in detail.
 
 ## Methods and applications
 

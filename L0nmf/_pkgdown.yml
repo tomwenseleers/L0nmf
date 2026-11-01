@@ -11,6 +11,10 @@ template:
   bootstrap: 5
   theme: github-dark
   math-rendering: katex
+  opengraph:
+    image:
+      src: man/figures/logo.png
+      alt: "L0nmf hex logo showing a sparse matrix factorized into profiles and spectral loadings"
   bslib:
     bg: "#fcfdfd"
     fg: "#203047"
@@ -24,9 +28,16 @@ navbar:
   bg: dark
   type: dark
   structure:
-    left: [intro, articles, algorithm, reference, news]
+    left: [intro, tutorials, algorithm, reference, news]
     right: [search, github]
   components:
+    tutorials:
+      text: Tutorials
+      menu:
+        - text: Sparse log-concave factorization
+          href: articles/log-concave-nmf.html
+        - text: GC/MS workflow in GCMSprime
+          href: https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html
     intro:
       text: Get started
       href: articles/log-concave-nmf.html
@@ -37,6 +48,7 @@ navbar:
       icon: fab fa-github
       href: https://github.com/tomwenseleers/L0nmf
 home:
+  strip_header: false
   title: "Sparse nonnegative matrix factorization, log-concave profiles and flexible observation models."
   sidebar:
     structure: [links, authors, license]

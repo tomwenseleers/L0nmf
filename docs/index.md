@@ -1,9 +1,29 @@
 # L0nmf
 
-# Sparse factors. Interpretable signals.
+SPARSE FACTORIZATION · LOG-CONCAVE PROFILES
+
+Sparse factors.\
+Interpretable signals.
+======================
 
 Sparse nonnegative matrix factorization, log-concave profiles and
 flexible observation models.
+
+[Get started
+↗](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md)[Explore
+the methods](https://tomwenseleers.github.io/L0nmf/reference/index.md)
+
+R · Local likelihood updates · Full spectra · Constant & varying PSFs
+
+![L0nmf hex logo showing a sparse matrix factorized into profiles and
+spectral loadings](logo-dark.svg)
+
+[**Sparse rank**Recover a parsimonious set of nonnegative
+components](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+[**Peak shapes**Log-concave profiles and constant or time-varying
+PSFs](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf.md)
+[**5 families**Gaussian, Poisson, quasi-Poisson, negative binomial and
+Gamma](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md)
 
 L0nmf is part of a focused three-package toolkit:
 [L0glm](https://tomwenseleers.github.io/L0glm/) supplies fast sparse GLM
@@ -40,6 +60,15 @@ The factors retain every original outcome channel. Profiles have unit
 area, nonnegative spectra carry their intensities, and a smooth
 unpenalized background captures baseline variation. Selection and fusion
 use a parsimonious rank criterion with local likelihood updates.
+
+![Recovered log-concave profiles and
+spectra](reference/figures/gcms-data1-profiles-spectra.png)
+
+Recovered log-concave profiles and spectra
+
+The [worked
+example](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md)
+shows the model, likelihood and local updates in detail.
 
 ## Methods and applications
 

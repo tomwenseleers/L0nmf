@@ -30,10 +30,10 @@ The factors retain every original outcome channel. Profiles have unit area, nonn
 
 ## Methods and applications
 
-* [Sparse log-concave factorization and its mathematical model](articles/log-concave-nmf.html)
-* [Constant and time-varying PSFs](reference/estimate_psf.html)
-* [Blind deconvolution](reference/L0glm_blind_deco.html)
-* [Simulated chromatograms](reference/simulate_GCMS.html)
+* [Sparse log-concave factorization and its mathematical model](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.html)
+* [Constant and time-varying PSFs](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf.html)
+* [Blind deconvolution](https://tomwenseleers.github.io/L0nmf/reference/L0glm_blind_deco.html)
+* [Simulated chromatograms](https://tomwenseleers.github.io/L0nmf/reference/simulate_GCMS.html)
 * [GC/MS input, output and reports in GCMSprime](https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html)
 
 Gaussian, Poisson, quasi-Poisson, negative-binomial and Gamma observation models are supported for identity-link nonnegative signals. The help pages describe aggregation, temporal dispersion, censored observations and the full objective.

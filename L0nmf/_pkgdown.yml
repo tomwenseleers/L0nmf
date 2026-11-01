@@ -1,5 +1,11 @@
 url: https://tomwenseleers.github.io/L0nmf/
 title: L0nmf
+repo:
+  url:
+    home: https://github.com/tomwenseleers/L0nmf/
+    source: https://github.com/tomwenseleers/L0nmf/blob/master/L0nmf/
+    issue: https://github.com/tomwenseleers/L0nmf/issues
+    user: https://github.com/
 destination: ../docs
 template:
   bootstrap: 5

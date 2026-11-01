@@ -93,10 +93,24 @@ provides an experimental general factorization method. Its algorithm is
 being developed separately from the validated local log-concave
 workflow.
 
-## Citation and acknowledgements
+## Citation
 
-An article describing these methods is in preparation. Please cite the
-package and the methodological sources linked in the help pages when
-using this work. OpenAI Codex/GPT-6 Astra and 6.1 Sol assisted code
-optimization, refactoring and documentation; the authors developed the
-key ideas and take responsibility for the work.
+An article describing the methods implemented in L0nmf is in
+preparation. If you use the package before the article is formally
+published, we would appreciate a citation to the package:
+
+Wenseleers T, Vanderaa C (2026). *L0nmf: Sparse Log-Concave Matrix
+Factorization and Deconvolution*. R package version 0.1.0,
+<https://tomwenseleers.github.io/L0nmf/>.
+
+The [Authors and Citation
+page](https://tomwenseleers.github.io/L0nmf/authors.html#citation) also
+provides the citation in BibTeX format. Please also cite the
+methodological sources linked in the help pages where relevant.
+
+## Acknowledgements
+
+OpenAI Codex, using GPT-6 Astra and GPT-6.1 Sol, was used to optimize
+and refactor code and help draft the documentation. The key ideas and
+methodological decisions are the authors’ own, and the authors take full
+responsibility for the work presented here.

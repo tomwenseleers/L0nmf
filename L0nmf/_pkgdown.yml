@@ -51,7 +51,7 @@ home:
   strip_header: false
   title: "Sparse nonnegative matrix factorization, log-concave profiles and flexible noise models."
   sidebar:
-    structure: [links, authors, license]
+    structure: [links, citation, authors, license]
 authors:
   sidebar:
     roles: [aut, cre, ctb]

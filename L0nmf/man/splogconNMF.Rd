@@ -305,7 +305,7 @@ to the original channels is followed by a spectral/background refit and
 local shape refinement, with no repetition of the reduced-space search.
 Worked full-channel fits to \link{GCMS_data1} and \link{GCMS_data2}, with traces,
 heatmaps, profiles and spectra, are shown in the
-\href{../articles/gcms-deconvolution.html}{GC/MS deconvolution tutorial} and
+\href{https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html}{GC/MS deconvolution tutorial} and
 the \href{https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html}{GCMSdeco()} help page. \href{https://tomwenseleers.github.io/GCMSprime/reference/write_GCMS_cdf.html}{write_GCMS_cdf()} exports these matrices for
 the complete file-based workflow.
 

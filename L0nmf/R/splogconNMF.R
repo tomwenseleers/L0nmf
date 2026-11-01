@@ -384,7 +384,7 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #' local shape refinement, with no repetition of the reduced-space search.
 #' Worked full-channel fits to [GCMS_data1] and [GCMS_data2], with traces,
 #' heatmaps, profiles and spectra, are shown in the
-#' [GC/MS deconvolution tutorial](../articles/gcms-deconvolution.html) and
+#' [GC/MS deconvolution tutorial](https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html) and
 #' the [GCMSdeco()](https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html) help page. [write_GCMS_cdf()](https://tomwenseleers.github.io/GCMSprime/reference/write_GCMS_cdf.html) exports these matrices for
 #' the complete file-based workflow.
 #'

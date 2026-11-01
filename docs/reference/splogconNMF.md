@@ -387,7 +387,7 @@ and
 [GCMS_data2](https://tomwenseleers.github.io/L0nmf/reference/GCMS_data2.md),
 with traces, heatmaps, profiles and spectra, are shown in the [GC/MS
 deconvolution
-tutorial](https://tomwenseleers.github.io/L0nmf/articles/gcms-deconvolution.md)
+tutorial](https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html)
 and the
 [GCMSdeco()](https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html)
 help page.

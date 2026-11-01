@@ -160,7 +160,7 @@ refinement and exported spectra retain every original mass channel.
 For instrumental intensities the default quasipoisson model estimates one
 shared dispersion. Its variance scale also sets the working precision of the
 total-ion PSF pilot. The final likelihood uses the original channels and the
-same frozen noise parameters. [The reference page](../reference/GCMSdeco.html)
+same frozen noise parameters. [The reference page](https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html)
 details the working-weight formula, automatic spline dimension, retention-time
 units and exported metadata.
 
@@ -231,7 +231,7 @@ stage; `control=list(profile_fusion=FALSE)` disables the final conservative pass
 | Common-scale Gamma | \(b_0\mu\) | \(\{\psi(\mu/b_0)+\log b_0-\log y\}/b_0\) |
 
 The final two models use the exact distributions documented in
-[`signal_families`](../reference/signal_families.html). Their observed positive
+[`signal_families`](https://tomwenseleers.github.io/L0glm/reference/signal_families.html). Their observed positive
 curvatures are differences of trigamma functions for NB1 and
 \(\psi_1(\mu/b_0)/b_0^2\) for common-scale Gamma. The latter is convex in the
 mean; the NB1 curvature is nonnegative because trigamma decreases on the

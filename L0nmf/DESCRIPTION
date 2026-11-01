@@ -1,0 +1,25 @@
+Package: L0nmf
+Type: Package
+Title: Sparse Log-Concave Matrix Factorization and Deconvolution
+Version: 0.1.0
+Authors@R: c(person("Tom", "Wenseleers", role = c("aut", "cre"),
+    	     email = "tom.wenseleers@kuleuven.be"),
+    	     person("Laura", "Lanzas", role = c("aut"),
+  	       email = "lauralanzasiolsina@gmail.com"),
+  	       person("Christophe", "Vanderaa", role = c("aut"),
+           email = "christophe.vanderaa@kuleuven.be"),
+           person("Niamh", "Callinan Keenan", role = "ctb"))
+Description: Sparse nonnegative matrix factorization with hard log-concave profiles, adaptive ridge selection, flexible noise models and point spread function estimation.
+License: GPL (>= 2)
+Encoding: UTF-8
+Depends: R (>= 4.1.0)
+Imports: L0glm (>= 0.2.0), Matrix, Rcpp, cobs, gsignal, methods, stats, graphics, grDevices, utils
+Suggests: ALS, testthat (>= 3.0.0), knitr, rmarkdown, pkgdown, mgcv, ncdf4, openxlsx, DBI, RSQLite, jsonlite
+LinkingTo: L0glm, Rcpp, RcppEigen
+SystemRequirements: C++17, OpenMP
+URL: https://tomwenseleers.github.io/L0nmf/, https://github.com/tomwenseleers/L0nmf
+BugReports: https://github.com/tomwenseleers/L0nmf/issues
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+Config/roxygen2/version: 8.1.1
+Remotes: tomwenseleers/L0glm/L0glm

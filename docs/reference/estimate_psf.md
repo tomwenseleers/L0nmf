@@ -1,0 +1,249 @@
+# Estimate constant or time-varying point spread functions
+
+Estimate a log-concave PSF from a calibration standard or an overlapping
+sample, and construct its sparse scan-by-scan convolution design.
+Numeric retention-time names and the bundled data's `alkanes_TIC`
+attributes are recognised automatically.
+
+## Usage
+
+``` r
+estimate_psf(
+  y,
+  family = quasipoisson("identity"),
+  time = NULL,
+  standard = attr(y, "alkanes_TIC"),
+  method = c("auto", "standard", "blind"),
+  nwindows = 1L,
+  precluster = 1L,
+  dispersion = NULL,
+  theta = NULL,
+  weights = NULL,
+  offset = NULL,
+  ncores = NULL,
+  control = list(),
+  verbose = FALSE
+)
+```
+
+## Arguments
+
+- y:
+
+  Numeric signal vector, scan-by-channel matrix, or a list with `Y` and
+  `time`. Sparse matrices are accepted. At least nine scans are needed.
+
+- family:
+
+  Identity-link family supported by
+  [`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md),
+  including Gaussian, Poisson, quasipoisson, negative binomial,
+  [`nb1()`](https://tomwenseleers.github.io/L0glm/reference/signal_families.html),
+  ordinary
+  [`Gamma_censored()`](https://tomwenseleers.github.io/L0glm/reference/signal_families.html)
+  and common-scale
+  [`Gamma_scale()`](https://tomwenseleers.github.io/L0glm/reference/signal_families.html).
+  Character names are also accepted. Gaussian observations may be
+  negative.
+
+- time:
+
+  Increasing sample retention times. Defaults to numeric names or row
+  names, or scan indices when names are absent. The standard and sample
+  must use the same time units.
+
+- standard:
+
+  Optional nonoverlapping calibration signal, with its own
+  retention-time names or `list(Y=..., time=...)`. Defaults to
+  `attr(y, "alkanes_TIC")`, supplied with
+  [GCMS_data1](https://tomwenseleers.github.io/L0nmf/reference/GCMS_data1.md)
+  and
+  [GCMS_data2](https://tomwenseleers.github.io/L0nmf/reference/GCMS_data2.md).
+
+- method:
+
+  `"auto"` calibrates from an available standard and then refines on the
+  sample; without a standard it uses blind sample estimation.
+  `"standard"` uses calibration alone, treating `y` as the standard when
+  `standard=NULL`. `"blind"` estimates directly from the overlapping
+  sample. A supplied `control$kernel_est` takes precedence over
+  automatic calibration.
+
+- nwindows:
+
+  Number of PSF anchors across the sample. `1L` gives a constant PSF.
+  Multiple anchors are smoothly interpolated on the log-profile scale.
+
+- precluster:
+
+  `FALSE` retains the original channels, `1L` sums all channels, and an
+  integer requests that many outcome groups at most. `TRUE` uses at most
+  32 groups. The default uses the total-ion signal. Poisson distances
+  use channel totals as size factors and native OpenMP Ward or Bregman
+  clustering; see
+  [`glm_cluster()`](https://tomwenseleers.github.io/L0glm/reference/glm_cluster.html).
+
+- dispersion, theta:
+
+  Shared noise parameters, as in
+  [`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md).
+  Omitted parameters are estimated from temporal differences and held
+  fixed during PSF estimation. For NB2, `theta` is the shape parameter.
+
+- weights, offset:
+
+  Nonnegative scalar, scan vector or matrix matching the signal used for
+  estimation. In `method="standard"` these refer to the standard; in
+  `"auto"` and `"blind"` they refer to the sample. An identity-link
+  offset is an additive known signal. Grouped offsets are summed.
+
+- ncores:
+
+  Number of native threads; defaults to the physical core count.
+
+- control:
+
+  Named list. `L` fixes an odd kernel length; otherwise standard support
+  is inferred from its fitted peak masses and blind support defaults to
+  41 scans. `kernel_est` supplies a vector or one kernel row per window.
+  `maxiter=8L` and `tol=1e-3` control blind iterations; `maxiter=0L`
+  returns the supplied kernel design directly. `fit` is a named list of
+  additional
+  [`L0glm_blind_deco()`](https://tomwenseleers.github.io/L0nmf/reference/L0glm_blind_deco.md)
+  fitting options, such as `IC` or `relaxed`. Standard controls include
+  `n_peaks=NULL`, `baseline_df=NULL`, `baseline_tau=0.05`, `peak_snr=5`,
+  `peak_height=NULL`, `peak_min_distance=NULL`,
+  `support_fraction=0.005`, `psf_mass=0.999` and
+  `support_quantile=0.95`. `linkage="ward"` controls channel clustering.
+  `censor=0.5` is the Gamma detection limit, taken from a supplied
+  scalar family constructor unless explicitly overridden.
+
+- verbose:
+
+  Print the estimation mode, aggregation and fitted PSF width.
+
+## Value
+
+A list containing the sparse design `X` (`X_spikes`), kernel vector or
+matrix `g_hat`, `psf_kernels`, relative-time `psf_offsets`, anchor
+retention times `psf_timepoints`, sample `time`, fitted `width_scans`,
+`method`, noise `spec`, Gamma detection limit `censor`, aggregation
+diagnostics, optional `calibration`, blind `windows`, `iterations`,
+`converged` and elapsed `seconds`. The result can be passed directly as
+`X=psf$X` to
+[`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+or
+[`L0glm.fit()`](https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html).
+No observed matrix is retained.
+
+## Details
+
+**Standard calibration.** A lower-quantile spline estimates background.
+Isolated calibration peaks are retained using signal-to-noise and
+profile geometry. Each peak is fitted on its original observation scale:
+\$\$\mu\_{ij}=b\_{ij}+o\_{ij}+h_i s_j,\qquad h_i\>0,\quad \Delta^2\log
+h_i\leq0.\$\$ Native likelihood-based profile updates minimize
+\\-\sum\_{ij}w\_{ij}\ell(y\_{ij};\mu\_{ij})\\ while imposing hard log
+concavity. The logarithm parameterizes the positive profile; likelihood
+or quasi-likelihood is evaluated on the original observation scale.
+Unit-area kernels are aligned by their centroid and resampled to the
+sample scan interval. Isolated-peak fitting, automatic support and
+interpolation share helpers with
+[`estimate_psf_from_std()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf_from_std.md).
+
+**Blind refinement.**
+[`L0glm_blind_deco()`](https://tomwenseleers.github.io/L0nmf/reference/L0glm_blind_deco.md)
+alternates sparse nonnegative spike fitting with PSF estimation.
+Completed candidates are compared using the requested information
+criterion and the best checkpoint is retained. The unpenalized
+background and any known offset enter both updates. With
+fixed-dispersion quasipoisson counts, the Poisson likelihood weighted by
+\\1/\phi\\ has the same mean-dependent objective. This permits the
+native Poisson backend while preserving the quasipoisson noise scale.
+For multiple windows, local kernels are estimated independently, and
+\\\log g_t=(1-a)\log g_l+a\log g_r\\, with smoothstep weights
+\\a=u^2(3-2u)\\, joins adjacent anchors. The returned design has
+nonnegative, unit-sum, log-concave columns, including truncated boundary
+columns. Kernel vectors are indexed by scans. Standard profiles are
+resampled using the median sample scan interval; a constant kernel gives
+shifted copies on that scan grid, independently of rounding in the
+retention-time labels.
+
+**Channel aggregation.** Poisson sums retain their model.
+Shared-dispersion quasipoisson and NB1 sums retain their mean-variance
+relationship, Gaussian variances add, and common-scale Gamma shapes add.
+NB2 and ordinary Gamma use variance matching with observed channel
+fractions \\r_j=\sum_i y\_{ij}/\sum\_{i,j\in G}y\_{ij}\\:
+\$\$\theta_G=\theta/\sum\_{j\in G}r_j^2,\qquad \phi_G=\phi\sum\_{j\in
+G}r_j^2.\$\$ These are generally moment-matched sum distributions. Equal
+component means give exact NB2 or ordinary Gamma closure under shared
+per-channel parameters. Varying channel proportions over time also
+affect the variance approximation. Censored Gamma aggregation is
+approximate and flagged separately. Different observation weights within
+a group are averaged and flagged in the returned diagnostics; retain the
+original channels for exact weighted fitting.
+
+Calibration and sample peaks should represent the same chromatographic
+conditions. Broad overloaded standard peaks can require sample
+refinement; `method="standard"` keeps the calibration unchanged.
+Supplied kernels are useful when a particular experimental PSF is
+already known.
+
+## References
+
+de Rooi, J. J. and Eilers, P. H. C. (2011). Deconvolution of pulse
+trains with the L0 penalty. *Analytica Chimica Acta* 705, 218–226.
+[doi:10.1016/j.aca.2011.05.030](https://doi.org/10.1016/j.aca.2011.05.030)
+.
+
+## See also
+
+[`GCMSprime::GCMSdeco()`](https://rdrr.io/pkg/GCMSprime/man/GCMSdeco.html),
+[`L0glm_blind_deco()`](https://tomwenseleers.github.io/L0nmf/reference/L0glm_blind_deco.md),
+[`estimate_psf_from_std()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf_from_std.md),
+[`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md),
+[`glm_cluster()`](https://tomwenseleers.github.io/L0glm/reference/glm_cluster.html)
+
+## Examples
+
+``` r
+library(L0glm)
+set.seed(12)
+n <- 300L
+time <- seq_len(n) / 60
+kernel <- dnorm(-15:15, sd = 2.5)
+kernel <- kernel / sum(kernel)
+A <- matrix(0, n, 3L)
+A[c(40, 120, 210, 270), ] <- 30000
+mu <- as.matrix(convmatrix(kernel, n) %*% A) + 10
+Y <- matrix(rpois(length(mu), mu), n, 3L)
+rownames(Y) <- time
+
+# Isolated standard peaks provide a PSF on the sample's retention-time grid.
+calibration <- estimate_psf(Y, standard = list(Y = Y, time = time),
+  method = "standard", nwindows = 3L, ncores = 2L)
+dim(calibration$X)
+Matrix::colSums(calibration$X)[1:5]
+matplot(calibration$psf_offsets, t(calibration$psf_kernels),
+  type = "l", lty = 1, xlab = "Relative retention time (min)", ylab = "PSF")
+
+# Blind refinement can use the original channels or their grouped sums.
+blind <- estimate_psf(Y, standard = NULL, method = "blind", precluster = 2L,
+  ncores = 2L, control = list(kernel_est = kernel, maxiter = 2L))
+blind$width_scans
+
+if (FALSE) { # \dontrun{
+data(GCMS_data2)
+Y <- GCMS_data2
+# The alkane TIC and its time axis are taken from attr(Y, "alkanes_TIC").
+psf <- estimate_psf(Y, nwindows = 3L)
+B <- splines::bs(as.numeric(rownames(Y)), df = 4L, intercept = TRUE)
+fit <- splogconNMF(psf$X, Y, background = B,
+  family = quasipoisson("identity"), precluster = 32L)
+
+# Calibration alone, or a single common PSF, are available through the same API.
+calibrated <- estimate_psf(Y, method = "standard", nwindows = 3L)
+constant <- estimate_psf(Y, nwindows = 1L)
+} # }
+```

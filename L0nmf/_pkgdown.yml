@@ -1,0 +1,33 @@
+url: https://tomwenseleers.github.io/L0nmf/
+title: L0nmf
+destination: ../docs
+template:
+  bootstrap: 5
+  math-rendering: katex
+  bslib:
+    bg: "#fcfdfd"
+    fg: "#203047"
+    primary: "#087e83"
+    base_font: "system-ui"
+    heading_font: "system-ui"
+    code_font: "system-ui"
+    border-radius: 0.6rem
+    navbar-bg: "#081629"
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [search, github]
+  components:
+    intro:
+      text: Get started
+      href: articles/log-concave-nmf.html
+    github:
+      icon: fab fa-github
+      href: https://github.com/tomwenseleers/L0nmf
+home:
+  title: "Sparse nonnegative matrix factorization, log-concave profiles and flexible observation models."
+  sidebar:
+    structure: [links, authors, license]
+authors:
+  sidebar:
+    roles: [aut, cre, ctb]

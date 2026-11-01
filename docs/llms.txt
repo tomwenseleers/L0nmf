@@ -1,0 +1,126 @@
+# L0nmf
+
+# Sparse factors. Interpretable signals.
+
+Sparse nonnegative matrix factorization, log-concave profiles and
+flexible observation models.
+
+L0nmf is part of a focused three-package toolkit:
+[L0glm](https://tomwenseleers.github.io/L0glm/) supplies fast sparse GLM
+selection, [L0nmf](https://tomwenseleers.github.io/L0nmf/) supplies
+sparse factorization and PSF estimation, and
+[GCMSprime](https://tomwenseleers.github.io/GCMSprime/) turns those
+methods into a chromatographic workflow.
+
+## Installation
+
+``` r
+
+install.packages("remotes")
+remotes::install_github("tomwenseleers/L0nmf/L0nmf")
+```
+
+## Recover profiles and spectra
+
+``` r
+
+library(L0glm)
+library(L0nmf)
+data(GCMS_data1)
+X <- convmatrix(convkernel("gaussian", 65L, list(sigma=8)), nrow(GCMS_data1))
+fit <- splogconNMF(X, GCMS_data1, background=matrix(1,nrow(X),1),
+                  family=quasipoisson("identity"), precluster=16L,
+                  correlation="none")
+fit
+GIC(fit)
+matplot(as.matrix(fit$H), type="l", lty=1, xlab="Scan", ylab="Elution profile")
+```
+
+The factors retain every original outcome channel. Profiles have unit
+area, nonnegative spectra carry their intensities, and a smooth
+unpenalized background captures baseline variation. Selection and fusion
+use a parsimonious rank criterion with local likelihood updates.
+
+## Methods and applications
+
+- [Sparse log-concave factorization and its mathematical
+  model](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md)
+- [Constant and time-varying
+  PSFs](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf.md)
+- [Blind
+  deconvolution](https://tomwenseleers.github.io/L0nmf/reference/L0glm_blind_deco.md)
+- [Simulated
+  chromatograms](https://tomwenseleers.github.io/L0nmf/reference/simulate_GCMS.md)
+- [GC/MS input, output and reports in
+  GCMSprime](https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html)
+
+Gaussian, Poisson, quasi-Poisson, negative-binomial and Gamma
+observation models are supported for identity-link nonnegative signals.
+The help pages describe aggregation, temporal dispersion, censored
+observations and the full objective.
+
+[`L0BestRankGNMF()`](https://tomwenseleers.github.io/L0nmf/reference/L0BestRankGNMF.md)
+provides an experimental general factorization method. Its algorithm is
+being developed separately from the validated local log-concave
+workflow.
+
+## Citation and acknowledgements
+
+An article describing these methods is in preparation. Please cite the
+package and the methodological sources linked in the help pages when
+using this work. OpenAI Codex/GPT-6 Astra and 6.1 Sol assisted code
+optimization, refactoring and documentation; the authors developed the
+key ideas and take responsibility for the work.
+
+# Package index
+
+## All functions
+
+- [`estimate_psf()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf.md)
+  : Estimate constant or time-varying point spread functions
+- [`estimate_psf_from_std()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf_from_std.md)
+  : Estimate a time-varying PSF matrix from an alkane ladder TIC
+- [`estimate_signal_noise()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_signal_noise.md)
+  : Estimate a shared noise model for ordered multichannel signals
+- [`GCMS_data1`](https://tomwenseleers.github.io/L0nmf/reference/GCMS_data1.md)
+  : GC/MS Chromatogram Section - Cuticular Hydrocarbon Profile of a
+  Cataglyphis iberica Ant Queen
+- [`GCMS_data2`](https://tomwenseleers.github.io/L0nmf/reference/GCMS_data2.md)
+  : GC/MS Chromatogram Section - Beer Headspace Volatiles
+- [`L0BestRankGNMF()`](https://tomwenseleers.github.io/L0nmf/reference/L0BestRankGNMF.md)
+  : L0-Penalised Generalised Best-Rank NMF
+- [`L0glm_blind_deco()`](https://tomwenseleers.github.io/L0nmf/reference/L0glm_blind_deco.md)
+  : Alternating sparse L0 glm powered blind deconvolution
+- [`L0glm_deco_estkernel()`](https://tomwenseleers.github.io/L0nmf/reference/L0glm_deco_estkernel.md)
+  : Estimate the PSF given a spike train estimate via L0-penalised GLMs
+- [`L0glm_sparse_deco()`](https://tomwenseleers.github.io/L0nmf/reference/L0glm_sparse_deco.md)
+  : Sparse deconvolution with a fixed PSF via L0-penalised GLMs
+- [`log_conc_smooth()`](https://tomwenseleers.github.io/L0nmf/reference/log_conc_smooth.md)
+  : Log-concave spline smoothing of a discrete convolution kernel
+  estimate
+- [`simulate_GCMS()`](https://tomwenseleers.github.io/L0nmf/reference/simulate_GCMS.md)
+  : Simulate synthetic GC-MS chromatograms with ground-truth signal +
+  background
+- [`residuals(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+  [`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+  [`fitted(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+  [`nobs(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+  [`coef(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+  [`logLik(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+  [`AIC(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+  [`BIC(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+  [`GIC(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+  [`EBIC(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+  [`MBIC(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+  [`print(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+  : Sparse log-concave nonnegative matrix factorization
+
+# Articles
+
+### All vignettes
+
+- [Sparse log-concave
+  NMF](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md):
+
+  Recover compound profiles and spectra with local likelihood updates
+  and a parsimonious rank.

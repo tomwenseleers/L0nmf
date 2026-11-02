@@ -1,6 +1,6 @@
 Package: L0nmf
 Type: Package
-Title: Sparse Log-Concave Matrix Factorization and Deconvolution
+Title: Scalable Sparse Nonnegative Matrix Factorization with Automatic Rank Selection and Flexible Noise Models
 Version: 0.1.0
 Date: 2026-11-01
 Authors@R: c(

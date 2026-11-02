@@ -4,8 +4,10 @@
 \name{L0nmf-package}
 \alias{L0nmf}
 \alias{L0nmf-package}
-\title{Sparse Log-Concave Matrix Factorization and Deconvolution}
+\title{Scalable Sparse Nonnegative Matrix Factorization with Automatic Rank Selection and Flexible Noise Models}
 \description{
+\if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
+
 Sparse nonnegative matrix factorization with hard log-concave profiles, adaptive ridge selection, flexible noise models and point spread function estimation.
 }
 \seealso{

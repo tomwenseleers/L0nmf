@@ -1,4 +1,4 @@
-#' Sparse Log-Concave Matrix Factorization and Deconvolution
+#' Scalable Sparse Nonnegative Matrix Factorization with Automatic Rank Selection and Flexible Noise Models
 #'
 #' @keywords internal
 #' @import L0glm

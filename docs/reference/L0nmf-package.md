@@ -1,4 +1,4 @@
-# Sparse Log-Concave Matrix Factorization and Deconvolution
+# Scalable Sparse Nonnegative Matrix Factorization with Automatic Rank Selection and Flexible Noise Models
 
 Sparse nonnegative matrix factorization with hard log-concave profiles,
 adaptive ridge selection, flexible noise models and point spread

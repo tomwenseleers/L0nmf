@@ -99,8 +99,9 @@ An article describing the methods implemented in L0nmf is in
 preparation. If you use the package before the article is formally
 published, we would appreciate a citation to the package:
 
-Wenseleers T, Vanderaa C (2026). *L0nmf: Sparse Log-Concave Matrix
-Factorization and Deconvolution*. R package version 0.1.0,
+Wenseleers T, Vanderaa C (2026). *L0nmf: Scalable Sparse Nonnegative
+Matrix Factorization with Automatic Rank Selection and Flexible Noise
+Models*. R package version 0.1.0,
 <https://tomwenseleers.github.io/L0nmf/>.
 
 The [Authors and Citation

@@ -16,9 +16,18 @@ using namespace Rcpp;
 List slcn_log_profile(NumericMatrix y,NumericMatrix mean,NumericVector profile,
  NumericVector spectrum,int family,NumericVector phi,NumericVector theta,
  NumericVector weights,int full_n,int first=0,int maxit=4,double censor=.5,
- int q=128,int nthreads=1,int apex_lo=-1,int apex_hi=-1,int mode=2) {
+ int q=128,int nthreads=1,int apex_lo=-1,int apex_hi=-1,int mode=2,
+ Nullable<NumericVector> time=R_NilValue,Nullable<NumericVector> exposure=R_NilValue) {
   const int n=y.nrow(),m=y.ncol();q=std::min(n,q);
   const bool smooth=mode==0,whole=mode!=1;
+  NumericVector t(n),e(n,1.);
+  for(int i=0;i<n;++i)t[i]=i;
+  if(time.isNotNull())t=as<NumericVector>(time);
+  if(exposure.isNotNull())e=as<NumericVector>(exposure);
+  if(t.size()!=n||e.size()!=n)stop("Time and exposure must match the profile length.");
+  for(int i=0;i<n;++i)if(!std::isfinite(t[i])||(i&&t[i]<=t[i-1])||
+     !std::isfinite(e[i])||e[i]<=0)stop("Time must increase and exposure must be positive.");
+  if(mode==1&&time.isNotNull())stop("Use an absolute shape mode with explicit time coordinates.");
   if(n<3||q<3||first<0||maxit<0||nthreads<1||family<0||family>6||mode<0||mode>2||
      mean.nrow()!=n||mean.ncol()!=m||profile.size()!=n||spectrum.size()!=m||
      full_n<first+n||!(weights.size()==1||weights.size()==full_n*m)||
@@ -34,9 +43,9 @@ List slcn_log_profile(NumericMatrix y,NumericMatrix mean,NumericVector profile,
     // smooth concave log profile. The intercept and slope remain unrestricted.
     C.resize(n,q);const int J=q-2;
     for(int i=0;i<n;++i) {
-      const double t=(double)i/(n-1);C(i,0)=1;C(i,1)=t;
+      const double x=(t[i]-t[0])/(t[n-1]-t[0]);C(i,0)=1;C(i,1)=x;
       for(int j=0;j<J;++j) {
-        const double a=std::max(0.,t-(double)j/J),b=std::max(0.,t-(double)(j+1)/J);
+        const double a=std::max(0.,x-(double)j/J),b=std::max(0.,x-(double)(j+1)/J);
         C(i,j+2)=-.5*(a*a-b*b);
       }
     }
@@ -72,11 +81,11 @@ List slcn_log_profile(NumericMatrix y,NumericMatrix mean,NumericVector profile,
   int left=0;
   for(int i=0;i<n;++i) {
     while(left<q-2&&i>knots[left+1])++left;
-    const double fraction=(double)(i-knots[left])/(knots[left+1]-knots[left]);
+    const double fraction=(t[i]-t[knots[left]])/(t[knots[left+1]]-t[knots[left]]);
     C(i,left)=1-fraction;C(i,left+1)=fraction;
   }
   for(int j=0;j<q-2;++j) {
-    const double a=1.0/(knots[j+1]-knots[j]),b=1.0/(knots[j+2]-knots[j+1]);
+    const double a=1.0/(t[knots[j+1]]-t[knots[j]]),b=1.0/(t[knots[j+2]]-t[knots[j+1]]);
     D(j,j)=a;D(j,j+1)=-a-b;D(j,j+2)=b;D.row(j)/=D.row(j).norm();
   }
   int next_constraint=q-2;
@@ -89,7 +98,7 @@ List slcn_log_profile(NumericMatrix y,NumericMatrix mean,NumericVector profile,
     if(!std::isfinite(h[i])||h[i]<=0)stop("Positive finite profile required.");
     eta[i]=std::log(h[i]);
   }
-  for(int j=0;j<m;++j)for(int i=0;i<n;++i)rest(i,j)=std::max(0.,mean(i,j)-profile[i]*spectrum[j]);
+  for(int j=0;j<m;++j)for(int i=0;i<n;++i)rest(i,j)=std::max(0.,mean(i,j)-e[i]*profile[i]*spectrum[j]);
   auto change=[&](const NumericVector& old,const NumericVector& next) {
     std::vector<double> sums(n);
 #ifdef _OPENMP
@@ -98,8 +107,8 @@ List slcn_log_profile(NumericMatrix y,NumericMatrix mean,NumericVector profile,
     for(int i=0;i<n;++i) {
       long double sum=0;
       for(int j=0;j<m;++j)if(w(i,j)>0&&spectrum[j]>0)
-        sum+=w(i,j)*L0glmScalar::change(y(i,j),rest(i,j)+old[i]*spectrum[j],
-          rest(i,j)+next[i]*spectrum[j],family,p(j),th(j),censor);
+        sum+=w(i,j)*L0glmScalar::change(y(i,j),rest(i,j)+e[i]*old[i]*spectrum[j],
+          rest(i,j)+e[i]*next[i]*spectrum[j],family,p(j),th(j),censor);
       sums[i]=(double)sum;
     }
     long double sum=0;for(double a:sums)sum+=a;return (double)sum;
@@ -112,7 +121,7 @@ List slcn_log_profile(NumericMatrix y,NumericMatrix mean,NumericVector profile,
     for(int i=0;i<n;++i) {
       long double g=0,I=0;
       for(int j=0;j<m;++j)if(w(i,j)>0&&spectrum[j]>0) {
-        const double signal=h[i]*spectrum[j],mu=std::max(1e-15,rest(i,j)+signal);
+        const double signal=e[i]*h[i]*spectrum[j],mu=std::max(1e-15,rest(i,j)+signal);
         const auto a=L0glmScalar::derivatives(y(i,j),mu,family,p(j),th(j),censor);
         g+=w(i,j)*signal*a.gradient;I+=w(i,j)*signal*signal*a.information;
       }
@@ -140,7 +149,7 @@ List slcn_log_profile(NumericMatrix y,NumericMatrix mean,NumericVector profile,
       Eigen::VectorXd bound=Eigen::VectorXd::Zero(D.rows());
       if(!whole)for(int j=0;j<q-2;++j) {
         const int k=knots[j+1];
-        const double a=1.0/(knots[j+1]-knots[j]),b=1.0/(knots[j+2]-knots[j+1]);
+        const double a=1.0/(t[knots[j+1]]-t[knots[j]]),b=1.0/(t[knots[j+2]]-t[knots[j+1]]);
         bound[j]=std::max(0.,-(eta[k-1]-2*eta[k]+eta[k+1]))/std::sqrt(a*a+(a+b)*(a+b)+b*b);
       }
       if(lo)bound[q-2]=-1e-6;
@@ -159,15 +168,15 @@ List slcn_log_profile(NumericMatrix y,NumericMatrix mean,NumericVector profile,
       hull.push_back(i);
       while(hull.size()>2) {
         int k=hull.size(),a=hull[k-3],b=hull[k-2],c=hull[k-1];
-        if((proposed[b]-proposed[a])/(b-a)>=
-           (proposed[c]-proposed[b])/(c-b))break;
+        if((proposed[b]-proposed[a])/(t[b]-t[a])>=
+           (proposed[c]-proposed[b])/(t[c]-t[b]))break;
         hull[k-2]=c;hull.pop_back();
       }
     }
     Eigen::VectorXd feasible=proposed;
     for(size_t j=1;j<hull.size();++j)for(int i=hull[j-1];i<=hull[j];++i) {
       const int a=hull[j-1],b=hull[j];
-      feasible[i]=proposed[a]+(proposed[b]-proposed[a])*(i-a)/(b-a);
+      feasible[i]=proposed[a]+(proposed[b]-proposed[a])*(t[i]-t[a])/(t[b]-t[a]);
     }
     proposed=feasible;
     }

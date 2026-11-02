@@ -46,9 +46,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// slcn_pooled_terms
+List slcn_pooled_terms(NumericMatrix y, NumericMatrix mean, NumericVector design, int family, NumericVector phi, NumericVector theta, NumericMatrix weights, int nthreads, double censor);
+RcppExport SEXP _L0nmf_slcn_pooled_terms(SEXP ySEXP, SEXP meanSEXP, SEXP designSEXP, SEXP familySEXP, SEXP phiSEXP, SEXP thetaSEXP, SEXP weightsSEXP, SEXP nthreadsSEXP, SEXP censorSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type y(ySEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type mean(meanSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type design(designSEXP);
+    Rcpp::traits::input_parameter< int >::type family(familySEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type phi(phiSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type weights(weightsSEXP);
+    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
+    Rcpp::traits::input_parameter< double >::type censor(censorSEXP);
+    rcpp_result_gen = Rcpp::wrap(slcn_pooled_terms(y, mean, design, family, phi, theta, weights, nthreads, censor));
+    return rcpp_result_gen;
+END_RCPP
+}
 // slcn_log_profile
-List slcn_log_profile(NumericMatrix y, NumericMatrix mean, NumericVector profile, NumericVector spectrum, int family, NumericVector phi, NumericVector theta, NumericVector weights, int full_n, int first, int maxit, double censor, int q, int nthreads, int apex_lo, int apex_hi, int mode);
-RcppExport SEXP _L0nmf_slcn_log_profile(SEXP ySEXP, SEXP meanSEXP, SEXP profileSEXP, SEXP spectrumSEXP, SEXP familySEXP, SEXP phiSEXP, SEXP thetaSEXP, SEXP weightsSEXP, SEXP full_nSEXP, SEXP firstSEXP, SEXP maxitSEXP, SEXP censorSEXP, SEXP qSEXP, SEXP nthreadsSEXP, SEXP apex_loSEXP, SEXP apex_hiSEXP, SEXP modeSEXP) {
+List slcn_log_profile(NumericMatrix y, NumericMatrix mean, NumericVector profile, NumericVector spectrum, int family, NumericVector phi, NumericVector theta, NumericVector weights, int full_n, int first, int maxit, double censor, int q, int nthreads, int apex_lo, int apex_hi, int mode, Nullable<NumericVector> time, Nullable<NumericVector> exposure);
+RcppExport SEXP _L0nmf_slcn_log_profile(SEXP ySEXP, SEXP meanSEXP, SEXP profileSEXP, SEXP spectrumSEXP, SEXP familySEXP, SEXP phiSEXP, SEXP thetaSEXP, SEXP weightsSEXP, SEXP full_nSEXP, SEXP firstSEXP, SEXP maxitSEXP, SEXP censorSEXP, SEXP qSEXP, SEXP nthreadsSEXP, SEXP apex_loSEXP, SEXP apex_hiSEXP, SEXP modeSEXP, SEXP timeSEXP, SEXP exposureSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -69,7 +88,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type apex_lo(apex_loSEXP);
     Rcpp::traits::input_parameter< int >::type apex_hi(apex_hiSEXP);
     Rcpp::traits::input_parameter< int >::type mode(modeSEXP);
-    rcpp_result_gen = Rcpp::wrap(slcn_log_profile(y, mean, profile, spectrum, family, phi, theta, weights, full_n, first, maxit, censor, q, nthreads, apex_lo, apex_hi, mode));
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type exposure(exposureSEXP);
+    rcpp_result_gen = Rcpp::wrap(slcn_log_profile(y, mean, profile, spectrum, family, phi, theta, weights, full_n, first, maxit, censor, q, nthreads, apex_lo, apex_hi, mode, time, exposure));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -347,7 +368,8 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_L0nmf_nuisance_poisson_cpp", (DL_FUNC) &_L0nmf_nuisance_poisson_cpp, 8},
     {"_L0nmf_nuisance_gaussian_cpp", (DL_FUNC) &_L0nmf_nuisance_gaussian_cpp, 7},
-    {"_L0nmf_slcn_log_profile", (DL_FUNC) &_L0nmf_slcn_log_profile, 17},
+    {"_L0nmf_slcn_pooled_terms", (DL_FUNC) &_L0nmf_slcn_pooled_terms, 9},
+    {"_L0nmf_slcn_log_profile", (DL_FUNC) &_L0nmf_slcn_log_profile, 19},
     {"_L0nmf_logconc_quadratic_cpp", (DL_FUNC) &_L0nmf_logconc_quadratic_cpp, 5},
     {"_L0nmf_logconc_profile_cpp", (DL_FUNC) &_L0nmf_logconc_profile_cpp, 14},
     {"_L0nmf_slcn_state", (DL_FUNC) &_L0nmf_slcn_state, 2},

@@ -213,6 +213,32 @@ Neighbouring modes are guarded during its local refit.
 stage; `control=list(profile_fusion=FALSE)` disables the final
 conservative pass.
 
+### Complete the fit on the original ion channels
+
+The final pass checks conditional deletions, fusions of overlapping
+profiles, and PSF candidates suggested by the original-channel
+residuals. Nearly proportional profiles can be considered even when
+neither is a broad peak. Candidate construction uses matrix products and
+performs no refitting. Accepted proposals use native local likelihood
+fits with all other compounds and the fitted background held in the
+offset.
+
+For J=-2\ell+\lambda_RK, a deletion has change \Delta J=\Delta
+D-\lambda_R, a fusion of r factors has \Delta J=\Delta D-\lambda_R(r-1),
+and an addition has \Delta J=\Delta D+\lambda_R. The complete
+original-channel criterion must improve. Noise parameters, offsets,
+weights and the numerical compound penalty stay fixed. Cached deletion
+scores need updating only for profiles whose temporal supports overlap
+the deleted factor.
+
+The pass uses bounded scan windows to screen missed peaks, then refines
+the accepted profiles locally under hard log concavity. The same
+procedure is available for every supported noise family; working-score
+screening proposes candidates and each family’s likelihood decides
+acceptance. The returned `fit$cleanup` records the moves and full
+objective change. `control=list(original_cleanup=FALSE)` skips this
+pass.
+
 | Noise model | Variance | Negative log-likelihood score in the mean |
 |:---|:---|:---|
 | Gaussian | \phi | (\mu-y)/\phi |

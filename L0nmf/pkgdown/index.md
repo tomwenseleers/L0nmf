@@ -48,6 +48,8 @@ The factors retain every original outcome channel. Profiles have unit area, nonn
 
 The [worked example](articles/log-concave-nmf.html) shows the model, likelihood and local updates in detail.
 
+The final original-channel pass checks component deletions, local fusions and missed residual peaks, accepting each change only when the complete likelihood-and-compound criterion improves.
+
 ## Methods and applications
 
 * [Sparse log-concave factorization and its mathematical model](articles/log-concave-nmf.html)

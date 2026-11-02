@@ -236,7 +236,9 @@ a guarded whole-profile refit can also update the shared background.
 Neighbouring modes stay within one quarter of their initial FWHM, and
 the merge is retained only when the original-channel criterion decreases.
 <code>profile_fusion</code> enables a final conservative fusion pass on all original
-channels, followed by one local likelihood-based profile/spectrum refit.</p></dd>
+channels, followed by one local likelihood-based profile/spectrum refit.
+<code>original_cleanup=TRUE</code> enables a final original-channel deletion, local
+fusion and residual-discovery pass. Set it to <code>FALSE</code> to skip that pass.</p></dd>
 
 
 <dt id="arg-start">start<a class="anchor" aria-label="anchor" href="#arg-start"></a></dt>
@@ -326,6 +328,15 @@ overlapping compounds and checks the actual criterion. Every complete stage
 is accepted against its full working data, and final refinement and scoring
 use all original observations. <code>history</code> records each accepted or rejected
 stage; <code>ledger_error</code> checks the accumulated criterion change.</p>
+<p><strong>Original-channel completion.</strong> The final cleanup tests component deletions,
+local fusions proposed by profile or spectral similarity, and additional PSF
+candidates screened from original-channel residuals in bounded scan windows.
+Deletion scores are cached and refreshed only for overlapping profiles.
+Candidate construction performs no refitting. Native local likelihood fits
+keep other compounds and the background in the offset. Each accepted move
+decreases the complete original-channel objective with unchanged numerical
+rank penalty, noise parameters, observation weights and offsets. The
+<code>cleanup</code> entry records moves and the complete objective change.</p>
 <p><strong>Broad-profile fusion.</strong> After refitting the original channels, an additional
 algebraic pass compares elution profiles. Candidate pairs must have cosine
 similarity at least 0.95 and at least one profile with FWHM at least four

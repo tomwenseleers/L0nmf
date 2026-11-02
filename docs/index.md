@@ -70,6 +70,10 @@ The [worked
 example](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md)
 shows the model, likelihood and local updates in detail.
 
+The final original-channel pass checks component deletions, local
+fusions and missed residual peaks, accepting each change only when the
+complete likelihood-and-compound criterion improves.
+
 ## Methods and applications
 
 - [Sparse log-concave factorization and its mathematical

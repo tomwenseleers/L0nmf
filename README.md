@@ -36,6 +36,8 @@ matplot(as.matrix(fit$H), type="l", lty=1, xlab="Scan", ylab="Elution profile")
 
 The factors retain every original outcome channel. Profiles have unit area, nonnegative spectra carry their intensities, and a smooth unpenalized background captures baseline variation. Selection and fusion use a parsimonious rank criterion with local likelihood updates.
 
+The final original-channel pass checks component deletions, local fusions and missed residual peaks, accepting each change only when the complete likelihood-and-compound criterion improves.
+
 ## Methods and applications
 
 * [Sparse log-concave factorization and its mathematical model](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.html)

@@ -246,6 +246,8 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #'   the merge is retained only when the original-channel criterion decreases.
 #'   `profile_fusion` enables a final conservative fusion pass on all original
 #'   channels, followed by one local likelihood-based profile/spectrum refit.
+#'   `original_cleanup=TRUE` enables a final original-channel deletion, local
+#'   fusion and residual-discovery pass. Set it to `FALSE` to skip that pass.
 #' @param start Optional list `H`, `S` and `alpha`, with original dimensions.
 #'   `H` has scans in rows and compounds in columns; `S` has compounds in rows
 #'   and all original channels in columns. `alpha` contains background
@@ -317,6 +319,16 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #' is accepted against its full working data, and final refinement and scoring
 #' use all original observations. `history` records each accepted or rejected
 #' stage; `ledger_error` checks the accumulated criterion change.
+#'
+#' **Original-channel completion.** The final cleanup tests component deletions,
+#' local fusions proposed by profile or spectral similarity, and additional PSF
+#' candidates screened from original-channel residuals in bounded scan windows.
+#' Deletion scores are cached and refreshed only for overlapping profiles.
+#' Candidate construction performs no refitting. Native local likelihood fits
+#' keep other compounds and the background in the offset. Each accepted move
+#' decreases the complete original-channel objective with unchanged numerical
+#' rank penalty, noise parameters, observation weights and offsets. The
+#' `cleanup` entry records moves and the complete objective change.
 #'
 #' **Broad-profile fusion.** After refitting the original channels, an additional
 #' algebraic pass compares elution profiles. Candidate pairs must have cosine
@@ -453,7 +465,7 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
   defaults <- list(broad_repeats = 1L, full_sweeps = 1L, final_polishes = 1L,
     native_sweeps = 6L, block_sweeps = 6L, psf_width = NULL, screen_factor = 1,
     censor = .5, linkage = "ward", joint_trials = NULL, profile_fusion = TRUE,
-    profile_cycles = 10L, fusion_passes = 5L)
+    profile_cycles = 10L, fusion_passes = 5L, original_cleanup = TRUE)
   if (!is.list(control) || length(control) && (is.null(names(control)) ||
       any(!nzchar(names(control))) || anyDuplicated(names(control)))) stop("Use a named control list.")
   if (is.list(family) && !is.null(family$scalar) && !"censor" %in% names(control))
@@ -478,6 +490,8 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
     stop("joint_trials must be TRUE or FALSE.")
   if (!is.logical(control$profile_fusion) || length(control$profile_fusion)!=1L || is.na(control$profile_fusion))
     stop("profile_fusion must be TRUE or FALSE.")
+  if (!is.logical(control$original_cleanup) || length(control$original_cleanup) != 1L || is.na(control$original_cleanup))
+    stop("original_cleanup must be TRUE or FALSE.")
   fusion_width <- control$psf_width
   if (control$profile_fusion && !supplied_width) {
     columns <- unique(round(seq(1, ncol(X), length.out = min(ncol(X), 21L))))
@@ -543,6 +557,8 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
     if (ncol(fit$H) && control$profile_cycles) fit <- slcn_refine_fit(fit, Y, verbose))[["elapsed"]]
   if (control$profile_fusion) refinement_seconds <- refinement_seconds + system.time(
     fit <- slcn_refine_profiles(fit, Y, verbose, fusion_width))[["elapsed"]]
+  if (control$original_cleanup) refinement_seconds <- refinement_seconds + system.time(
+    fit <- slcn_cleanup(fit, Y, X, verbose))[["elapsed"]]
   fit$rank <- ncol(fit$H);fit$ic_df <- m * fit$rank + fit$nuisance_df
   fit$seconds <- c(noise = nuisance, clustering = clustering_seconds, aggregate = aggregate_seconds,
     original = fit_seconds, refinement = refinement_seconds, total = proc.time()[["elapsed"]] - begun)

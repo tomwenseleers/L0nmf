@@ -318,6 +318,31 @@ Neighbouring modes are guarded during its local refit.
 <code>control=list(profile_cycles=0L)</code> disables the main
 shape-refinement stage; <code>control=list(profile_fusion=FALSE)</code>
 disables the final conservative pass.</p>
+<div class="section level3">
+<h3 id="complete-the-fit-on-the-original-ion-channels">Complete the fit on the original ion channels<a class="anchor" aria-label="anchor" href="#complete-the-fit-on-the-original-ion-channels"></a>
+</h3>
+<p>The final pass checks conditional deletions, fusions of overlapping
+profiles, and PSF candidates suggested by the original-channel
+residuals. Nearly proportional profiles can be considered even when
+neither is a broad peak. Candidate construction uses matrix products and
+performs no refitting. Accepted proposals use native local likelihood
+fits with all other compounds and the fitted background held in the
+offset.</p>
+<p>For <span class="math inline">J=-2\ell+\lambda_RK</span>, a deletion
+has change <span class="math inline">\Delta J=\Delta D-\lambda_R</span>,
+a fusion of <span class="math inline">r</span> factors has <span class="math inline">\Delta J=\Delta D-\lambda_R(r-1)</span>, and an
+addition has <span class="math inline">\Delta J=\Delta
+D+\lambda_R</span>. The complete original-channel criterion must
+improve. Noise parameters, offsets, weights and the numerical compound
+penalty stay fixed. Cached deletion scores need updating only for
+profiles whose temporal supports overlap the deleted factor.</p>
+<p>The pass uses bounded scan windows to screen missed peaks, then
+refines the accepted profiles locally under hard log concavity. The same
+procedure is available for every supported noise family; working-score
+screening proposes candidates and each family’s likelihood decides
+acceptance. The returned <code>fit$cleanup</code> records the moves and
+full objective change. <code>control=list(original_cleanup=FALSE)</code>
+skips this pass.</p>
 <table class="table">
 <colgroup>
 <col width="33%">
@@ -376,6 +401,7 @@ Their observed positive curvatures are differences of trigamma functions
 for NB1 and <span class="math inline">\psi_1(\mu/b_0)/b_0^2</span> for
 common-scale Gamma. The latter is convex in the mean; the NB1 curvature
 is nonnegative because trigamma decreases on the positive real line.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="censored-gamma-intensities">Censored Gamma intensities<a class="anchor" aria-label="anchor" href="#censored-gamma-intensities"></a>

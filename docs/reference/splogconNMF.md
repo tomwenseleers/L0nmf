@@ -203,7 +203,9 @@ print(x, ...)
   quarter of their initial FWHM, and the merge is retained only when the
   original-channel criterion decreases. `profile_fusion` enables a final
   conservative fusion pass on all original channels, followed by one
-  local likelihood-based profile/spectrum refit.
+  local likelihood-based profile/spectrum refit. `original_cleanup=TRUE`
+  enables a final original-channel deletion, local fusion and
+  residual-discovery pass. Set it to `FALSE` to skip that pass.
 
 - start:
 
@@ -310,6 +312,17 @@ Every complete stage is accepted against its full working data, and
 final refinement and scoring use all original observations. `history`
 records each accepted or rejected stage; `ledger_error` checks the
 accumulated criterion change.
+
+**Original-channel completion.** The final cleanup tests component
+deletions, local fusions proposed by profile or spectral similarity, and
+additional PSF candidates screened from original-channel residuals in
+bounded scan windows. Deletion scores are cached and refreshed only for
+overlapping profiles. Candidate construction performs no refitting.
+Native local likelihood fits keep other compounds and the background in
+the offset. Each accepted move decreases the complete original-channel
+objective with unchanged numerical rank penalty, noise parameters,
+observation weights and offsets. The `cleanup` entry records moves and
+the complete objective change.
 
 **Broad-profile fusion.** After refitting the original channels, an
 additional algebraic pass compares elution profiles. Candidate pairs

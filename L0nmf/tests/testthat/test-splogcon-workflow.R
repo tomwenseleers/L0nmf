@@ -5,7 +5,7 @@ test_that("aggregation keeps the original-channel rank penalty and avoids repeat
   S <- matrix(rexp(2L*m,rate=1/2500),2L,m)
   Y <- matrix(rpois(n*m,as.matrix(H%*%S)+2),n,m)
   f <- splogconNMF(X,Y,background=matrix(1,n,1L),precluster=2L,ncores=1L,
-    correlation="none",control=list(profile_cycles=0L,profile_fusion=FALSE))
+    correlation="none",control=list(profile_cycles=0L,profile_fusion=FALSE,original_cleanup=FALSE))
   a <- f$aggregation$model
   expect_equal(a$objective,-2*a$loglik+f$lambda*ncol(a$H),tolerance=1e-10)
   expect_equal(f$lambda,m*preset.lambda("gic",p=n,n=n))

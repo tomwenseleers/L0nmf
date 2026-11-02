@@ -24,7 +24,7 @@ cpl_coupled_profile_pass <- function(state,samples=seq_along(state$paths),roots=
     for(k in block[order(f$area[block]*state$scale[ids[block]],decreasing=TRUE)]) {
       at<-which(f$H[,k]>0);if(length(at)<3L)next
       h<-as.numeric(f$H[at,k]);sp<-state$P[ids[k],]*f$area[k]*state$scale[ids[k]]
-      W<-if(length(f$weights)==1L)f$weights else f$weights[at,,drop=FALSE]
+      W<-cpl_observation_block(f$weights,at)
       z<-slcn_log_profile(Y[at,,drop=FALSE],mu[at,,drop=FALSE],h,sp,
         f$kind,f$phi,f$theta,as.numeric(W),length(at),censor=f$censor,
         maxit=as.integer(steps),q=as.integer(q),nthreads=as.integer(f$ncores),mode=2L,
@@ -51,13 +51,14 @@ cpl_coupled_spectrum_pass <- function(state,samples=seq_along(state$paths),roots
   for(s in samples) {
     f<-readRDS(state$paths[s]);Y<-cpl_sample_data(state$store,s);mu<-cpl_coupled_mean(f,state)
     ids<-state$map[f$gid]
-    for(k in which(ids%in%roots)) {
-      at<-which(f$H[,k]>0);h<-as.numeric(f$H[at,k])*f$exposure[at]*f$area[k]*state$scale[ids[k]]
-      W<-if(length(f$weights)==1L)matrix(f$weights,length(at),m) else f$weights[at,,drop=FALSE]
-      z<-slcn_pooled_terms(Y[at,,drop=FALSE],mu[at,,drop=FALSE],h,
-        f$kind,f$phi,f$theta,W,as.integer(f$ncores),f$censor)
-      j<-match(ids[k],roots);gradient[j,]<-gradient[j,]+z$gradient;information[j,]<-information[j,]+z$information
-    }
+    selected<-which(ids%in%roots)
+    if(!length(selected))next
+    z<-slcn_pooled_spectra(Y,mu,as(f$H[,selected,drop=FALSE],"dgCMatrix"),
+      f$exposure,f$area[selected]*state$scale[ids[selected]],f$kind,f$phi,f$theta,
+      as.numeric(f$weights),as.integer(f$ncores),f$censor)
+    j<-match(ids[selected],roots)
+    gradient[j,]<-gradient[j,,drop=FALSE]+z$gradient
+    information[j,]<-information[j,,drop=FALSE]+z$information
   }
   old<-cpl_coupled_score(state,samples,penalty=FALSE)
   floor<-pmax(apply(information,1,max)*1e-10,1e-20)
@@ -76,7 +77,7 @@ cpl_coupled_background_pass <- function(state,samples=seq_along(state$paths)) {
     f<-readRDS(state$paths[s]);if(!ncol(f$background))next
     Y<-cpl_sample_data(state$store,s);mu<-cpl_coupled_mean(f,state)
     B<-f$background*f$raw_exposure;fixed<-pmax(mu-B%*%f$alpha,0)
-    W<-if(length(f$weights)==1L)matrix(f$weights,nrow(Y),ncol(Y)) else f$weights
+    W<-cpl_weight_matrix(f$weights,nrow(Y))
     z<-if(f$kind==0L)nuisance_gaussian_cpp(B,Y,fixed,W/f$phi,f$alpha,
       rep(1L,ncol(B)),as.integer(f$ncores)) else if(f$kind%in%1:2)
       nuisance_poisson_cpp(B,Y,fixed,W/f$phi,f$alpha,80L,1e-8,as.integer(f$ncores)) else NULL
@@ -118,9 +119,10 @@ cpl_coupled_occurrences <- function(state) {
   }
   do.call(rbind,out)
 }
-cpl_coupled_proposals <- function(state,method="cosine",rt_tolerance=state$control$rt_tolerance) {
-  occ<-cpl_coupled_occurrences(state);groups<-split(seq_len(nrow(occ)),occ$root);ids<-as.integer(names(groups))
-  center<-vapply(groups,function(i)weighted.mean(occ$anchor[i],sqrt(occ$area[i])),0)
+cpl_coupled_proposals <- function(state,method="cosine",rt_tolerance=state$control$rt_tolerance,occ=NULL) {
+  if(is.null(occ))occ<-cpl_coupled_occurrences(state)
+  groups<-split(seq_len(nrow(occ)),occ$root);ids<-as.integer(names(groups))
+  center<-vapply(groups,function(i)stats::weighted.mean(occ$anchor[i],sqrt(occ$area[i])),0)
   proposals<-list()
   # RT bins bound comparisons; no all-occurrence pairwise similarity matrix.
   sorted<-order(center)
@@ -146,12 +148,14 @@ cpl_batch_spectral_groups <- function(state,method="cosine",ridge=TRUE) {
     state<-cpl_coupled_checkpoint(state,s,f,"batch_scale")
   }
   state$scale[]<-1;rejected<-character();audit<-list()
+  # Profiles and occurrence amplitudes stay fixed during algebraic grouping.
+  occ<-cpl_coupled_occurrences(state)
   repeat {
-    proposals<-cpl_coupled_proposals(state,method)
+    proposals<-cpl_coupled_proposals(state,method,occ=occ)
     if(!nrow(proposals))break
     keys<-paste(proposals$a,proposals$b,sep=";");proposals<-proposals[!keys%in%rejected,,drop=FALSE]
     if(!nrow(proposals))break
-    p<-proposals[1L,];occ<-cpl_coupled_occurrences(state);hit<-which(occ$root%in%c(p$a,p$b))
+    p<-proposals[1L,];hit<-which(occ$root%in%c(p$a,p$b))
     profiles<-times<-list();areas<-numeric(length(hit))
     for(j in seq_along(hit)) {
       v<-occ[hit[j],];f<-readRDS(state$paths[v$sample]);profiles[[j]]<-as.numeric(f$H[,v$local])
@@ -164,6 +168,7 @@ cpl_batch_spectral_groups <- function(state,method="cosine",ridge=TRUE) {
       weight<-vapply(c(p$a,p$b),function(g)sum(occ$area[occ$root==g]),0)
       state$P[p$a,]<-as.numeric(crossprod(weight,state$P[c(p$a,p$b),,drop=FALSE]))/sum(weight)
       state$map[state$map==p$b]<-p$a
+      occ$root[occ$root==p$b]<-p$a
     } else rejected<-c(rejected,paste(p$a,p$b,sep=";"))
   }
   state$batch_grouping<-if(length(audit))do.call(rbind,audit)else data.frame()
@@ -175,7 +180,7 @@ cpl_batch_spectral_groups <- function(state,method="cosine",ridge=TRUE) {
 
 cpl_compact_coupled <- function(state) {
   occ<-cpl_coupled_occurrences(state);roots<-sort(unique(state$map))
-  center<-vapply(roots,function(g)weighted.mean(occ$anchor[occ$root==g],sqrt(occ$area[occ$root==g])),0)
+  center<-vapply(roots,function(g)stats::weighted.mean(occ$anchor[occ$root==g],sqrt(occ$area[occ$root==g])),0)
   roots<-roots[order(center)];state$root_lookup<-data.frame(compound=seq_along(roots),source_root=roots)
   state$P<-state$P[roots,,drop=FALSE];state$scale<-state$scale[roots]
   state$map<-match(state$map,roots)
@@ -221,7 +226,7 @@ cpl_monotone_map <- function(x,y,weight,domain) {
   }
   robust<-rep(1,length(x));fit<-NULL
   for(it in 1:5) {
-    fit<-smooth.spline(x,y,w=pmax(1e-5,weight*robust),df=min(5L,length(x)-1L))
+    fit<-stats::smooth.spline(x,y,w=pmax(1e-5,weight*robust),df=min(5L,length(x)-1L))
     residual<-y-predict(fit,x)$y;scale<-max(1e-5,mad(residual))
     u<-residual/(4.685*scale);robust<-ifelse(abs(u)<1,(1-u^2)^2,0)
   }
@@ -230,20 +235,20 @@ cpl_monotone_map <- function(x,y,weight,domain) {
   # Project onto a strictly increasing map; monotone Hermite interpolation
   # then retains positivity between knots, without resampling any observations.
   minimum_slope<-.25
-  values<-isoreg(grid,values-minimum_slope*grid)$yf+minimum_slope*grid
-  fun<-splinefun(grid,values,method="monoH.FC")
+  values<-stats::isoreg(grid,values-minimum_slope*grid)$yf+minimum_slope*grid
+  fun<-stats::splinefun(grid,values,method="monoH.FC")
   list(evaluate=fun,
     anchors=data.frame(x,y,weight,robust),method="robust_monotone_spline")
 }
-cpl_estimate_alignment <- function(fits,metadata,method="cosine",small_width=NULL,alignment_window=.5) {
-  geom<-lapply(seq_along(fits),function(s) {
+cpl_estimate_alignment <- function(fits,metadata,method="cosine",small_width=NULL,alignment_window=.5,geometry=NULL) {
+  geom<-if(!is.null(geometry))geometry else lapply(seq_along(fits),function(s) {
     width<-if(is.null(small_width))2*sqrt(2*log(100))*1.6*median(diff(metadata[[s]]$time)) else small_width[[s]]
     cpl_profile_anchors(fits[[s]]$H,fits[[s]]$S,metadata[[s]]$time,width)
   })
-  ref<-which.max(vapply(fits,function(f)ncol(f$H),0L));maps<-anchors<-vector("list",length(fits))
+  ref<-which.max(vapply(fits,function(f)nrow(f$S),0L));maps<-anchors<-vector("list",length(fits))
   for(s in seq_along(fits)) {
     if(s==ref) {maps[[s]]<-list(evaluate=identity,method="reference");next}
-    if(!ncol(fits[[s]]$H)||!ncol(fits[[ref]]$H)) {
+    if(!nrow(fits[[s]]$S)||!nrow(fits[[ref]]$S)) {
       maps[[s]]<-cpl_monotone_map(numeric(),numeric(),numeric(),range(metadata[[s]]$edges));next
     }
     d<-cpl_spectral_distance(fits[[s]]$S,fits[[ref]]$S,method)
@@ -265,7 +270,7 @@ cpl_project_irregular_lc <- function(h,t,min_relative=1e-12) {
   for(i in seq_along(t)) {
     hull<-c(hull,i)
     while(length(hull)>2L) {
-      z<-tail(hull,3L)
+      z<-utils::tail(hull,3L)
       if((eta[z[2]]-eta[z[1]])/(t[z[2]]-t[z[1]]) >= (eta[z[3]]-eta[z[2]])/(t[z[3]]-t[z[2]]))break
       hull<-hull[-(length(hull)-1L)]
     }
@@ -283,7 +288,7 @@ cpl_ridge_compatibility <- function(profiles,times,areas,tolerance=.7,max_shift=
     a<-o[j];b<-o[j+1L];grid<-sort(unique(c(times[[a]],times[[b]])))
     low<-approx(times[[a]],profiles[[a]]*areas[a],grid,yleft=0,yright=0)$y
     high<-approx(times[[b]],profiles[[b]]*areas[b],grid,yleft=0,yright=0)$y
-    dt<-diff(grid);integral<-function(x)sum(dt*(head(x,-1L)+tail(x,-1L))/2)
+    dt<-diff(grid);integral<-function(x)sum(dt*(utils::head(x,-1L)+utils::tail(x,-1L))/2)
     raw_coverage[j]<-integral(pmin(low,high))/max(1e-20,integral(low))
     # Concentration can move the ridge as well as widen it. A bounded
     # leading-edge translation is used only for this shape diagnostic.
@@ -314,10 +319,10 @@ cpl_area_adjusted_map <- function(x,y,weight,log_ratio,domain) {
   }
   grid<-sort(unique(c(domain,x,seq(min(domain),max(domain),length.out=100L))))
   values<-grid+as.numeric(cbind(1,predict(basis,grid))%*%coefs[seq_len(ncol(B))])
-  values<-isoreg(grid,values-.25*grid)$yf+.25*grid
-  fun<-splinefun(grid,values,method="monoH.FC")
+  values<-stats::isoreg(grid,values-.25*grid)$yf+.25*grid
+  fun<-stats::splinefun(grid,values,method="monoH.FC")
   list(evaluate=fun,
-    anchors=data.frame(x,y,weight,robust,log_ratio),area_coefficient=tail(coefs,1L),
+    anchors=data.frame(x,y,weight,robust,log_ratio),area_coefficient=utils::tail(coefs,1L),
     method="robust_spline_with_area_nuisance",df=df)
 }
 

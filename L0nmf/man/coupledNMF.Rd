@@ -48,7 +48,7 @@ coupledNMF(
 
 \method{MBIC}{coupledNMF}(object, ...)
 
-print.coupledNMF(x, ...)
+\method{print}{coupledNMF}(x, ...)
 
 \method{plot}{coupledNMF}(
   x,
@@ -62,10 +62,13 @@ print.coupledNMF(x, ...)
 \item{samples}{List of sample descriptions. Each contains \code{y} (a numeric
 scans-by-channels matrix, or an RDS file containing one), increasing \code{time},
 and optionally \code{X}, \code{background}, \code{fit}, \code{weights}, \code{offset}, \code{exposure},
-\code{sample_id}, \code{group}, \code{small_width} and \code{edges}. \code{fit} is a \code{\link[=splogconNMF]{splogconNMF()}}
+\code{sample_id}, \code{group}, \code{small_width} and \code{edges}. Large \code{weights} and \code{offset}
+matrices can also be supplied as RDS paths. \code{fit} is a \code{\link[=splogconNMF]{splogconNMF()}}
 initializer or its RDS path. Without a fit, \code{X} supplies candidate profiles;
 otherwise \code{\link[=estimate_psf]{estimate_psf()}} estimates them. Channel names and ordering must
-agree across samples. Times and \code{small_width} use the same units.}
+agree across samples. Times and \code{small_width} use the same units.
+Shared scan-wise weights and offsets remain vectors throughout coupled
+fitting; each mass channel reuses the same values.}
 
 \item{family}{Identity-link signal family supported by \code{\link[=splogconNMF]{splogconNMF()}}:
 Gaussian, Poisson, quasipoisson, NB2, NB1, censored Gamma or common-scale Gamma.}

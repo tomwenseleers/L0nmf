@@ -18,7 +18,7 @@ struct Parameters {
     family(f), full_n(N), first(a), phi(p), theta(t), weights(w), censor(c) {}
   double p(int j) const {return phi[phi.size()==1 ? 0 : j];}
   double t(int j) const {return theta[theta.size()==1 ? 0 : j];}
-  double w(int i,int j) const {return weights[weights.size()==1 ? 0 : first+i+full_n*j];}
+  double w(int i,int j) const {return weights[weights.size()==1 ? 0 : first+i+(weights.size()==full_n?0:full_n*j)];}
 };
 
 // Bracketed exact Poisson coordinate solve; constant density terms cancel.
@@ -208,7 +208,7 @@ NumericVector slcn_nb_score(NumericMatrix y,NumericMatrix mu,double theta,
   for(int j=0;j<m;++j) {
     long double U=0,H=0;
     for(int i=0;i<n;++i) {
-      const double w=weights[weights.size()==1?0:i+n*j],Y=y(i,j),M=mu(i,j);
+      const double w=weights[weights.size()==1?0:i+(weights.size()==n?0:n*j)],Y=y(i,j),M=mu(i,j);
       if(w<=0 || (Y==0 && M==0))continue;
       U+=w*(R::digamma(Y+theta)-R::digamma(theta)+std::log(theta)+1-std::log(theta+M)-(Y+theta)/(theta+M));
       H+=w*(R::trigamma(Y+theta)-R::trigamma(theta)+1/theta-2/(theta+M)+(Y+theta)/((theta+M)*(theta+M)));

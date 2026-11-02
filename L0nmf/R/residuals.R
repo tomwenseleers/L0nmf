@@ -10,7 +10,7 @@ residuals.splogconNMF <- function(object,y=object$y,type=c("pearson","response")
   Y<-as.matrix(y)
   if(identical(dim(Y),c(object$n,ncol(object$S)))) Y<-Y[rows,cols,drop=FALSE]
   if(!identical(dim(Y),c(length(rows),length(cols)))) stop("y has incompatible dimensions.")
-  O<-object$offset;if(length(O)>1L) O<-O[rows,cols,drop=FALSE]
+  O<-object$offset;if(length(O)>1L) O<-if(is.null(dim(O)))O[rows]else O[rows,cols,drop=FALSE]
   if(is.null(mu)) mu<-as.matrix(object$H[rows,,drop=FALSE]%*%object$S[,cols,drop=FALSE])+
     object$background[rows,,drop=FALSE]%*%object$alpha[,cols,drop=FALSE]+O
   if(!identical(dim(mu),dim(Y))) stop("mu has incompatible dimensions.")
@@ -33,7 +33,7 @@ residuals.splogconNMF <- function(object,y=object$y,type=c("pearson","response")
   }
   W<-object$weights
   if(is.null(W)) W<-1
-  if(length(W)>1L) W<-W[rows,cols,drop=FALSE]
+  if(length(W)>1L) W<-if(is.null(dim(W)))W[rows]else W[rows,cols,drop=FALSE]
   delta<-Y-expected
   residual<-sqrt(W)*delta/sqrt(variance)
   residual[variance==0&delta==0]<-0

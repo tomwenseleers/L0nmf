@@ -56,15 +56,15 @@ simulate_GCMS_samples <- function(samples=3L,n=600L,k=26L,S=NULL,
   present<-matrix(runif(k*samples)<presence,k,samples)
   if(!is.null(absent)) {stopifnot(all(dim(absent)==c(k,samples)));present<-!absent}
   A[!present]<-0
-  acid<-if(preset=="time_area_acid"&&acid_fraction>0)tail(seq_len(k),min(k,max(1L,round(k*acid_fraction)))) else integer()
+  acid<-if(preset=="time_area_acid"&&acid_fraction>0)utils::tail(seq_len(k),min(k,max(1L,round(k*acid_fraction)))) else integer()
   backgrounds<-matrix(runif(4L*m,.5,2),4L,m)
   result<-vector("list",samples)
   for(s in seq_len(samples)) {
     # The native/reference time bins differ between injections.
     e<-runif(ns[s],1-irregular,1+irregular);e<-e/sum(e)*duration
-    edges<-c(0,cumsum(e));u<-(head(edges,-1L)+tail(edges,-1L))/2
+    edges<-c(0,cumsum(e));u<-(utils::head(edges,-1L)+utils::tail(edges,-1L))/2
     shift<-function(v) drift*(s-1L)*(1+.3*sin(2*pi*v/duration))
-    rawedges<-edges+shift(edges);time<-(head(rawedges,-1)+tail(rawedges,-1))/2
+    rawedges<-edges+shift(edges);time<-(utils::head(rawedges,-1)+utils::tail(rawedges,-1))/2
     H<-matrix(0,ns[s],k);sigmas<-tails<-numeric(k)
     for(j in seq_len(k)) {
       large<-if(A[j,s]>0)max(0,log(A[j,s]/area)) else 0
@@ -74,7 +74,7 @@ simulate_GCMS_samples <- function(samples=3L,n=600L,k=26L,S=NULL,
       center<-centers[j]+if(preset%in%c("time_area","time_area_acid")) rt_area*large else 0
       # Composite midpoint integration gives known truth on each original bin.
       for(q in seq_len(8L)) {
-        t<-head(edges,-1L)+(q-.5)/8*e
+        t<-utils::head(edges,-1L)+(q-.5)/8*e
         h<-if(j%in%acid) ifelse(t>=center-22 & t<=center+6,
           pmax(0,(t-center+22)/22)*exp(-pmax(t-center,0)/.8),0) else cpl_emg_density(t,center,sigma,tau)
         H[,j]<-H[,j]+h/8
@@ -85,11 +85,11 @@ simulate_GCMS_samples <- function(samples=3L,n=600L,k=26L,S=NULL,
     rates<-H%*%(P*A[,s])+background;mu<-rates*e
     Y<-switch(family,poisson=matrix(rpois(length(mu),mu),ns[s],m),
       quasipoisson=matrix(rpois(length(mu),mu/dispersion)*dispersion,ns[s],m),
-      nb=matrix(rnbinom(length(mu),mu=mu,size=theta),ns[s],m),
+      nb=matrix(stats::rnbinom(length(mu),mu=mu,size=theta),ns[s],m),
       gaussian=mu+matrix(rnorm(length(mu),sd=sqrt(dispersion)),ns[s],m),
       Gamma=matrix(rgamma(length(mu),shape=1/dispersion,scale=dispersion*mu),ns[s],m),
       nb1=if(dispersion==1)matrix(rpois(length(mu),mu),ns[s],m)else
-        matrix(rnbinom(length(mu),mu=mu,size=mu/(dispersion-1)),ns[s],m),
+        matrix(stats::rnbinom(length(mu),mu=mu,size=mu/(dispersion-1)),ns[s],m),
       Gamma_scale=matrix(rgamma(length(mu),shape=mu/dispersion,scale=dispersion),ns[s],m))
     if(family%in%c("Gamma","Gamma_scale"))Y[Y<.5]<-0
     storage.mode(Y)<-"double";colnames(Y)<-colnames(P);rownames(Y)<-format(time/60,digits=12)

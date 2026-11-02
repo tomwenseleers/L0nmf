@@ -65,6 +65,27 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// slcn_pooled_spectra
+List slcn_pooled_spectra(NumericMatrix y, NumericMatrix mean, const Eigen::MappedSparseMatrix<double>& profiles, NumericVector exposure, NumericVector amplitude, int family, NumericVector phi, NumericVector theta, NumericVector weights, int nthreads, double censor);
+RcppExport SEXP _L0nmf_slcn_pooled_spectra(SEXP ySEXP, SEXP meanSEXP, SEXP profilesSEXP, SEXP exposureSEXP, SEXP amplitudeSEXP, SEXP familySEXP, SEXP phiSEXP, SEXP thetaSEXP, SEXP weightsSEXP, SEXP nthreadsSEXP, SEXP censorSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type y(ySEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type mean(meanSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MappedSparseMatrix<double>& >::type profiles(profilesSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type exposure(exposureSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type amplitude(amplitudeSEXP);
+    Rcpp::traits::input_parameter< int >::type family(familySEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type phi(phiSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type weights(weightsSEXP);
+    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
+    Rcpp::traits::input_parameter< double >::type censor(censorSEXP);
+    rcpp_result_gen = Rcpp::wrap(slcn_pooled_spectra(y, mean, profiles, exposure, amplitude, family, phi, theta, weights, nthreads, censor));
+    return rcpp_result_gen;
+END_RCPP
+}
 // slcn_log_profile
 List slcn_log_profile(NumericMatrix y, NumericMatrix mean, NumericVector profile, NumericVector spectrum, int family, NumericVector phi, NumericVector theta, NumericVector weights, int full_n, int first, int maxit, double censor, int q, int nthreads, int apex_lo, int apex_hi, int mode, Nullable<NumericVector> time, Nullable<NumericVector> exposure);
 RcppExport SEXP _L0nmf_slcn_log_profile(SEXP ySEXP, SEXP meanSEXP, SEXP profileSEXP, SEXP spectrumSEXP, SEXP familySEXP, SEXP phiSEXP, SEXP thetaSEXP, SEXP weightsSEXP, SEXP full_nSEXP, SEXP firstSEXP, SEXP maxitSEXP, SEXP censorSEXP, SEXP qSEXP, SEXP nthreadsSEXP, SEXP apex_loSEXP, SEXP apex_hiSEXP, SEXP modeSEXP, SEXP timeSEXP, SEXP exposureSEXP) {
@@ -369,6 +390,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_L0nmf_nuisance_poisson_cpp", (DL_FUNC) &_L0nmf_nuisance_poisson_cpp, 8},
     {"_L0nmf_nuisance_gaussian_cpp", (DL_FUNC) &_L0nmf_nuisance_gaussian_cpp, 7},
     {"_L0nmf_slcn_pooled_terms", (DL_FUNC) &_L0nmf_slcn_pooled_terms, 9},
+    {"_L0nmf_slcn_pooled_spectra", (DL_FUNC) &_L0nmf_slcn_pooled_spectra, 11},
     {"_L0nmf_slcn_log_profile", (DL_FUNC) &_L0nmf_slcn_log_profile, 19},
     {"_L0nmf_logconc_quadratic_cpp", (DL_FUNC) &_L0nmf_logconc_quadratic_cpp, 5},
     {"_L0nmf_logconc_profile_cpp", (DL_FUNC) &_L0nmf_logconc_profile_cpp, 14},

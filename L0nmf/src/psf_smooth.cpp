@@ -97,11 +97,11 @@ List logconc_profile_cpp(NumericMatrix y,NumericMatrix mean,NumericVector profil
   const int n=y.nrow(),m=y.ncol();
   if(mean.nrow()!=n||mean.ncol()!=m||profile.size()!=n||spectrum.size()!=m||
      full_n<first+n||first<0||maxit<1||
-     !(weights.size()==1||weights.size()==full_n*m)||
+     !(weights.size()==1||weights.size()==full_n||weights.size()==full_n*m)||
      !(phi.size()==1||phi.size()==m)||!(theta.size()==1||theta.size()==m)||
      !(ridge.size()==1||ridge.size()==n)||!(prior.size()==1||prior.size()==n))
     stop("Invalid log-concave profile dimensions.");
-  auto weight=[&](int i,int j){return weights[weights.size()==1?0:first+i+full_n*j];};
+  auto weight=[&](int i,int j){return weights[weights.size()==1?0:first+i+(weights.size()==full_n?0:full_n*j)];};
   auto dispersion=[&](int j){return phi[phi.size()==1?0:j];};
   auto shape=[&](int j){return theta[theta.size()==1?0:j];};
   NumericVector h=clone(profile),eta(n),information(n),target(n);

@@ -30,11 +30,11 @@ List slcn_log_profile(NumericMatrix y,NumericMatrix mean,NumericVector profile,
   if(mode==1&&time.isNotNull())stop("Use an absolute shape mode with explicit time coordinates.");
   if(n<3||q<3||first<0||maxit<0||nthreads<1||family<0||family>6||mode<0||mode>2||
      mean.nrow()!=n||mean.ncol()!=m||profile.size()!=n||spectrum.size()!=m||
-     full_n<first+n||!(weights.size()==1||weights.size()==full_n*m)||
+     full_n<first+n||!(weights.size()==1||weights.size()==full_n||weights.size()==full_n*m)||
      !(phi.size()==1||phi.size()==m)||!(theta.size()==1||theta.size()==m))
     stop("Invalid log-profile inputs.");
   for(double a:profile)if(!std::isfinite(a)||a<=0)stop("Positive finite profile required.");
-  auto w=[&](int i,int j){return weights[weights.size()==1?0:first+i+full_n*j];};
+  auto w=[&](int i,int j){return weights[weights.size()==1?0:first+i+(weights.size()==full_n?0:full_n*j)];};
   auto p=[&](int j){return phi[phi.size()==1?0:j];};
   auto th=[&](int j){return theta[theta.size()==1?0:j];};
   std::vector<int> knots;Eigen::MatrixXd C,D;bool lo=false,hi=false;

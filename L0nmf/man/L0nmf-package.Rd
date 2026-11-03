@@ -28,10 +28,5 @@ Authors:
   \item Christophe Vanderaa \email{christophe.vanderaa@kuleuven.be}
 }
 
-Other contributors:
-\itemize{
-  \item Niamh Callinan Keenan [contributor]
-}
-
 }
 \keyword{internal}

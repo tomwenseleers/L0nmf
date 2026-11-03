@@ -31,21 +31,21 @@ navbar:
     left: [intro, tutorials, algorithm, reference, news]
     right: [search, github]
   components:
+    intro:
+      text: Get started
+      href: articles/estimate-psf.html
     tutorials:
       text: Tutorials
       menu:
-        - text: Coupled multisample factorization
-          href: articles/coupled-nmf.html
-        - text: Sparse log-concave factorization
+        - text: Estimate PSFs
+          href: articles/estimate-psf.html
+        - text: Sparse log-concave NMF with automatic best rank tuning
           href: articles/log-concave-nmf.html
-        - text: GC/MS workflow in GCMSprime
-          href: https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html
-    intro:
-      text: Get started
-      href: articles/log-concave-nmf.html
+        - text: Coupled multisample log-concave NMF with automatic best rank tuning
+          href: articles/coupled-nmf.html
     algorithm:
       text: Algorithm & theory
-      href: articles/log-concave-nmf.html
+      href: articles/algorithm.html
     github:
       icon: fab fa-github
       href: https://github.com/tomwenseleers/L0nmf
@@ -57,3 +57,20 @@ home:
 authors:
   sidebar:
     roles: [aut, cre, ctb]
+
+articles:
+  - title: Tutorials
+    contents: [articles/estimate-psf, articles/log-concave-nmf, articles/coupled-nmf]
+  - title: Algorithm and theory
+    contents: [articles/algorithm]
+reference:
+  - title: Estimate point spread functions and deconvolve signals
+    contents: [estimate_psf, estimate_psf_from_std, L0glm_blind_deco, L0glm_sparse_deco, L0glm_deco_estkernel]
+  - title: Sparse and coupled factorization
+    contents: [splogconNMF, coupledNMF, sampleNMF]
+  - title: Noise calibration and profile constraints
+    contents: [estimate_signal_noise, log_conc_smooth]
+  - title: Simulations and experimental data
+    contents: [simulate_GCMS, simulate_GCMS_samples, GCMS_data1, GCMS_data2]
+  - title: Shared tools and package overview
+    contents: [reexports, L0nmf-package]

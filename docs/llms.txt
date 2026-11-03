@@ -22,8 +22,8 @@ spectral loadings](logo-dark.svg)
 components](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
 [**Peak shapes**Log-concave profiles and constant or time-varying
 PSFs](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf.md)
-[**5 families**Gaussian, Poisson, quasi-Poisson, negative binomial and
-Gamma](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md)
+[**7 families**Gaussian, Poisson, quasi-Poisson, NB2, NB1 and two Gamma
+models](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md)
 
 L0nmf is part of a focused three-package toolkit:
 [L0glm](https://tomwenseleers.github.io/L0glm/) supplies fast sparse GLM
@@ -97,6 +97,30 @@ provides an experimental general factorization method. Its algorithm is
 being developed separately from the validated local log-concave
 workflow.
 
+## Share spectra across samples
+
+[`coupledNMF()`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+aligns related samples and estimates common spectra with sample-specific
+log-concave profiles, integrated areas and smooth backgrounds. It
+supports all seven signal families, irregular scan grids and disk-backed
+observations. In a three-sample simulation with all 258 channels, it
+recovers all 78 compound occurrences in 29.69 seconds. With compounds
+absent from half the samples, all 37 present occurrences are recovered
+in 21.92 seconds.
+
+``` r
+
+fit <- coupledNMF(samples, family=quasipoisson("identity"), precluster=32L)
+fit$areas
+coef(fit, normalize="l1")
+```
+
+See [Coupled multisample
+factorization](https://tomwenseleers.github.io/L0nmf/articles/coupled-nmf.md)
+for simulations, plots and mathematical details, and
+[GCMSprime](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html)
+for the directory-based chromatogram workflow.
+
 ## Citation
 
 An article describing the methods implemented in L0nmf is in
@@ -124,6 +148,19 @@ responsibility for the work presented here.
 
 ## All functions
 
+- [`coupledNMF()`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  [`fitted(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  [`coef(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  [`logLik(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  [`nobs(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  [`AIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  [`BIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  [`GIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  [`EBIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  [`MBIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  [`print(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  [`plot(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  : Coupled sparse log-concave factorization of multiple samples
 - [`estimate_psf()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf.md)
   : Estimate constant or time-varying point spread functions
 - [`estimate_psf_from_std()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf_from_std.md)
@@ -146,9 +183,13 @@ responsibility for the work presented here.
 - [`log_conc_smooth()`](https://tomwenseleers.github.io/L0nmf/reference/log_conc_smooth.md)
   : Log-concave spline smoothing of a discrete convolution kernel
   estimate
+- [`sampleNMF()`](https://tomwenseleers.github.io/L0nmf/reference/sampleNMF.md)
+  : Extract one sample's factorization from a coupled fit
 - [`simulate_GCMS()`](https://tomwenseleers.github.io/L0nmf/reference/simulate_GCMS.md)
   : Simulate synthetic GC-MS chromatograms with ground-truth signal +
   background
+- [`simulate_GCMS_samples()`](https://tomwenseleers.github.io/L0nmf/reference/simulate_GCMS_samples.md)
+  : Simulate related chromatograms with shared compound spectra
 - [`residuals(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
   [`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
   [`fitted(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
@@ -166,6 +207,12 @@ responsibility for the work presented here.
 # Articles
 
 ### All vignettes
+
+- [Coupled multisample
+  factorization](https://tomwenseleers.github.io/L0nmf/articles/coupled-nmf.md):
+
+  Share spectra across aligned samples with log-concave profiles,
+  missing compounds and flexible noise models.
 
 - [Sparse log-concave
   NMF](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md):

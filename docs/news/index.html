@@ -18,7 +18,8 @@
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/log-concave-nmf.html">Get started</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials"><li><a class="dropdown-item" href="../articles/log-concave-nmf.html">Sparse log-concave factorization</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials"><li><a class="dropdown-item" href="../articles/coupled-nmf.html">Coupled multisample factorization</a></li>
+    <li><a class="dropdown-item" href="../articles/log-concave-nmf.html">Sparse log-concave factorization</a></li>
     <li><a class="external-link dropdown-item" href="https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html">GC/MS workflow in GCMSprime</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../articles/log-concave-nmf.html">Algorithm &amp; theory</a></li>
@@ -40,10 +41,12 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0" id="l0nmf-010">L0nmf 0.1.0<a class="anchor" aria-label="anchor" href="#l0nmf-010"></a></h2>
-<ul><li>Original-channel completion checks conditional deletions, local profile/spectral fusions and missed residual peaks, with complete-likelihood safeguards and native local updates.</li>
-<li>Sparse log-concave NMF with local profile and spectral updates, rank selection and full-channel refinement.</li>
-<li>Flexible noise families, pooled dispersion estimates, PSF calibration and blind deconvolution.</li>
-<li>Experimental chromatogram datasets and simulation tools.</li>
+<ul><li><p>Coupled multisample NMF shares spectra across aligned, sample-specific log-concave profiles on irregular original grids, with disk-backed observations and all seven signal families.</p></li>
+<li><p>Batched native spectral scores, shared row weights/offsets and cached grouping geometry reduce repeated work in large multichannel fits.</p></li>
+<li><p>Original-channel completion checks conditional deletions, local profile/spectral fusions and missed residual peaks, with complete-likelihood safeguards and native local updates.</p></li>
+<li><p>Sparse log-concave NMF with local profile and spectral updates, rank selection and full-channel refinement.</p></li>
+<li><p>Flexible noise families, pooled dispersion estimates, PSF calibration and blind deconvolution.</p></li>
+<li><p>Experimental chromatogram datasets and simulation tools.</p></li>
 </ul></div>
   </main></div>
 

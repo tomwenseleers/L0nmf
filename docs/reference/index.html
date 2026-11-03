@@ -18,7 +18,8 @@
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/log-concave-nmf.html">Get started</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials"><li><a class="dropdown-item" href="../articles/log-concave-nmf.html">Sparse log-concave factorization</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials"><li><a class="dropdown-item" href="../articles/coupled-nmf.html">Coupled multisample factorization</a></li>
+    <li><a class="dropdown-item" href="../articles/log-concave-nmf.html">Sparse log-concave factorization</a></li>
     <li><a class="external-link dropdown-item" href="https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html">GC/MS workflow in GCMSprime</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../articles/log-concave-nmf.html">Algorithm &amp; theory</a></li>
@@ -48,6 +49,13 @@
 
 
       <dl><dt>
+
+          <code><a href="coupledNMF.html">coupledNMF()</a></code> <code><a href="coupledNMF.html">fitted(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">coef(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">logLik(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">nobs(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">AIC(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">BIC(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">GIC(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">EBIC(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">MBIC(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">print(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">plot(<i>&lt;coupledNMF&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Coupled sparse log-concave factorization of multiple samples</dd>
+
+        <dt>
 
           <code><a href="estimate_psf.html">estimate_psf()</a></code>
 
@@ -119,10 +127,24 @@
 
         <dt>
 
+          <code><a href="sampleNMF.html">sampleNMF()</a></code>
+
+        </dt>
+        <dd>Extract one sample's factorization from a coupled fit</dd>
+
+        <dt>
+
           <code><a href="simulate_GCMS.html">simulate_GCMS()</a></code>
 
         </dt>
         <dd>Simulate synthetic GC-MS chromatograms with ground-truth signal + background</dd>
+
+        <dt>
+
+          <code><a href="simulate_GCMS_samples.html">simulate_GCMS_samples()</a></code>
+
+        </dt>
+        <dd>Simulate related chromatograms with shared compound spectra</dd>
 
         <dt>
 

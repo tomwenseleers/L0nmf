@@ -2,6 +2,19 @@
 
 ## All functions
 
+- [`coupledNMF()`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  [`fitted(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  [`coef(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  [`logLik(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  [`nobs(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  [`AIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  [`BIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  [`GIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  [`EBIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  [`MBIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  [`print(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  [`plot(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  : Coupled sparse log-concave factorization of multiple samples
 - [`estimate_psf()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf.md)
   : Estimate constant or time-varying point spread functions
 - [`estimate_psf_from_std()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf_from_std.md)
@@ -24,9 +37,13 @@
 - [`log_conc_smooth()`](https://tomwenseleers.github.io/L0nmf/reference/log_conc_smooth.md)
   : Log-concave spline smoothing of a discrete convolution kernel
   estimate
+- [`sampleNMF()`](https://tomwenseleers.github.io/L0nmf/reference/sampleNMF.md)
+  : Extract one sample's factorization from a coupled fit
 - [`simulate_GCMS()`](https://tomwenseleers.github.io/L0nmf/reference/simulate_GCMS.md)
   : Simulate synthetic GC-MS chromatograms with ground-truth signal +
   background
+- [`simulate_GCMS_samples()`](https://tomwenseleers.github.io/L0nmf/reference/simulate_GCMS_samples.md)
+  : Simulate related chromatograms with shared compound spectra
 - [`residuals(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
   [`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
   [`fitted(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)

@@ -127,7 +127,7 @@ a number between zero and 0.49 supplies the lag-one correlation.}
 \item{control}{Named list: \code{broad_repeats=1L}, \code{full_sweeps=1L},
 \code{final_polishes=1L}, \code{native_sweeps=6L}, \code{block_sweeps=6L},
 \code{psf_width=NULL}, \code{screen_factor=1}, \code{censor=0.5}, \code{linkage="ward"},
-\code{joint_trials=NULL}, \code{profile_cycles=10L}, \code{fusion_passes=5L},
+\code{joint_trials=NULL}, \code{profile_cycles=4L}, \code{fusion_passes=0L},
 \code{profile_fusion=TRUE}. \code{joint_trials} uses direct Poisson fusion for Poisson data
 and joint local refinement for the other families. \code{psf_width} supplies
 the typical FWHM in scans. When omitted, local updates use the middle design
@@ -139,15 +139,15 @@ limit. Zero requests an uncensored Gamma model. A supplied Gamma family
 constructor provides its own detection limit unless overridden here.
 \code{linkage} may be \code{"ward"} or \code{"bregman"}. \code{joint_trials} allows overlapping
 compounds to adjust together during local fusion refinement.
-\code{profile_cycles} bounds the original-channel shape/background refinement;
-zero disables it. \code{fusion_passes} bounds broad-anchor and compatible-tail
-fusion after that refinement.
-For a narrow, spectrally matching fragment contained in a broad profile,
-a guarded whole-profile refit can also update the shared background.
-Neighbouring modes stay within one quarter of their initial FWHM, and
-the merge is retained only when the original-channel criterion decreases.
-\code{profile_fusion} enables a final conservative fusion pass on all original
-channels, followed by one local likelihood-based profile/spectrum refit.
+\code{profile_cycles} bounds the smooth shape/background initialization;
+positive values also enable fine native profile/spectrum refinement.
+Zero skips these shape-polishing cycles. \code{fusion_passes} optionally adds
+broad-anchor and compatible-tail searches during initialization.
+\code{profile_fusion} enables algebraic profile fusion, retained contained-fragment
+proposals and a final broad-fragment pass on every original channel.
+Broad fusions are compared with an equally refined unmerged local model.
+The entire support of every updated component is included in the local
+fit, with the remaining components and background held in an offset.
 \code{original_cleanup=TRUE} enables a final original-channel deletion, local
 fusion and residual-discovery pass. Set it to \code{FALSE} to skip that pass.}
 
@@ -167,7 +167,8 @@ An object of class \code{splogconNMF}, containing sparse unit-sum profiles
 \code{H}, spectra \code{S}, background coefficients \code{alpha}, the background basis,
 fitted means \code{mu}, \code{rank}, resolved noise settings \code{spec}, original data,
 offsets and weights, \code{objective}, \code{loglik}, stage ledger \code{history},
-\code{ledger_error}, aggregation and \code{profile_fusion} diagnostics, controls and
+\code{ledger_error}, \code{initialization}, aggregation, \code{profile_fusion} and
+\code{contained_fusion} diagnostics, controls and
 timings \code{seconds}.
 \code{coef()} returns spectra and \code{fitted()} the full mean matrix. \code{logLik()},
 \code{AIC()}, \code{BIC()}, \code{GIC()}, \code{EBIC()} and \code{MBIC()} score the returned model.
@@ -205,8 +206,9 @@ Each profile has unit sum, contiguous positive support and
 where \eqn{K} is the number of compounds and \eqn{\nu} contains the shared
 noise parameters. An IC preset uses \eqn{\lambda_R=m\kappa\lambda_{IC}},
 with \eqn{m} original channels. A numeric \code{lambda} supplies the total
-compound penalty before multiplication by \eqn{\kappa}. The initial
-grouped fit uses \eqn{\lambda_R/m}. Each compound contributes one selection
+compound penalty before multiplication by \eqn{\kappa}. The permissive
+initialization uses the unadjusted preset \eqn{\lambda_{IC}}; the requested
+information factor is applied for final rank selection. Each compound contributes one selection
 count; spectral entries and profile complexity have no separate penalty.
 This is a compound-count model-selection convention. The IC methods use
 \eqn{mK} plus the number of estimated shared noise parameters as their
@@ -226,11 +228,13 @@ Backtracking checks the actual loss, with an explicit zero-boundary check.
 Poisson and quasipoisson use a specialized bracketed scalar likelihood solve.
 Background terms use small constrained quadratic solves, and all channels
 run independently through OpenMP.
-Poisson profile proposals use four warm native IRLS iterations. During a
-full profile sweep, an adaptive ridge tether centred on the preceding
-profile stabilizes weak tails, with local penalty weights proportional to
-the inverse squared profile ordinate. The final acceptance test uses the
-complete likelihood-and-rank criterion.
+Initial local profile proposals can use an adaptive ridge tether centred
+on the current profile. Fine refinement instead uses constrained Fisher
+scoring in log-profile coordinates, starting from the current profile and
+spectrum. It enforces hard log concavity within the quadratic update and
+checks the original-scale loss by backtracking. This refinement adds no
+penalty toward zero or toward the initial PSF; a small diagonal stabilizes
+the quadratic solve.
 
 Spectral clustering proposes fusions without fitting a model. It compares
 normalized spectra through Jensen--Shannon information loss and joins
@@ -238,8 +242,12 @@ overlapping compatible profiles. A least concave majorant of the log profile
 enforces hard log concavity. Local refinement reallocates signal between
 overlapping compounds and checks the actual criterion. Every complete stage
 is accepted against its full working data, and final refinement and scoring
-use all original observations. \code{history} records each accepted or rejected
-stage; \code{ledger_error} checks the accumulated criterion change.
+use all original observations. \code{initialization} records the permissive
+starting search and its unadjusted criterion. When the working-correlation
+factor changes the final penalty, \code{history} starts from the resulting
+initialization and records the final-criterion updates. Otherwise it also
+includes the initialization stages. \code{ledger_error} checks the accumulated
+criterion change within this ledger.
 
 \strong{Original-channel completion.} The final cleanup tests component deletions,
 local fusions proposed by profile or spectral similarity, and additional PSF
@@ -275,6 +283,18 @@ slopes of \eqn{Cb}. Zero-information rows receive numerical stabilization.
 IDs refer to components entering original-channel profile refinement, or the
 final pass when that refinement is disabled. Groups are retained across
 passes; \code{source_components} follows the returned temporal ordering.
+
+A second type of proposal absorbs a small, spectrally similar fragment
+whose profile is contained within a broad component. Candidate spectra
+have cosine similarity at least 0.97, at least 99\\% of the fragment profile
+mass lies inside the parent's 1\\%-height interval, and the fragment area
+is at most 15\\% of the parent's area. The parent FWHM exceeds four times
+the representative PSF width. The broad parent and a log-concave combined
+profile are tried as starts. Native updates jointly refine each proposed
+component and its overlapping neighbours, and the same refinement budget
+is applied to the unmerged control. Acceptance uses the complete original-
+channel criterion, with noise settings, weights, offsets and the background
+fixed. \code{contained_fusion} stores the trial diagnostics and source groups.
 
 \strong{Noise models.} Gaussian variance is \eqn{\phi}; quasipoisson variance is
 \eqn{\phi\mu}; NB2 variance is \eqn{\mu+\mu^2/\theta}; standard Gamma

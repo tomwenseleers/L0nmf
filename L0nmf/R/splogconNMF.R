@@ -225,7 +225,7 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #' @param control Named list: `broad_repeats=1L`, `full_sweeps=1L`,
 #'   `final_polishes=1L`, `native_sweeps=6L`, `block_sweeps=6L`,
 #'   `psf_width=NULL`, `screen_factor=1`, `censor=0.5`, `linkage="ward"`,
-#'   `joint_trials=NULL`, `profile_cycles=10L`, `fusion_passes=5L`,
+#'   `joint_trials=NULL`, `profile_cycles=4L`, `fusion_passes=0L`,
 #'   `profile_fusion=TRUE`. `joint_trials` uses direct Poisson fusion for Poisson data
 #'   and joint local refinement for the other families. `psf_width` supplies
 #'   the typical FWHM in scans. When omitted, local updates use the middle design
@@ -237,15 +237,15 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #'   constructor provides its own detection limit unless overridden here.
 #'   `linkage` may be `"ward"` or `"bregman"`. `joint_trials` allows overlapping
 #'   compounds to adjust together during local fusion refinement.
-#'   `profile_cycles` bounds the original-channel shape/background refinement;
-#'   zero disables it. `fusion_passes` bounds broad-anchor and compatible-tail
-#'   fusion after that refinement.
-#'   For a narrow, spectrally matching fragment contained in a broad profile,
-#'   a guarded whole-profile refit can also update the shared background.
-#'   Neighbouring modes stay within one quarter of their initial FWHM, and
-#'   the merge is retained only when the original-channel criterion decreases.
-#'   `profile_fusion` enables a final conservative fusion pass on all original
-#'   channels, followed by one local likelihood-based profile/spectrum refit.
+#'   `profile_cycles` bounds the smooth shape/background initialization;
+#'   positive values also enable fine native profile/spectrum refinement.
+#'   Zero skips these shape-polishing cycles. `fusion_passes` optionally adds
+#'   broad-anchor and compatible-tail searches during initialization.
+#'   `profile_fusion` enables algebraic profile fusion, retained contained-fragment
+#'   proposals and a final broad-fragment pass on every original channel.
+#'   Broad fusions are compared with an equally refined unmerged local model.
+#'   The entire support of every updated component is included in the local
+#'   fit, with the remaining components and background held in an offset.
 #'   `original_cleanup=TRUE` enables a final original-channel deletion, local
 #'   fusion and residual-discovery pass. Set it to `FALSE` to skip that pass.
 #' @param start Optional list `H`, `S` and `alpha`, with original dimensions.
@@ -284,8 +284,9 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #' where \eqn{K} is the number of compounds and \eqn{\nu} contains the shared
 #' noise parameters. An IC preset uses \eqn{\lambda_R=m\kappa\lambda_{IC}},
 #' with \eqn{m} original channels. A numeric `lambda` supplies the total
-#' compound penalty before multiplication by \eqn{\kappa}. The initial
-#' grouped fit uses \eqn{\lambda_R/m}. Each compound contributes one selection
+#' compound penalty before multiplication by \eqn{\kappa}. The permissive
+#' initialization uses the unadjusted preset \eqn{\lambda_{IC}}; the requested
+#' information factor is applied for final rank selection. Each compound contributes one selection
 #' count; spectral entries and profile complexity have no separate penalty.
 #' This is a compound-count model-selection convention. The IC methods use
 #' \eqn{mK} plus the number of estimated shared noise parameters as their
@@ -305,11 +306,13 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #' Poisson and quasipoisson use a specialized bracketed scalar likelihood solve.
 #' Background terms use small constrained quadratic solves, and all channels
 #' run independently through OpenMP.
-#' Poisson profile proposals use four warm native IRLS iterations. During a
-#' full profile sweep, an adaptive ridge tether centred on the preceding
-#' profile stabilizes weak tails, with local penalty weights proportional to
-#' the inverse squared profile ordinate. The final acceptance test uses the
-#' complete likelihood-and-rank criterion.
+#' Initial local profile proposals can use an adaptive ridge tether centred
+#' on the current profile. Fine refinement instead uses constrained Fisher
+#' scoring in log-profile coordinates, starting from the current profile and
+#' spectrum. It enforces hard log concavity within the quadratic update and
+#' checks the original-scale loss by backtracking. This refinement adds no
+#' penalty toward zero or toward the initial PSF; a small diagonal stabilizes
+#' the quadratic solve.
 #'
 #' Spectral clustering proposes fusions without fitting a model. It compares
 #' normalized spectra through Jensen--Shannon information loss and joins
@@ -317,8 +320,12 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #' enforces hard log concavity. Local refinement reallocates signal between
 #' overlapping compounds and checks the actual criterion. Every complete stage
 #' is accepted against its full working data, and final refinement and scoring
-#' use all original observations. `history` records each accepted or rejected
-#' stage; `ledger_error` checks the accumulated criterion change.
+#' use all original observations. `initialization` records the permissive
+#' starting search and its unadjusted criterion. When the working-correlation
+#' factor changes the final penalty, `history` starts from the resulting
+#' initialization and records the final-criterion updates. Otherwise it also
+#' includes the initialization stages. `ledger_error` checks the accumulated
+#' criterion change within this ledger.
 #'
 #' **Original-channel completion.** The final cleanup tests component deletions,
 #' local fusions proposed by profile or spectral similarity, and additional PSF
@@ -354,6 +361,18 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #' IDs refer to components entering original-channel profile refinement, or the
 #' final pass when that refinement is disabled. Groups are retained across
 #' passes; `source_components` follows the returned temporal ordering.
+#'
+#' A second type of proposal absorbs a small, spectrally similar fragment
+#' whose profile is contained within a broad component. Candidate spectra
+#' have cosine similarity at least 0.97, at least 99\% of the fragment profile
+#' mass lies inside the parent's 1\%-height interval, and the fragment area
+#' is at most 15\% of the parent's area. The parent FWHM exceeds four times
+#' the representative PSF width. The broad parent and a log-concave combined
+#' profile are tried as starts. Native updates jointly refine each proposed
+#' component and its overlapping neighbours, and the same refinement budget
+#' is applied to the unmerged control. Acceptance uses the complete original-
+#' channel criterion, with noise settings, weights, offsets and the background
+#' fixed. `contained_fusion` stores the trial diagnostics and source groups.
 #'
 #' **Noise models.** Gaussian variance is \eqn{\phi}; quasipoisson variance is
 #' \eqn{\phi\mu}; NB2 variance is \eqn{\mu+\mu^2/\theta}; standard Gamma
@@ -414,7 +433,8 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #'   `H`, spectra `S`, background coefficients `alpha`, the background basis,
 #'   fitted means `mu`, `rank`, resolved noise settings `spec`, original data,
 #'   offsets and weights, `objective`, `loglik`, stage ledger `history`,
-#'   `ledger_error`, aggregation and `profile_fusion` diagnostics, controls and
+#'   `ledger_error`, `initialization`, aggregation, `profile_fusion` and
+#'   `contained_fusion` diagnostics, controls and
 #'   timings `seconds`.
 #'   `coef()` returns spectra and `fitted()` the full mean matrix. `logLik()`,
 #'   `AIC()`, `BIC()`, `GIC()`, `EBIC()` and `MBIC()` score the returned model.
@@ -465,7 +485,7 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
   defaults <- list(broad_repeats = 1L, full_sweeps = 1L, final_polishes = 1L,
     native_sweeps = 6L, block_sweeps = 6L, psf_width = NULL, screen_factor = 1,
     censor = .5, linkage = "ward", joint_trials = NULL, profile_fusion = TRUE,
-    profile_cycles = 10L, fusion_passes = 5L, original_cleanup = TRUE)
+    profile_cycles = 4L, fusion_passes = 0L, original_cleanup = TRUE)
   if (!is.list(control) || length(control) && (is.null(names(control)) ||
       any(!nzchar(names(control))) || anyDuplicated(names(control)))) stop("Use a named control list.")
   if (is.list(family) && !is.null(family$scalar) && !"censor" %in% names(control))
@@ -512,6 +532,12 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
   scalar <- if (is.character(lambda)) preset.lambda(lambda, p = ncol(X), n = n) else lambda / m
   scalar <- scalar * spec$information_factor
   if (!is.finite(scalar) || scalar < 0) stop("lambda must be an IC preset or nonnegative compound penalty.")
+  # Preserve candidates during initialization; apply the requested information
+  # correction after the native original-channel profile/spectrum refinement.
+  initial_scalar <- scalar / spec$information_factor
+  initial_spec <- spec
+  initial_spec$information_factor <- 1
+  initial_spec$correlation <- 0
   clustering_seconds <- aggregate_seconds <- 0;aggregation <- NULL
   if (is.null(start) && !is.null(precluster) && !identical(precluster, FALSE) && precluster < m) {
     clustering_seconds <- system.time(cl <- glm_cluster(pmax(Y, 0), family = poisson("identity"),
@@ -525,14 +551,14 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
     fractions[!is.finite(fractions)] <- 0
     sumsq <- as.numeric(rowsum(fractions^2, group, reorder = TRUE))
     sizes <- tabulate(group, nbins = g)
-    aggregated_spec <- spec;aggregated_spec$theta_update <- FALSE
+    aggregated_spec <- initial_spec;aggregated_spec$theta_update <- FALSE
     if (spec$name == "gaussian") aggregated_spec$dispersion <- spec$dispersion * sizes
     if (spec$name == "nb") aggregated_spec$theta <- spec$theta / pmax(sumsq, 1e-12)
     if (spec$name == "Gamma") aggregated_spec$dispersion <- spec$dispersion * pmax(sumsq, 1e-12)
     aggregate_W <- if (length(W) == 1L) W else as.matrix(W %*% P) / rep(sizes, each = n)
     aggregate_O <- if (length(O) == 1L) matrix(O, n, g) * rep(sizes, each = n) else as.matrix(O %*% P)
     aggregate_seconds <- system.time(a <- slcn_run(X, aggregate_Y, B, aggregated_spec,
-      aggregate_W, aggregate_O, scalar, ncores, control, verbose = verbose, censor = control$censor,
+      aggregate_W, aggregate_O, initial_scalar, ncores, control, verbose = verbose, censor = control$censor,
       rank_channels = m))[["elapsed"]]
     S <- sweep(a$S[, group, drop = FALSE], 2, fractions, "*")
     alpha <- sweep(a$alpha[, group, drop = FALSE], 2, fractions, "*")
@@ -544,10 +570,10 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
       weighted_approximation = length(W) != 1L, model = a,
       sumsq_fractions = sumsq, original_channels = m)
   }
-  fit_seconds <- system.time(fit <- slcn_run(X, Y, B, spec, W, O, scalar, ncores, control,
+  fit_seconds <- system.time(fit <- slcn_run(X, Y, B, initial_spec, W, O, initial_scalar, ncores, control,
     start, verbose, control$censor, selection = is.null(aggregation)))[["elapsed"]]
   fit$background <- B;fit$offset <- O;fit$weights <- W;fit$y <- Y
-  fit$family <- family;fit$n <- n;fit$p <- ncol(X);fit$lambda <- scalar * m
+  fit$family <- family;fit$n <- n;fit$p <- ncol(X);fit$lambda <- initial_scalar * m
   fit$rank <- ncol(fit$H)
   fit$nuisance_df <- as.integer(spec$dispersion_estimated) + as.integer(spec$theta_estimated)
   fit$ic_df <- m * fit$rank + fit$nuisance_df
@@ -557,14 +583,38 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
     if (ncol(fit$H) && control$profile_cycles) fit <- slcn_refine_fit(fit, Y, verbose))[["elapsed"]]
   if (control$profile_fusion) refinement_seconds <- refinement_seconds + system.time(
     fit <- slcn_refine_profiles(fit, Y, verbose, fusion_width))[["elapsed"]]
-  if (control$original_cleanup) refinement_seconds <- refinement_seconds + system.time(
-    fit <- slcn_cleanup(fit, Y, X, verbose))[["elapsed"]]
+  refinement_seconds <- refinement_seconds + system.time(
+    fit <- slcn_polish(fit, Y, X, verbose))[["elapsed"]]
+  fit$initialization <- list(lambda = fit$lambda, objective = fit$objective,
+    compounds = ncol(fit$H), history = fit$history)
+  if (spec$information_factor != 1) {
+    fit$spec$information_factor <- spec$information_factor
+    fit$spec$correlation <- spec$correlation
+    fit$lambda <- scalar * m
+    fit <- slcn_sync(fit, Y)
+    fit$initial_objective <- fit$objective
+    fit$history <- data.frame(stage = "initial", seconds = 0, delta = 0,
+      accepted = TRUE, compounds = ncol(fit$H))
+  }
+  if (control$profile_fusion && ncol(fit$H) > 1L) {
+    before <- slcn_sync(fit, Y)
+    seconds <- system.time(candidate <- slcn_contained_broad(fit, Y, fusion_width, verbose))[["elapsed"]]
+    delta <- candidate$objective - before$objective
+    ok <- is.finite(delta) && delta <= 1e-6
+    if (ok) fit <- candidate
+    fit$history <- rbind(before$history, data.frame(stage = "contained_broad_fusion",
+      seconds = seconds, delta = delta, accepted = ok, compounds = ncol(candidate$H)))
+    refinement_seconds <- refinement_seconds + seconds
+  }
+  fit <- slcn_sync(fit, Y)
+  fit$complete_delta <- fit$objective - fit$initial_objective
+  fit$ledger_error <- fit$complete_delta - sum(fit$history$delta[fit$history$accepted])
   fit$rank <- ncol(fit$H);fit$ic_df <- m * fit$rank + fit$nuisance_df
   fit$seconds <- c(noise = nuisance, clustering = clustering_seconds, aggregate = aggregate_seconds,
     original = fit_seconds, refinement = refinement_seconds, total = proc.time()[["elapsed"]] - begun)
-  if (!is.null(fit$profile_fusion$merges) && nrow(fit$profile_fusion$merges))
-    fit <- slcn_temporal_order(fit)
+  fit <- slcn_temporal_order(fit)
   if (!is.null(fit$profile_fusion)) fit$profile_fusion$source_components <- fit$members
+  if (!is.null(fit$contained_fusion)) fit$contained_fusion$source_components <- fit$members
   fit$members <- NULL
   if (!is.null(fit$aggregation$model))
     fit$aggregation$model <- slcn_temporal_order(fit$aggregation$model)

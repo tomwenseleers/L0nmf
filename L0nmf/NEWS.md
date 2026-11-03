@@ -17,6 +17,11 @@
   Gamma models, with pooled noise calibration and optional temporal adjustment.
 * Optional channel aggregation accelerates initialization; final refinement
   retains every original outcome channel.
+* Permissive initialization and native fine-scale profile/spectrum refinement
+  preserve candidate components for final correlation-aware rank selection.
+* Contained broad-peak fragments are compared with equally refined unmerged
+  controls. Complete local supports, reconstructed original-channel means
+  and separate initialization/final-criterion ledgers make each decision auditable.
 
 ## Coupled multisample models
 

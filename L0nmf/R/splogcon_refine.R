@@ -127,7 +127,8 @@ function (f, Y, H, S, fixed, rows = seq_len(nrow(Y)), maxit = 80L,
 }
 slcn_refine_block <-
 function (f, Y, block = seq_len(ncol(f$H)), cycles = 2L, profile_steps = 2L,
-    adaptive = TRUE, joint = TRUE, pad = 2L, background = FALSE, free = NULL)
+    adaptive = TRUE, joint = TRUE, pad = 2L, background = FALSE, free = NULL,
+    knots = 128L)
 {
     if (!length(block))
         return(f)
@@ -194,7 +195,7 @@ function (f, Y, block = seq_len(ncol(f$H)), cycles = 2L, profile_steps = 2L,
                 Y[rows[at], , drop = FALSE], rest + positive %o% s[k, ], positive,
                 s[k, ], f$spec$kind, f$spec$dispersion, f$spec$theta,
                 as.numeric(f$weights), nrow(Y), first, as.integer(profile_steps),
-                f$control$censor, 128L, as.integer(f$ncores),
+                f$control$censor, as.integer(knots), as.integer(f$ncores),
                 as.integer(lo), as.integer(hi), mode = 2L)
             if (guarded && max(fit$profile[seq.int(lo, hi) + 1L]) < max(fit$profile) * (1 - 1e-8)) next
             a <- sum(fit$profile)
@@ -360,7 +361,8 @@ function (f, pairs = FALSE)
     result
 }
 slcn_merge_anchor <-
-function (f, Y, proposal, cycles = 8L, guarded = FALSE)
+function (f, Y, proposal, cycles = 8L, guarded = FALSE, profile_steps = 4L,
+    neighbor_mass = 0.025)
 {
     group <- proposal$group
     anchor <- proposal$anchor
@@ -378,13 +380,14 @@ function (f, Y, proposal, cycles = 8L, guarded = FALSE)
     f$S <- rbind(f$S[keep, , drop = FALSE], colSums(f$S[group,
         , drop = FALSE]))
     f$members <- c(f$members[keep], list(sort(unique(unlist(f$members[group])))))
+    f$state_ids <- f$source_ids <- NULL
     f$mu <- as.matrix(f$H %*% f$S) + f$background %*% f$alpha + f$offset
     new <- ncol(f$H)
     support <- which(f$H[, new] > max(f$H[, new]) * 1e-06)
-    block <- which(colSums(f$H[support, , drop = FALSE]) > 0.025)
+    block <- sort(unique(c(new, which(colSums(f$H[support, , drop = FALSE]) > neighbor_mass))))
     if (guarded && nrow(Y) <= 2000L && ncol(f$H) <= 64L)
         block <- seq_len(ncol(f$H))
-    slcn_refine_block(f, Y, block, cycles = cycles, profile_steps = 4L,
+    slcn_refine_block(f, Y, block, cycles = cycles, profile_steps = profile_steps,
         pad = 2L, background = guarded, free = if (guarded) new else NULL)
 }
 slcn_restore_atoms <-

@@ -88,26 +88,85 @@ are part of the model.</p>
 specifies the actual objectives, coordinate conventions, initialization
 and acceptance rules.</p>
 <div class="section level2">
+<h2 id="observation-model">Observation model and notation<a class="anchor" aria-label="anchor" href="#observation-model"></a>
+</h2>
+<p>Let <span class="math inline">Y=(y_{ij})\in\mathbb R^{n\times
+m}</span> contain ordered observations, with scans or time points in
+rows and response channels in columns. Let <span class="math inline">M=(\mu_{ij})</span> be the nonnegative mean signal
+and <span class="math inline">\nu</span> the shared noise parameters. We
+use the weighted log likelihood</p>
+<p><span class="math display">
+\ell_\nu(M;Y)=\sum_{i=1}^{n}\sum_{j=1}^{m}
+w_{ij}\ell_\nu(y_{ij};\mu_{ij}),\qquad w_{ij}\geq0.
+</span></p>
+<p>For quasipoisson, <span class="math inline">\ell_\nu</span> denotes
+the scaled Poisson quasi-likelihood kernel defined in the <a href="#noise-models">noise-model section</a>. Observation weights are
+applied once in this definition. The seven supported identity-link
+models use their own mean-variance relationships and likelihood
+derivatives; estimation and acceptance take place on the original
+observation scale.</p>
+<p>Throughout, <span class="math inline">n</span> is the number of
+original observations, <span class="math inline">m</span> the original
+channel count and <span class="math inline">p</span> the number of
+candidate PSF columns. <span class="math inline">B</span> is a
+nonnegative low-dimensional background basis, <span class="math inline">A\geq0</span> its coefficients, and <span class="math inline">O</span> known additive signal. The notation matches
+the <a href="https://tomwenseleers.github.io/GCMSprime/articles/algorithm.html" class="external-link">GCMSprime
+mathematical basis</a>, which develops the chromatographic
+interpretation of these models.</p>
+</div>
+<div class="section level2">
 <h2 id="psf-estimation">Convolution and PSF estimation<a class="anchor" aria-label="anchor" href="#psf-estimation"></a>
 </h2>
-<p>Let <span class="math inline">Y\in\mathbb R^{n\times m}</span>
-contain ordered multichannel observations, <span class="math inline">C\in\mathbb R_+^{p\times m}</span> a spike-amplitude
-matrix and <span class="math inline">g</span> a kernel. With a
-nonnegative background basis <span class="math inline">B</span>,
-coefficients <span class="math inline">A\geq0</span> and known offset
-<span class="math inline">O</span>, the fixed-kernel model is</p>
+<div class="section level3">
+<h3 id="fixed-psf">Deconvolution based on a known peak shape<a class="anchor" aria-label="anchor" href="#fixed-psf"></a>
+</h3>
+<p>Let <span class="math inline">C\in\mathbb R_+^{p\times m}</span> be a
+spike-amplitude matrix and <span class="math inline">g</span> a known
+point spread function (PSF), or peak shape function. The fixed-kernel
+mean model is</p>
 <p><span class="math display">
 M=X(g)C+BA+O,\qquad C,A\geq0.
 </span></p>
 <p>For a constant kernel, <span class="math inline">X(g)_{ir}=g_{i-r}</span>, with the specified
-centering and boundary convention. Sparse regression selects individual
-entries or whole rows of <span class="math inline">C</span>. Its target
-combines the observation log likelihood with an entrywise or row-support
-penalty. L0glm supplies the adaptive-ridge IRLS, normalization,
-compulsory-background treatment and relaxed refit; its <a href="https://tomwenseleers.github.io/L0glm/articles/algorithm.html" class="external-link">algorithm
-article</a> gives those updates in detail. The sparse pulse-train
-formulation builds on <a href="https://doi.org/10.1016/j.aca.2011.05.030" class="external-link">de Rooi &amp; Eilers
-(2011)</a>.</p>
+centering and boundary convention. A nonzero row calls a candidate peak
+using information from every response channel. The grouped <span class="math inline">L_0</span> selection target is</p>
+<p><span class="math display">
+\begin{aligned}
+s(C)&amp;=\|C\|_{2,0}
+=\sum_{r=1}^{p}\mathbf1\{\|C_{r\cdot}\|_2&gt;0\},\\
+\mathcal G(C,A;g)
+&amp;=-2\ell_\nu\{X(g)C+BA+O;Y\}+\lambda_g s(C).
+\end{aligned}
+</span></p>
+<p>Here <span class="math inline">\lambda_g</span> is the total
+row-selection charge. This is the target for <strong>best subset of
+groups selection (BSGS)</strong>, where a group consists of all channel
+coefficients at one candidate position. Independent selection instead
+uses <span class="math inline">\sum_{rj}\mathbf1\{C_{rj}\ne0\}</span>.
+Background terms are compulsory and unpenalized in the coefficient
+updates.</p>
+<p>L0glm approximates these sparse-selection objectives with adaptive
+ridge within GLM IRLS, followed by optional relaxed refitting. Its GIC
+preset supplies the information-criterion scale</p>
+<p><span class="math display">
+\lambda_{\rm IC}=\log p\,\log\log n,
+</span></p>
+<p>with natural logarithms; AIC uses <span class="math inline">2</span>
+and BIC uses <span class="math inline">\log n</span>. The
+high-dimensional GIC scale follows <a href="https://doi.org/10.1111/rssb.12001" class="external-link">Fan &amp; Tang (2013)</a>. The
+working adaptive ridge uses a quarter of the selection scale with the
+appropriate dispersion factor. See <a href="https://tomwenseleers.github.io/L0glm/articles/algorithm.html" class="external-link">L0glm’s
+algorithm</a> for the inverse-square updates and their quadratic
+calibration. The grouped candidate fit supplies a support for the
+factorization; its final <a href="#rank-selection">rank-selection
+criterion</a> has an explicit original-channel compound charge.</p>
+<p>The sparse pulse-train formulation was inspired by <a href="https://doi.org/10.1016/j.aca.2011.05.030" class="external-link">de Rooi &amp; Eilers
+(2011)</a>. Our extensions add the information-criterion regularization
+preset, grouped selection approximating BSGS, and Poisson or
+overdispersed Poisson observation models. With estimated quasipoisson
+dispersion, the corresponding target is quasi-GIC, using the same
+row-support penalty and a scaled quasi-likelihood.</p>
+</div>
 <div class="section level3">
 <h3 id="calibration-with-isolated-peaks">Calibration with isolated peaks<a class="anchor" aria-label="anchor" href="#calibration-with-isolated-peaks"></a>
 </h3>
@@ -153,19 +212,39 @@ convolution is linear in the kernel:</p>
 X(g)c_j=T(c_j)g,
 </span></p>
 <p>where <span class="math inline">T(c_j)</span> contains shifted copies
-of the spike train. This gives a second nonnegative GLM. Its ridge
-center is the current kernel. The implementation normalizes each
-informative channel’s spike train for conditioning and rescales the
-prior center consistently. Positive starts retain kernel tails. Its
-default kernel update keeps alternating lag positions as compulsory
-terms; the remaining positions use adaptive selection. A log-concave
-smoother and centroid alignment produce the kernel proposal, which is
-normalized to unit sum.</p>
+of the spike train. This gives a second nonnegative GLM. Blind
+estimation therefore alternates <strong>two L0glm fits</strong>: one
+estimates spike trains and background given the current kernel; the
+other estimates the kernel given those spike trains. They form an
+alternating block-coordinate procedure for the joint sparse-likelihood
+target</p>
+<p><span class="math display">
+\mathcal G(C,A,g)
+=-2\ell_\nu\{X(g)C+BA+O;Y\}+\lambda_g s(C),
+</span></p>
+<p>under nonnegativity and a normalized, log-concave kernel. The
+conditional updates use adaptive ridge and kernel shape smoothing. Their
+complete spike/background reconstructions are compared using the
+requested IC.</p>
+<p>The PSF fit’s ridge center is the current kernel. The implementation
+normalizes each informative channel’s spike train for conditioning and
+rescales the prior center consistently. Positive starts retain kernel
+tails. Its default kernel update keeps alternating lag positions as
+compulsory terms; the remaining positions use adaptive selection. A
+log-concave smoother and centroid alignment produce the kernel proposal,
+which is normalized to unit sum.</p>
 <p>Completed proposals are compared after re-estimating their spike
 trains and backgrounds. A full-tail proposal and a pedestal-removed
 proposal can both be considered. The returned checkpoint is the
 synchronized spike/background fit with the lowest requested criterion
 among these completed candidates.</p>
+<p>Both fits use the same observation model and resolved noise
+parameters. For fixed-dispersion quasipoisson counts, weighting the
+Poisson log likelihood by <span class="math inline">1/\phi</span> gives
+the same mean-dependent quasi-likelihood. This allows the native Poisson
+backend to retain the calibrated noise scale. The other families use
+their corresponding likelihoods. The kernel updates and completed
+checkpoint comparisons approximate the joint selection problem.</p>
 <p><strong>Algorithm P2 — blind constant-PSF estimation</strong></p>
 <ol style="list-style-type: decimal">
 <li>Set <span class="math inline">g^{(0)}</span> to the
@@ -245,25 +324,69 @@ shapes.</p>
 <p>The columns of <span class="math inline">H</span> have unit sum,
 contiguous support and <span class="math inline">\Delta^2\log H_{\cdot
 r}\leq0</span>. Spectra <span class="math inline">S</span> therefore
-have the interpretation of integrated channel intensities. The objective
-is</p>
+have the interpretation of discrete integrated channel intensities. The
+objective is</p>
 <p><span class="math display">
-J=-2\sum_{ij}w_{ij}\ell(y_{ij};\mu_{ij},\nu)+\lambda_R K,
-\qquad \lambda_R=m\kappa\lambda_{IC}.
+J(H,S,A,K)=-2\ell_\nu(HS+BA+O;Y)+\lambda_RK,
+\qquad \lambda_R=m\kappa\lambda_{\rm IC}.
 </span></p>
 <p>Here <span class="math inline">m</span> is the original channel
 count, <span class="math inline">\nu</span> contains pooled noise
 parameters and <span class="math inline">\kappa=1</span> for independent
-observations. Numeric <code>lambda</code> specifies the total compound
-penalty before the optional covariance adjustment. Background
-coefficients and profile complexity have no additional penalty. The
-original channel count is retained in this penalty when the observations
-are aggregated, so changing the number of outcome groups does not change
-the compound penalty. Dividing by the channel count gives the equivalent
-criterion <span class="math inline">-2\ell/m+\kappa\lambda_{IC}K</span>,
-with one rank penalty per compound. The reported IC methods use the
-compound-count convention <span class="math inline">mK</span>, plus any
-estimated shared noise parameters.</p>
+observations. The GIC preset uses <span class="math inline">\lambda_{\rm
+IC}=\log p\,\log\log n</span>, resolved from the original PSF design and
+observation count. With a numeric <code>lambda</code> equal to <span class="math inline">c</span>, <code><a href="../reference/splogconNMF.html">splogconNMF()</a></code> instead uses
+<span class="math inline">\lambda_R=\kappa c</span>: it specifies the
+total compound charge before the optional temporal-correlation
+adjustment.</p>
+<p>Dividing by the original channel count gives the equivalent
+criterion</p>
+<p><span class="math display">
+J/m=-2\ell_\nu/m+\kappa\lambda_{\rm IC}K.
+</span></p>
+<p>Thus each compound contributes one rank-selection unit on the
+average-channel likelihood scale. Background coefficients and profile
+complexity receive no additional penalty under this compound-count
+convention. Channel aggregation retains the original <span class="math inline">m</span> in <span class="math inline">\lambda_R</span>; changing the number of outcome
+groups does not redefine the compound penalty.</p>
+<div class="section level3">
+<h3 id="reported-criteria">Reported information criteria<a class="anchor" aria-label="anchor" href="#reported-criteria"></a>
+</h3>
+<p>Let <span class="math inline">d_\nu</span> count estimated shared
+noise parameters. The reported IC methods use the selection complexity
+<span class="math inline">d_{\rm sel}=mK+d_\nu</span>:</p>
+<p><span class="math display">
+\operatorname{IC}=-2\ell_\nu
++\kappa\lambda_{\rm IC}(mK+d_\nu).
+</span></p>
+<p>For a fit using the matching IC preset, this equals <span class="math inline">J+\kappa\lambda_{\rm IC}d_\nu</span>. The extra term
+is constant when comparing ranks with the same noise specification.
+Known noise parameters add no selection count. The reported count
+implements the compound-selection convention; it leaves profile
+ordinates and smooth background coefficients unpenalized.
+<code><a href="https://rdrr.io/r/stats/logLik.html" class="external-link">logLik()</a></code>, <code><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC()</a></code>, <code><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">BIC()</a></code>,
+<code><a href="https://tomwenseleers.github.io/L0glm/reference/model_criteria.html" class="external-link">GIC()</a></code>, <code><a href="https://tomwenseleers.github.io/L0glm/reference/model_criteria.html" class="external-link">EBIC()</a></code> and <code><a href="https://tomwenseleers.github.io/L0glm/reference/model_criteria.html" class="external-link">MBIC()</a></code> use the
+fitted likelihood and this count. Quasipoisson returns the corresponding
+quasi-information criteria through the same method names.</p>
+</div>
+<div class="section level3">
+<h3 id="log-concave-profiles">Log-concave component-specific profiles<a class="anchor" aria-label="anchor" href="#log-concave-profiles"></a>
+</h3>
+<p>On a regular grid, the shape constraint is <span class="math inline">H_{ir}^2\geq H_{i-1,r}H_{i+1,r}</span> at interior
+positive ordinates. On an irregular grid, successive slopes of <span class="math inline">\log H_{\cdot r}</span> in actual time must be
+nonincreasing. Each component has contiguous support. This accommodates
+Gaussian, exponentially modified Gaussian and asymmetric triangular or
+shark-fin-shaped chromatographic profiles. Gaussian and exponential
+profiles are log-concave, and convolution preserves this property (<a href="https://doi.org/10.1214/14-SS107" class="external-link">Saumard &amp; Wellner,
+2014</a>).</p>
+<p>Log-concavity implies unimodality and supplies additional control
+over the rising and falling slopes. It provides stronger shape
+information than the unimodality constraints commonly used in MCR-ALS
+(<a href="https://doi.org/10.1039/C4AY00571F" class="external-link">de Juan, Jaumot &amp;
+Tauler, 2014</a>). Estimating each profile separately allows compound-
+and concentration-dependent broadening and tailing around the common
+PSF-based initialization.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="generalized-matrix-factorization">Generalized matrix factorization<a class="anchor" aria-label="anchor" href="#generalized-matrix-factorization"></a>
@@ -297,21 +420,21 @@ divergences</a>.</p>
 <p>For a regular exponential-dispersion model with fixed noise
 parameters,</p>
 <p><span class="math display">
-\ell(y;\theta,\phi)=\frac{y\theta-b(\theta)}{\phi}+c(y,\phi),
-\qquad \mu=b'(\theta),
+\ell(y;\vartheta,\phi)=\frac{y\vartheta-b(\vartheta)}{\phi}+c(y,\phi),
+\qquad \mu=b'(\vartheta),
 </span></p>
 <p>let <span class="math inline">\Psi=b^*</span> be the convex conjugate
 of <span class="math inline">b</span>. Its Bregman divergence is</p>
 <p><span class="math display">
 D_\Psi(y,\mu)=\Psi(y)-\Psi(\mu)-\Psi'(\mu)(y-\mu).
 </span></p>
-<p>Since <span class="math inline">\Psi'(\mu)=\theta(\mu)</span> and
-<span class="math inline">\Psi(\mu)=\mu\theta(\mu)-b\{\theta(\mu)\}</span>,
+<p>Since <span class="math inline">\Psi'(\mu)=\vartheta(\mu)</span>
+and <span class="math inline">\Psi(\mu)=\mu\vartheta(\mu)-b\{\vartheta(\mu)\}</span>,
 substitution gives</p>
 <p><span class="math display">
 \begin{aligned}
 D_\Psi(y,\mu)
-&amp;=y\theta(y)-b\{\theta(y)\}-y\theta(\mu)+b\{\theta(\mu)\},\\
+&amp;=y\vartheta(y)-b\{\vartheta(y)\}-y\vartheta(\mu)+b\{\vartheta(\mu)\},\\
 2\{\ell(y;y,\phi)-\ell(y;\mu,\phi)\}
 &amp;=\frac{2}{\phi}D_\Psi(y,\mu).
 \end{aligned}
@@ -375,8 +498,18 @@ their full likelihood kernels described below; estimated noise
 parameters are compared using the full likelihood as well.</p>
 </div>
 <div class="section level2">
-<h2 id="noise-models">Noise models and likelihood kernels<a class="anchor" aria-label="anchor" href="#noise-models"></a>
+<h2 id="noise-models">Smooth background and flexible noise models<a class="anchor" aria-label="anchor" href="#noise-models"></a>
 </h2>
+<p>The additive background <span class="math inline">BA</span> uses a
+nonnegative, low-dimensional B-spline basis, or a constant basis for a
+short window. Its coefficients are compulsory and unpenalized.
+Conditional background updates retain the fitted component signal in the
+offset and use the specified observation likelihood. For chromatograms
+the basis should vary much more slowly than an individual peak. A
+lower-quantile background fit initializes isolated-peak calibration.</p>
+<div class="section level3">
+<h3 id="seven-identity-link-signal-models">Seven identity-link signal models<a class="anchor" aria-label="anchor" href="#seven-identity-link-signal-models"></a>
+</h3>
 <table class="table">
 <colgroup>
 <col width="33%">
@@ -434,11 +567,84 @@ y\}/b_0</span></td>
 Their observed positive curvatures are differences of trigamma functions
 for NB1 and <span class="math inline">\psi_1(\mu/b_0)/b_0^2</span> for
 common-scale Gamma. The latter is convex in the mean; the NB1 curvature
-is nonnegative because trigamma decreases on the positive real line.</p>
+is nonnegative because trigamma decreases on the positive real line. At
+<span class="math inline">\phi=1</span>, NB1 uses its Poisson limit. The
+Gamma scores in the table apply to positive, uncensored observations;
+zero observations use the censoring likelihood below. Gaussian variance
+is <span class="math inline">\sigma^2=\phi</span>; common-scale Gamma
+uses <span class="math inline">b_0</span> for its shared scale.</p>
+<p>Poisson, NB1 and NB2 require integer counts. Quasipoisson accepts
+nonnegative continuous intensities; Gaussian observations may also be
+negative, while the modeled component signal remains nonnegative. Gamma
+observations below the detection threshold are represented by zero.</p>
+<p><code><a href="../reference/splogconNMF.html">splogconNMF()</a></code> and <code><a href="../reference/coupledNMF.html">coupledNMF()</a></code> default to
+<code>poisson("identity")</code> for count-data factorization.
+<code><a href="../reference/estimate_psf.html">estimate_psf()</a></code> defaults to
+<code>quasipoisson("identity")</code>. For GC/MS electron-multiplier
+intensities, GCMSprime uses the latter as its workflow default and
+reuses the estimated noise specification during PSF estimation and
+factorization.</p>
 </div>
-<div class="section level2">
-<h2 id="censored-gamma-intensities">Censored Gamma intensities<a class="anchor" aria-label="anchor" href="#censored-gamma-intensities"></a>
-</h2>
+<div class="section level3">
+<h3 id="quasipoisson-and-estimated-overdispersion">Quasipoisson and estimated overdispersion<a class="anchor" aria-label="anchor" href="#quasipoisson-and-estimated-overdispersion"></a>
+</h3>
+<p>Poisson ion arrivals combined with random electron-multiplier gain
+motivate an overdispersed counting model. For independent identically
+distributed gains <span class="math inline">G_a</span>, independent of
+<span class="math inline">N</span>,</p>
+<p><span class="math display">
+Y=\sum_{a=1}^{N}G_a,\quad N\sim\operatorname{Poisson}(\Lambda),\qquad
+\operatorname{E}(Y)=\Lambda\operatorname{E}(G),\quad
+\operatorname{Var}(Y)=\Lambda\operatorname{E}(G^2).
+</span></p>
+<p>The variance-to-mean ratio depends on gain and intensity units. A
+quasipoisson working model retains this proportional variance structure;
+electronics and digitization can add further variation. See <a href="https://doi.org/10.1021/ac503554u" class="external-link">Ipsen (2015)</a> for the
+physical measurement model.</p>
+<p>With a resolved common dispersion <span class="math inline">\widehat\phi</span>, the implemented scaled kernel
+is</p>
+<p><span class="math display">
+\ell_Q(M;Y)=\frac{1}{\widehat\phi}\sum_{ij}w_{ij}
+\{y_{ij}\log\mu_{ij}-\mu_{ij}-\log\Gamma(y_{ij}+1)\}.
+</span></p>
+<p>The final term is constant for fixed observations and scale. It
+therefore gives the same model comparisons as the mean-dependent
+quasi-likelihood in GCMSprime. Equivalently, write</p>
+<p><span class="math display">
+\begin{aligned}
+D_P(Y,M)&amp;=2\sum_{ij}w_{ij}
+\{y_{ij}\log(y_{ij}/\mu_{ij})-y_{ij}+\mu_{ij}\},\\
+J_Q&amp;=D_P(Y,M)/\widehat\phi+\lambda_RK+\text{constant}.
+\end{aligned}
+</span></p>
+<p>Use <span class="math inline">0\log(0/\mu)=0</span>. Thus the same
+original-channel rank charge applies to GIC and quasi-GIC; the estimated
+dispersion scales the fit term. <code><a href="https://rdrr.io/r/stats/logLik.html" class="external-link">logLik()</a></code> marks the
+quasipoisson kernel with <code>quasi=TRUE</code>, and the regular IC
+method names return quasi-information criteria.</p>
+</div>
+<div class="section level3">
+<h3 id="pooled-noise-calibration">Pooled noise calibration<a class="anchor" aria-label="anchor" href="#pooled-noise-calibration"></a>
+</h3>
+<p>Noise parameters are shared across channels. With
+<code>dispersion=NULL</code>, the marginal variance or scale is
+estimated from fourth- and eighth-order temporal differences in quieter
+regions of a smoothed pilot signal. Supplying a positive dispersion
+fixes it. NB2 similarly supports a fixed positive <code>theta</code>,
+automatic pooled initialization with <code>theta=NULL</code>, or a
+negative starting value that enables subsequent likelihood-improving
+shape updates. Poisson and NB2 have GLM scale dispersion one; NB2
+overdispersion is represented by <span class="math inline">\theta</span>.</p>
+<p>Candidate rank or grouping moves are compared using the same resolved
+noise parameters, observation weights, offsets and numerical penalty. An
+enabled NB2 shape update is a separate likelihood-improving step; the
+next candidate comparison uses that updated common shape. This keeps
+each acceptance test on a common noise scale. The <a href="#temporal-variation">temporal-variation section</a> details the
+marginal variance and optional correlation adjustment.</p>
+</div>
+<div class="section level3">
+<h3 id="censored-gamma-intensities">Censored Gamma intensities<a class="anchor" aria-label="anchor" href="#censored-gamma-intensities"></a>
+</h3>
 <p>Recorded zeros may represent intensities below a detection limit
 <span class="math inline">d</span>, whose contribution is <span class="math inline">\log P(Y&lt;d;\mu)</span>. Positive observations
 contribute their ordinary density. For standard Gamma, set <span class="math inline">a=1/\phi</span>, <span class="math inline">z=d/(\phi\mu)</span>; its negative log-CDF
@@ -458,6 +664,7 @@ is small. The general branch uses the Gamma CDF and a numerical shape
 derivative. Both branches are checked against the actual censored
 likelihood. The default detection limit is 0.5 intensity units and can
 be changed through <code>control$censor</code>.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="local-quadratic-updates">Local quadratic updates<a class="anchor" aria-label="anchor" href="#local-quadratic-updates"></a>
@@ -523,9 +730,11 @@ neither is a broad peak. Candidate construction uses matrix products and
 performs no refitting. Accepted proposals use native local likelihood
 fits with all other compounds and the fitted background held in the
 offset.</p>
-<p>For <span class="math inline">J=-2\ell+\lambda_RK</span>, a deletion
-has change <span class="math inline">\Delta J=\Delta D-\lambda_R</span>,
-a fusion of <span class="math inline">r</span> factors has <span class="math inline">\Delta J=\Delta D-\lambda_R(r-1)</span>, and an
+<p>For <span class="math inline">J=-2\ell_\nu+\lambda_RK</span>, let
+<span class="math inline">\Delta
+D=-2\{\ell_\nu(M';Y)-\ell_\nu(M;Y)\}</span>. A deletion has change
+<span class="math inline">\Delta J=\Delta D-\lambda_R</span>, a fusion
+of <span class="math inline">r</span> factors has <span class="math inline">\Delta J=\Delta D-\lambda_R(r-1)</span>, and an
 addition has <span class="math inline">\Delta J=\Delta
 D+\lambda_R</span>. The complete original-channel criterion must
 improve. Noise parameters, offsets, weights and the numerical compound
@@ -543,6 +752,13 @@ skips this pass.</p>
 <div class="section level2">
 <h2 id="fusion-aggregation-and-rank-selection">Fusion, aggregation and rank selection<a class="anchor" aria-label="anchor" href="#fusion-aggregation-and-rank-selection"></a>
 </h2>
+<p>The estimated PSF supplies candidate shapes. Grouped sparse
+deconvolution, fusion of spectrally similar overlapping components under
+log-concavity, and local likelihood refinement jointly select a
+parsimonious factorization rank. This yields a data-driven estimate of
+the underlying number of components. Its distinctive feature is the
+integration of these operations with an explicit noise-aware
+compound-count objective.</p>
 <ol style="list-style-type: decimal">
 <li>Obtain a variance-matched grouped deconvolution start, retaining the
 spline background as compulsory unpenalized terms.</li>
@@ -553,7 +769,7 @@ regression fits.</li>
 <li>Refine each proposal locally, holding all outside contributions
 fixed. Overlapping spectra and the candidate profile can adjust
 together.</li>
-<li>Accept a rank change when <span class="math inline">-2(\ell_{new}-\ell_{old})+\lambda_R(K_{new}-K_{old})\leq0</span>.</li>
+<li>Accept a rank change when <span class="math inline">-2\{\ell_\nu(M';Y)-\ell_\nu(M;Y)\}+\lambda_R(K'-K)\leq0</span>.</li>
 <li>Update broad profiles, smooth background coefficients and spectra,
 followed by final boundary checks and rank pruning.</li>
 </ol>
@@ -566,19 +782,29 @@ directly checkable.</p>
 <p>With <code>precluster=32L</code>, the initial workflow uses at most
 32 aggregated outcome groups. Size factors
 <code>colSums(pmax(Y,0))</code> account for different total ion
-intensities. Final refinement returns to every original channel.
-Independent NB1 variables sharing <span class="math inline">p=1/\phi</span> are closed under sums, because their
-probability-generating functions multiply as</p>
+intensities. <span class="math inline">\lambda_R</span> retains the
+original channel count, and final refinement and rank checks return to
+every original channel. Poisson sums remain Poisson; common-dispersion
+quasipoisson sums retain their mean-variance relationship. Independent
+Gaussian variances add. Independent NB1 variables sharing <span class="math inline">\pi=1/\phi</span>, with <span class="math inline">\phi&gt;1</span>, are closed under sums, because
+their probability-generating functions multiply as</p>
 <p><span class="math display">
-\prod_j\left\{\frac{p}{1-(1-p)t}\right\}^{\mu_j/(\phi-1)}
-=\left\{\frac{p}{1-(1-p)t}\right\}^{\sum_j\mu_j/(\phi-1)}.
+\prod_j\left\{\frac{\pi}{1-(1-\pi)t}\right\}^{\mu_j/(\phi-1)}
+=\left\{\frac{\pi}{1-(1-\pi)t}\right\}^{\sum_j\mu_j/(\phi-1)}.
 </span></p>
 <p>The same property holds for common-scale Gamma latent signals,
 through <span class="math inline">\prod_j(1+b_0t)^{-\mu_j/b_0}=(1+b_0t)^{-\sum_j\mu_j/b_0}</span>.
-Standard NB2 and Gamma use moment matching in the reduced problem.
-Censoring or different channel weights also give working aggregate
-approximations; final scoring always uses the original responses and
-their specified model.</p>
+Standard NB2 and Gamma use moment matching in the reduced problem. For
+channel intensity fractions <span class="math inline">r_j</span> within
+a group <span class="math inline">G</span>,</p>
+<p><span class="math display">
+\theta_G=\theta/\sum_{j\in G}r_j^2,\qquad
+\phi_G=\phi\sum_{j\in G}r_j^2,
+</span></p>
+<p>respectively. These match the aggregate variance under the working
+channel proportions. Censoring or different channel weights also give
+working aggregate approximations; final scoring uses the original
+responses and their specified model.</p>
 </div>
 <div class="section level2">
 <h2 id="temporal-variation">Temporal variation<a class="anchor" aria-label="anchor" href="#temporal-variation"></a>
@@ -604,7 +830,7 @@ Firth, 2011).</p>
 <div class="section level2">
 <h2 id="single-algorithm">Single-sample algorithm<a class="anchor" aria-label="anchor" href="#single-algorithm"></a>
 </h2>
-<p>Let <span class="math inline">L=-\sum_{ij}w_{ij}\ell(y_{ij};\mu_{ij},\nu)</span>.
+<p>Let <span class="math inline">\mathcal L=-\ell_\nu(M;Y)</span>.
 Resolve the pooled noise parameters <span class="math inline">\nu</span>
 and information multiplier <span class="math inline">\kappa</span>
 before rank comparisons. The default initializer uses a positive
@@ -618,7 +844,8 @@ w^{\rm pilot}_{ij}=w_{ij}\,
 design with compulsory background, using <span class="math inline">\lambda_R/m</span>. This supplies candidate
 components; subsequent fits and acceptance use the requested family. A
 supplied <code>start</code> with profiles, spectra and optional
-background coefficients bypasses screening.</p>
+background coefficients bypasses screening. The working Poisson fit
+initializes the factorization; complete rank decisions use <span class="math inline">J</span> with the specified observation model.</p>
 <p><strong>Algorithm N1 — sparse log-concave NMF with rank
 selection</strong></p>
 <ol style="list-style-type: decimal">
@@ -691,7 +918,7 @@ unchanged.</li>
 <p>For a rank change <span class="math inline">\Delta K</span>,
 acceptance is based on</p>
 <p><span class="math display">
-\Delta J=2(L_{\rm new}-L_{\rm old})+\lambda_R\Delta K.
+\Delta J=2(\mathcal L_{\rm new}-\mathcal L_{\rm old})+\lambda_R\Delta K.
 </span></p>
 <p>Because outside-window means are unchanged, their likelihood
 contributions cancel exactly. Local computation therefore gives the
@@ -727,19 +954,75 @@ evaluations use their original channels, weights, offsets and
 sample-specific noise parameters.</p>
 <p>The rank-selection objective is</p>
 <p><span class="math display">
-\mathcal J=-2\sum_{sij}w_{sij}\ell_s(y_{sij};\mu_{sij})
-+\kappa\lambda_{IC}\{(m-1)G+L+d_{\rm noise}\}.
+\mathcal J=-2\sum_s\ell_{\nu_s}(M_s;Y_s)
++\kappa\lambda_{\rm IC}\{(m-1)G+L+d_\nu\}.
 </span></p>
 <p>Here <span class="math inline">G</span> is the number of common
 spectra and <span class="math inline">L</span> the number of detected
-sample-compound occurrences. A unit-sum spectrum contributes <span class="math inline">m-1</span> free coordinates and each occurrence
-contributes an amplitude. Profile and baseline complexity are
-unpenalized shape-constrained nuisance terms in this rank criterion. For
-temporal-correlation adjustment, <span class="math inline">\kappa</span>
-is the largest resolved sample information factor. Quasipoisson uses its
-frozen, scaled Poisson kernel. The same <code><a href="https://rdrr.io/r/stats/logLik.html" class="external-link">logLik()</a></code>,
-<code><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC()</a></code>, <code><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">BIC()</a></code> and <code><a href="https://tomwenseleers.github.io/L0glm/reference/model_criteria.html" class="external-link">GIC()</a></code> interfaces
-apply.</p>
+sample-compound occurrences. A unit-sum spectrum contributes <span class="math inline">m-1</span> free spectral coordinates and each
+occurrence contributes an amplitude. <span class="math inline">d_\nu=\sum_s d_{\nu_s}</span> counts estimated
+sample-specific noise parameters, each shared across that sample’s
+channels. Profile and baseline complexity are unpenalized
+shape-constrained nuisance terms in this rank criterion. The weighted
+likelihood of each sample follows the observation-model definition
+above, so observation weights are included once.</p>
+<p>For temporal-correlation adjustment, <span class="math inline">\kappa</span> is the largest resolved sample
+information factor. Quasipoisson uses each sample’s frozen, scaled
+Poisson kernel. The same <code><a href="https://rdrr.io/r/stats/logLik.html" class="external-link">logLik()</a></code>, <code><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC()</a></code>,
+<code><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">BIC()</a></code>, <code><a href="https://tomwenseleers.github.io/L0glm/reference/model_criteria.html" class="external-link">GIC()</a></code>, <code><a href="https://tomwenseleers.github.io/L0glm/reference/model_criteria.html" class="external-link">EBIC()</a></code> and
+<code><a href="https://tomwenseleers.github.io/L0glm/reference/model_criteria.html" class="external-link">MBIC()</a></code> interfaces apply.</p>
+<p>For one sample, <span class="math inline">G=L=K</span>, so</p>
+<p><span class="math display">
+(m-1)G+L+d_\nu=mK+d_\nu.
+</span></p>
+<p>At a common preset value and information factor, the coupled score
+therefore reduces to the single-sample reported IC. Both select compound
+count without an extra penalty on profile complexity or background
+dimension.</p>
+<div class="section level3">
+<h3 id="penalty-scales">Penalty scales across the two interfaces<a class="anchor" aria-label="anchor" href="#penalty-scales"></a>
+</h3>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Interface</th>
+<th align="left">IC-name <code>lambda</code>
+</th>
+<th align="left">Numeric <code>lambda=c</code>
+</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code><a href="../reference/splogconNMF.html">splogconNMF()</a></code></td>
+<td align="left">
+<span class="math inline">m\kappa\lambda_{\rm
+IC}</span> per compound</td>
+<td align="left">
+<span class="math inline">\kappa c</span> per
+compound</td>
+</tr>
+<tr class="even">
+<td align="left"><code><a href="../reference/coupledNMF.html">coupledNMF()</a></code></td>
+<td align="left">
+<span class="math inline">\kappa\lambda_{\rm IC}</span>
+per selection degree of freedom</td>
+<td align="left">
+<span class="math inline">\kappa c</span> per selection
+degree of freedom</td>
+</tr>
+</tbody>
+</table>
+<p>The coupled selection count is <span class="math inline">(m-1)G+L+d_\nu</span>. Thus, for a one-sample
+comparison using a numeric total compound charge <span class="math inline">c</span> in <code><a href="../reference/splogconNMF.html">splogconNMF()</a></code>, use <span class="math inline">c/m</span> in <code><a href="../reference/coupledNMF.html">coupledNMF()</a></code> to obtain
+the same compound charge. Estimated noise parameters add the
+corresponding model-independent count when their specification is fixed.
+IC-name presets already supply the channel scaling shown in the table.
+Single-sample presets use their original <span class="math inline">n,p</span>; coupled presets use <span class="math inline">n_*=p_*=\max_s n_s</span>.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="alignment-and-local-updates">Alignment and local updates<a class="anchor" aria-label="anchor" href="#alignment-and-local-updates"></a>
@@ -764,7 +1047,8 @@ Return temporally ordered consensus spectra and sample-specific
 areas.</li>
 </ol>
 <p>For a common spectral coefficient <span class="math inline">p_{gj}</span>, with design value <span class="math inline">x_{sgi}=e_{si}J_{si}a_{sg}h_{sg}(u_{si})</span>, the
-pooled negative-log-likelihood score and Fisher information are</p>
+pooled negative-log-likelihood score and positive working information
+are</p>
 <p><span class="math display">
 U_{gj}=\sum_{si:g\in s}w_{sij}x_{sgi}g_{\mu,sij},\qquad
 I_{gj}=\sum_{si:g\in s}w_{sij}x_{sgi}^{2}I_{\mu,sij}.
@@ -799,11 +1083,9 @@ negative <code>theta</code>.</p>
 n_s</span> in the IC preset, and the largest sample information
 multiplier as <span class="math inline">\kappa</span>. Noise parameters
 are shared across channels within each sample. The joint rank count is
-<span class="math inline">(m-1)G+L+d_{\rm noise}</span>, reducing to
-<span class="math inline">mK+d_{\rm noise}</span> when one sample has
-<span class="math inline">G=L=K</span>. Common unit-sum spectra
-contribute <span class="math inline">m-1</span> coordinates each; each
-observed sample-compound occurrence contributes one amplitude.</p>
+<span class="math inline">(m-1)G+L+d_\nu</span>, reducing to <span class="math inline">mK+d_\nu</span> when one sample has <span class="math inline">G=L=K</span>. Common unit-sum spectra contribute
+<span class="math inline">m-1</span> coordinates each; each observed
+sample-compound occurrence contributes one amplitude.</p>
 <p>If <span class="math inline">\sum_i\Delta
 u_{si}h_{sg}(u_{si})=1</span>, then</p>
 <p><span class="math display">
@@ -899,6 +1181,17 @@ constrained signal models.</p>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
+<p>de Rooi, J. &amp; Eilers, P. (2011). <a href="https://doi.org/10.1016/j.aca.2011.05.030" class="external-link">Deconvolution of pulse
+trains with the L0 penalty.</a></p>
+<p>Fan, Y. &amp; Tang, C. Y. (2013). <a href="https://doi.org/10.1111/rssb.12001" class="external-link">Tuning parameter selection in
+high dimensional penalized likelihood.</a></p>
+<p>Ipsen, A. (2015). <a href="https://doi.org/10.1021/ac503554u" class="external-link">Derivation from first
+principles of the statistical distribution of the mass peak intensities
+of MS data.</a></p>
+<p>Saumard, A. &amp; Wellner, J. A. (2014). <a href="https://doi.org/10.1214/14-SS107" class="external-link">Log-concavity and strong
+log-concavity: a review.</a></p>
+<p>de Juan, A., Jaumot, J. &amp; Tauler, R. (2014). <a href="https://doi.org/10.1039/C4AY00571F" class="external-link">Multivariate curve resolution
+(MCR). Solving the mixture analysis problem.</a></p>
 <p>Kidziński, Ł., Hui, F. K. C., Warton, D. I. &amp; Hastie, T. J.
 (2022). <a href="https://www.jmlr.org/papers/v23/20-1104.html" class="external-link">Generalized matrix
 factorization: efficient algorithms for fitting generalized linear

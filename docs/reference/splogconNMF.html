@@ -21,14 +21,14 @@ and shark-fin peaks while retaining all original outcome channels."><meta proper
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/log-concave-nmf.html">Get started</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/estimate-psf.html">Get started</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials"><li><a class="dropdown-item" href="../articles/coupled-nmf.html">Coupled multisample factorization</a></li>
-    <li><a class="dropdown-item" href="../articles/log-concave-nmf.html">Sparse log-concave factorization</a></li>
-    <li><a class="external-link dropdown-item" href="https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html">GC/MS workflow in GCMSprime</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials"><li><a class="dropdown-item" href="../articles/estimate-psf.html">Estimate PSFs</a></li>
+    <li><a class="dropdown-item" href="../articles/log-concave-nmf.html">Sparse log-concave NMF with automatic best rank tuning</a></li>
+    <li><a class="dropdown-item" href="../articles/coupled-nmf.html">Coupled multisample log-concave NMF with automatic best rank tuning</a></li>
   </ul></li>
-<li class="nav-item"><a class="nav-link" href="../articles/log-concave-nmf.html">Algorithm &amp; theory</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/algorithm.html">Algorithm &amp; theory</a></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -278,7 +278,7 @@ scan, also returned in <code>apex_scan</code>. Their labels identify the same co
 nonnegative generalized matrix factorization (GMF), with a smooth background,
 log-concave profiles and automatic rank selection. See Kidzinski et al.
 (2022) and Castiglione et al. (2026). The function retains the NMF name;
-<a href="../articles/log-concave-nmf.html#generalized-matrix-factorization">the mathematical article</a>
+<a href="../articles/algorithm.html#generalized-matrix-factorization">the mathematical article</a>
 relates its mean model to the GMF formulation.</p>
 <p><strong>Deviance matrix factorization.</strong> This is a rank-penalized, nonnegative
 deviance matrix factorization on the mean scale, with hard log-concavity
@@ -286,7 +286,7 @@ constraints and an additive background. For standard exponential families
 with fixed noise parameters, the loss is a weighted Bregman divergence:
 Gaussian gives squared error, Poisson gives generalized KL, and uncensored
 Gamma gives Itakura–Saito. See Wang and Carvalho (2023), and Li and Tyagi
-(2023). The <a href="../articles/log-concave-nmf.html#deviance-matrix-factorization-and-bregman-nmf">mathematical article</a>
+(2023). The <a href="../articles/algorithm.html#deviance-matrix-factorization-and-bregman-nmf">mathematical article</a>
 gives the derivation and the negative-binomial case.</p>
 <p><strong>Model and selection criterion.</strong> With scans in rows, write
 $$\mu=HS+B A+O,\qquad H,S,A\geq0.$$

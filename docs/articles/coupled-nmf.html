@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Coupled multisample factorization • L0nmf</title>
+<title>Coupled multisample log-concave NMF with automatic best rank tuning • L0nmf</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
@@ -17,7 +17,7 @@
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
-<meta property="og:title" content="Coupled multisample factorization">
+<meta property="og:title" content="Coupled multisample log-concave NMF with automatic best rank tuning">
 <meta name="description" content="Share spectra across aligned samples with log-concave profiles, missing compounds and flexible noise models.">
 <meta property="og:description" content="Share spectra across aligned samples with log-concave profiles, missing compounds and flexible noise models.">
 <meta property="og:image" content="https://tomwenseleers.github.io/L0nmf/reference/figures/logo.png">
@@ -40,16 +40,16 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="../articles/log-concave-nmf.html">Get started</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/estimate-psf.html">Get started</a></li>
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials">
-<li><a class="dropdown-item" href="../articles/coupled-nmf.html">Coupled multisample factorization</a></li>
-    <li><a class="dropdown-item" href="../articles/log-concave-nmf.html">Sparse log-concave factorization</a></li>
-    <li><a class="external-link dropdown-item" href="https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html">GC/MS workflow in GCMSprime</a></li>
+<li><a class="dropdown-item" href="../articles/estimate-psf.html">Estimate PSFs</a></li>
+    <li><a class="dropdown-item" href="../articles/log-concave-nmf.html">Sparse log-concave NMF with automatic best rank tuning</a></li>
+    <li><a class="dropdown-item" href="../articles/coupled-nmf.html">Coupled multisample log-concave NMF with automatic best rank tuning</a></li>
   </ul>
 </li>
-<li class="nav-item"><a class="nav-link" href="../articles/log-concave-nmf.html">Algorithm &amp; theory</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/algorithm.html">Algorithm &amp; theory</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
@@ -70,7 +70,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.png" class="logo" alt=""><h1>Coupled multisample factorization</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Coupled multisample log-concave NMF with automatic best rank tuning</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/tomwenseleers/L0nmf/blob/master/L0nmf/vignettes/articles/coupled-nmf.Rmd" class="external-link"><code>vignettes/articles/coupled-nmf.Rmd</code></a></small>
@@ -167,127 +167,73 @@ occurrences remain <code>NA</code> in the area table.</p>
 grouping and coupled refinement on an eight-core Intel i9-11950H
 workstation. Both examples include different scan grids and
 concentration-dependent peak shapes.</p>
-<p><img src="figures/coupled-profiles.png"></p>
-<p><img src="figures/coupled-areas.png"></p>
+<div class="float">
+<img src="figures/coupled-profiles.png" alt="Aligned component profiles across the three samples"><div class="figcaption">Aligned component profiles across the three
+samples</div>
+</div>
+<div class="float">
+<img src="figures/coupled-areas.png" alt="Recovered occurrence areas and absent compounds"><div class="figcaption">Recovered occurrence areas and absent
+compounds</div>
+</div>
 <p>Shared spectra are estimated from all detected occurrences of a
 compound:</p>
-<p><img src="figures/coupled-spectra.png"></p>
+<div class="float">
+<img src="figures/coupled-spectra.png" alt="Shared spectra recovered from all sample occurrences"><div class="figcaption">Shared spectra recovered from all sample
+occurrences</div>
+</div>
 </div>
 <div class="section level2">
-<h2 id="model-on-the-original-scan-grids">Model on the original scan grids<a class="anchor" aria-label="anchor" href="#model-on-the-original-scan-grids"></a>
+<h2 id="original-scan-grids-shared-spectra-and-missing-compounds">Original scan grids, shared spectra and missing compounds<a class="anchor" aria-label="anchor" href="#original-scan-grids-shared-spectra-and-missing-compounds"></a>
 </h2>
-<p>For sample <span class="math inline">s</span>, let <span class="math inline">u=w_s(t)</span> be its monotone alignment map.
-Native bin edges <span class="math inline">t_{si-1/2},t_{si+1/2}</span>
-define</p>
-<p><span class="math display">
-\Delta u_{si}=w_s(t_{si+1/2})-w_s(t_{si-1/2}),\qquad
-J_{si}=\frac{\Delta u_{si}}{\Delta t_{si}}.
-</span></p>
-<p>With known exposure <span class="math inline">e_{si}&gt;0</span>, the
-mean model is</p>
-<p><span class="math display">
-\mu_{sij}=e_{si}\left\{J_{si}\sum_g a_{sg}h_{sg}(u_{si})p_{gj}
-+(B_sA_s)_{ij}\right\}+o_{sij}.
-</span></p>
-<p>Spectra have <span class="math inline">p_{gj}\geq0</span> and <span class="math inline">\sum_jp_{gj}=1</span>. Each detected profile
-satisfies</p>
-<p><span class="math display">
-h_{sg}\geq0,\quad \sum_i\Delta u_{si}h_{sg}(u_{si})=1,\quad
-\frac{\log h_{sg,i+1}-\log h_{sg,i}}{u_{s,i+1}-u_{si}}
-\text{ is nonincreasing}.
-</span></p>
-<p>The Jacobian preserves integrated area under alignment. No
-interpolation or resampling is applied to observations. Local likelihood
-evaluations use their original channels, weights, offsets and
-sample-specific noise parameters.</p>
-<p>The rank-selection objective is</p>
-<p><span class="math display">
-\mathcal J=-2\sum_{sij}w_{sij}\ell_s(y_{sij};\mu_{sij})
-+\kappa\lambda_{IC}\{(m-1)G+L+d_{\rm noise}\}.
-</span></p>
-<p>Here <span class="math inline">G</span> is the number of common
-spectra and <span class="math inline">L</span> the number of detected
-sample-compound occurrences. A unit-sum spectrum contributes <span class="math inline">m-1</span> free coordinates and each occurrence
-contributes an amplitude. Profile and baseline complexity are
-unpenalized shape-constrained nuisance terms in this rank criterion. For
-temporal-correlation adjustment, <span class="math inline">\kappa</span>
-is the largest resolved sample information factor. Quasipoisson uses its
-frozen, scaled Poisson kernel. The same <code><a href="https://rdrr.io/r/stats/logLik.html" class="external-link">logLik()</a></code>,
-<code><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC()</a></code>, <code><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">BIC()</a></code> and <code><a href="https://tomwenseleers.github.io/L0glm/reference/model_criteria.html" class="external-link">GIC()</a></code> interfaces
-apply.</p>
+<p>Each sample retains its measured time grid, background and noise
+parameters. Monotone alignment changes profile coordinates and bin
+widths; observations are evaluated directly without resampling. Each
+detected occurrence has its own log-concave shape and amplitude, while
+its spectrum is shared.</p>
+<p>The joint criterion counts one unit-sum spectrum per consensus
+component and one amplitude per detected occurrence. Profile and
+background complexity are unpenalized. Original-channel likelihood
+checks decide whether a complete grouped/refined candidate is
+retained.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fit</span><span class="op">$</span><span class="va">areas</span></span>
+<span><span class="va">fit</span><span class="op">$</span><span class="va">compounds</span></span>
+<span><span class="va">fit</span><span class="op">$</span><span class="va">alignment</span></span>
+<span><span class="va">single</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sampleNMF.html">sampleNMF</a></span><span class="op">(</span><span class="va">fit</span>, sample<span class="op">=</span><span class="fl">1L</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">single</span><span class="op">$</span><span class="va">H</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">single</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, type<span class="op">=</span><span class="st">"areas"</span><span class="op">)</span></span></code></pre></div>
+<p>An absent occurrence stays <code>NA</code>; this model does not fill
+undetected compounds. The <a href="algorithm.html#coupled-model">coupled
+model and algorithm</a> give the exact likelihood, Jacobian,
+normalization, pooled spectral updates and rank charge.</p>
 </div>
 <div class="section level2">
-<h2 id="alignment-and-local-updates">Alignment and local updates<a class="anchor" aria-label="anchor" href="#alignment-and-local-updates"></a>
+<h2 id="noise-exposure-and-disk-backed-fitting">Noise, exposure and disk-backed fitting<a class="anchor" aria-label="anchor" href="#noise-exposure-and-disk-backed-fitting"></a>
 </h2>
-<ol style="list-style-type: decimal">
-<li>Fit samples independently, optionally initializing in 32 aggregated
-channel groups and returning to every original channel.</li>
-<li>Match high-confidence spectra to a reference sample. Use the
-1%-height peak start plus half the narrow-peak width as the timing
-anchor.</li>
-<li>Fit a robust low-dimensional drift spline, with log area ratio as a
-nuisance term for concentration-related anchor motion. Retain its drift
-component and enforce positive slope.</li>
-<li>Group spectra algebraically when their timing and area-ordered
-profile overlap are compatible. Each group has at most one occurrence
-per sample. This clustering stage performs no NMF or GLM refits.</li>
-<li>Update local concave log profiles, pool spectral scores over
-samples, and update each smooth background. Backtrack against the
-original likelihood.</li>
-<li>Retain a grouped fit when its complete penalized objective improves.
-Return temporally ordered consensus spectra and sample-specific
-areas.</li>
-</ol>
-<p>For a common spectral coefficient <span class="math inline">p_{gj}</span>, with design value <span class="math inline">x_{sgi}=e_{si}J_{si}a_{sg}h_{sg}(u_{si})</span>, the
-pooled negative-log-likelihood score and Fisher information are</p>
-<p><span class="math display">
-U_{gj}=\sum_{si:g\in s}w_{sij}x_{sgi}g_{\mu,sij},\qquad
-I_{gj}=\sum_{si:g\in s}w_{sij}x_{sgi}^{2}I_{\mu,sij}.
-</span></p>
-<p>A nonnegative scoring step is followed by full-likelihood
-backtracking. Renormalizing a spectrum transfers its scale into the
-occurrence amplitudes and preserves the fitted signal. Profile updates
-use the corresponding chain-rule score in log coordinates and linear
-slope constraints on actual aligned times. Native OpenMP updates give
-identical results across thread counts in the validation examples.</p>
-<p>The native spectral kernel evaluates each cell’s likelihood
-derivatives once and pools them over all sparse profiles in a single
-threaded pass. On a beer chromatogram with 14,949 scans, 518 channels
-and 325 profiles, this reduced one pooled-score calculation from
-<strong>5.45 s to 0.19 s</strong>, a <strong>28.7-fold speedup</strong>,
-while matching the profile-wise calculation to numerical precision.
-Cached peak geometry also avoids rescanning every profile after each
-algebraic merge. Shared row-wise weights and offsets retain one vector
-throughout the coupled fit, with channel-specific matrices used when
-required.</p>
-<p>All seven <a href="../reference/splogconNMF.html">signal families</a>
-are supported: Gaussian, Poisson, quasipoisson, NB2, NB1, censored Gamma
-and common-scale Gamma. Dispersion parameters are resolved from the
-original channels and frozen for group comparisons. NB2 additionally
-supports likelihood-improving shape updates when initialized with a
-negative <code>theta</code>.</p>
-</div>
-<div class="section level2">
-<h2 id="exposure-and-gcms-files">Exposure and GC/MS files<a class="anchor" aria-label="anchor" href="#exposure-and-gcms-files"></a>
-</h2>
-<p>The default <code>exposure=1</code> models supplied intensities. When
-observations are integrated ion counts, supply their known integration
-durations. The time unit determines the unit of integrated areas;
-exposure specifies how the underlying rate becomes an observed mean.</p>
-<p>In quadrupole full-scan acquisition, effective per-mass acquisition
-time depends on the mass range, step size, scan speed and scan
-averaging, as described in the <a href="https://openlab.help.agilent.com/en/mergedProjects/GCMSHelp/MEAcquiUI.htm" class="external-link">Agilent
-acquisition documentation</a>. ANDI files may store arbitrary abundance
-units alongside scan duration and scan timing; see the <a href="https://pymassspec.readthedocs.io/en/master/_modules/pyms/GCMS/IO/ANDI.html" class="external-link">PyMassSpec
-ANDI implementation</a>. The exported number of mass peaks therefore
-does not determine physical dwell time. GCMSprime preserves vendor
-intensities and accepts explicit exposure values when they are
-known.</p>
-<p>For sample directories, alkane calibration and Excel/MSP exports, see
-<a href="https://tomwenseleers.github.io/GCMSprime/articles/multisample.html" class="external-link">Multisample
-GC/MS experiments</a>. The likelihood and constrained-factorization
-background is developed in <a href="log-concave-nmf.html">Sparse
-log-concave NMF</a>.</p>
+<p>Gaussian, Poisson, quasipoisson, NB2, NB1, censored Gamma and
+common-scale Gamma are supported. Noise parameters are shared over
+channels within each sample. Use positive
+<code>dispersion</code>/<code>theta</code> to fix known parameters;
+negative NB2 <code>theta</code> enables bounded likelihood-improving
+updates from its absolute starting value.</p>
+<p>Known observation exposure can be given as a scalar or scan vector in
+each sample description. It multiplies the mean; the identity-link
+<code>offset</code> adds known signal. The default unit exposure
+preserves the units of supplied data. Alignment’s change in bin widths
+preserves integrated occurrence areas.</p>
+<p>Observation matrices and factor checkpoints are stored per sample on
+disk. Only one sample’s observations are needed for a local update.
+Shared spectra, areas and compact matching summaries stay in memory.
+Supply <code>y</code> or independent <code>fit</code> components as RDS
+paths for file-backed input; use a new <code>path=</code> for each fit’s
+persistent store. Keep that store alongside saved fitted objects.</p>
+<p>The native kernel pools spectral scores over sparse profile supports
+and uses OpenMP over channels. On 14,949 scans, 518 channels and 325
+profiles, one pooled score pass took 0.19 s; the <a href="algorithm.html#coupled-algorithm">implementation details</a>
+describe the update and threading structure.</p>
+<p>For sample-group directories, acquisition ordering, alkane standards
+and Excel/MSP reports, use the workflow in <a href="https://tomwenseleers.github.io/GCMSprime/articles/multisample.html" class="external-link">GCMSprime</a>.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

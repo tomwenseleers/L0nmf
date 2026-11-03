@@ -15,14 +15,14 @@
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/log-concave-nmf.html">Get started</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/estimate-psf.html">Get started</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials"><li><a class="dropdown-item" href="../articles/coupled-nmf.html">Coupled multisample factorization</a></li>
-    <li><a class="dropdown-item" href="../articles/log-concave-nmf.html">Sparse log-concave factorization</a></li>
-    <li><a class="external-link dropdown-item" href="https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html">GC/MS workflow in GCMSprime</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials"><li><a class="dropdown-item" href="../articles/estimate-psf.html">Estimate PSFs</a></li>
+    <li><a class="dropdown-item" href="../articles/log-concave-nmf.html">Sparse log-concave NMF with automatic best rank tuning</a></li>
+    <li><a class="dropdown-item" href="../articles/coupled-nmf.html">Coupled multisample log-concave NMF with automatic best rank tuning</a></li>
   </ul></li>
-<li class="nav-item"><a class="nav-link" href="../articles/log-concave-nmf.html">Algorithm &amp; theory</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/algorithm.html">Algorithm &amp; theory</a></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -39,7 +39,7 @@
     </div>
 
     <div class="section level2">
-      <h2 id="all-functions">All functions<a class="anchor" aria-label="anchor" href="#all-functions"></a></h2>
+      <h2 id="estimate-point-spread-functions-and-deconvolve-signals">Estimate point spread functions and deconvolve signals<a class="anchor" aria-label="anchor" href="#estimate-point-spread-functions-and-deconvolve-signals"></a></h2>
 
 
 
@@ -49,13 +49,6 @@
 
 
       <dl><dt>
-
-          <code><a href="coupledNMF.html">coupledNMF()</a></code> <code><a href="coupledNMF.html">fitted(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">coef(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">logLik(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">nobs(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">AIC(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">BIC(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">GIC(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">EBIC(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">MBIC(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">print(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">plot(<i>&lt;coupledNMF&gt;</i>)</a></code>
-
-        </dt>
-        <dd>Coupled sparse log-concave factorization of multiple samples</dd>
-
-        <dt>
 
           <code><a href="estimate_psf.html">estimate_psf()</a></code>
 
@@ -71,45 +64,10 @@
 
         <dt>
 
-          <code><a href="estimate_signal_noise.html">estimate_signal_noise()</a></code>
-
-        </dt>
-        <dd>Estimate a shared noise model for ordered multichannel signals</dd>
-
-        <dt>
-
-          <code><a href="GCMS_data1.html">GCMS_data1</a></code>
-
-        </dt>
-        <dd>GC/MS Chromatogram Section - Cuticular Hydrocarbon Profile of a Cataglyphis iberica Ant Queen</dd>
-
-        <dt>
-
-          <code><a href="GCMS_data2.html">GCMS_data2</a></code>
-
-        </dt>
-        <dd>GC/MS Chromatogram Section - Beer Headspace Volatiles</dd>
-
-        <dt>
-
-          <code><a href="L0BestRankGNMF.html">L0BestRankGNMF()</a></code>
-
-        </dt>
-        <dd>L0-Penalised Generalised Best-Rank NMF</dd>
-
-        <dt>
-
           <code><a href="L0glm_blind_deco.html">L0glm_blind_deco()</a></code>
 
         </dt>
         <dd>Alternating sparse L0 glm powered blind deconvolution</dd>
-
-        <dt>
-
-          <code><a href="L0glm_deco_estkernel.html">L0glm_deco_estkernel()</a></code>
-
-        </dt>
-        <dd>Estimate the PSF given a spike train estimate via L0-penalised GLMs</dd>
 
         <dt>
 
@@ -120,10 +78,33 @@
 
         <dt>
 
-          <code><a href="log_conc_smooth.html">log_conc_smooth()</a></code>
+          <code><a href="L0glm_deco_estkernel.html">L0glm_deco_estkernel()</a></code>
 
         </dt>
-        <dd>Log-concave spline smoothing of a discrete convolution kernel estimate</dd>
+        <dd>Estimate the PSF given a spike train estimate via L0-penalised GLMs</dd>
+      </dl></div><div class="section level2">
+      <h2 id="sparse-and-coupled-factorization">Sparse and coupled factorization<a class="anchor" aria-label="anchor" href="#sparse-and-coupled-factorization"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="splogconNMF.html">residuals(<i>&lt;splogconNMF&gt;</i>)</a></code> <code><a href="splogconNMF.html">splogconNMF()</a></code> <code><a href="splogconNMF.html">fitted(<i>&lt;splogconNMF&gt;</i>)</a></code> <code><a href="splogconNMF.html">nobs(<i>&lt;splogconNMF&gt;</i>)</a></code> <code><a href="splogconNMF.html">coef(<i>&lt;splogconNMF&gt;</i>)</a></code> <code><a href="splogconNMF.html">logLik(<i>&lt;splogconNMF&gt;</i>)</a></code> <code><a href="splogconNMF.html">AIC(<i>&lt;splogconNMF&gt;</i>)</a></code> <code><a href="splogconNMF.html">BIC(<i>&lt;splogconNMF&gt;</i>)</a></code> <code><a href="splogconNMF.html">GIC(<i>&lt;splogconNMF&gt;</i>)</a></code> <code><a href="splogconNMF.html">EBIC(<i>&lt;splogconNMF&gt;</i>)</a></code> <code><a href="splogconNMF.html">MBIC(<i>&lt;splogconNMF&gt;</i>)</a></code> <code><a href="splogconNMF.html">print(<i>&lt;splogconNMF&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Sparse log-concave nonnegative matrix factorization</dd>
+
+        <dt>
+
+          <code><a href="coupledNMF.html">coupledNMF()</a></code> <code><a href="coupledNMF.html">fitted(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">coef(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">logLik(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">nobs(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">AIC(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">BIC(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">GIC(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">EBIC(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">MBIC(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">print(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">plot(<i>&lt;coupledNMF&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Coupled sparse log-concave factorization of multiple samples</dd>
 
         <dt>
 
@@ -131,8 +112,40 @@
 
         </dt>
         <dd>Extract one sample's factorization from a coupled fit</dd>
+      </dl></div><div class="section level2">
+      <h2 id="noise-calibration-and-profile-constraints">Noise calibration and profile constraints<a class="anchor" aria-label="anchor" href="#noise-calibration-and-profile-constraints"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="estimate_signal_noise.html">estimate_signal_noise()</a></code>
+
+        </dt>
+        <dd>Estimate a shared noise model for ordered multichannel signals</dd>
 
         <dt>
+
+          <code><a href="log_conc_smooth.html">log_conc_smooth()</a></code>
+
+        </dt>
+        <dd>Log-concave spline smoothing of a discrete convolution kernel estimate</dd>
+      </dl></div><div class="section level2">
+      <h2 id="simulations-and-experimental-data">Simulations and experimental data<a class="anchor" aria-label="anchor" href="#simulations-and-experimental-data"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
 
           <code><a href="simulate_GCMS.html">simulate_GCMS()</a></code>
 
@@ -148,12 +161,43 @@
 
         <dt>
 
-          <code><a href="splogconNMF.html">residuals(<i>&lt;splogconNMF&gt;</i>)</a></code> <code><a href="splogconNMF.html">splogconNMF()</a></code> <code><a href="splogconNMF.html">fitted(<i>&lt;splogconNMF&gt;</i>)</a></code> <code><a href="splogconNMF.html">nobs(<i>&lt;splogconNMF&gt;</i>)</a></code> <code><a href="splogconNMF.html">coef(<i>&lt;splogconNMF&gt;</i>)</a></code> <code><a href="splogconNMF.html">logLik(<i>&lt;splogconNMF&gt;</i>)</a></code> <code><a href="splogconNMF.html">AIC(<i>&lt;splogconNMF&gt;</i>)</a></code> <code><a href="splogconNMF.html">BIC(<i>&lt;splogconNMF&gt;</i>)</a></code> <code><a href="splogconNMF.html">GIC(<i>&lt;splogconNMF&gt;</i>)</a></code> <code><a href="splogconNMF.html">EBIC(<i>&lt;splogconNMF&gt;</i>)</a></code> <code><a href="splogconNMF.html">MBIC(<i>&lt;splogconNMF&gt;</i>)</a></code> <code><a href="splogconNMF.html">print(<i>&lt;splogconNMF&gt;</i>)</a></code>
+          <code><a href="GCMS_data1.html">GCMS_data1</a></code>
 
         </dt>
-        <dd>Sparse log-concave nonnegative matrix factorization</dd>
+        <dd>GC/MS Chromatogram Section - Cuticular Hydrocarbon Profile of a Cataglyphis iberica Ant Queen</dd>
+
+        <dt>
+
+          <code><a href="GCMS_data2.html">GCMS_data2</a></code>
+
+        </dt>
+        <dd>GC/MS Chromatogram Section - Beer Headspace Volatiles</dd>
+      </dl></div><div class="section level2">
+      <h2 id="shared-tools-and-package-overview">Shared tools and package overview<a class="anchor" aria-label="anchor" href="#shared-tools-and-package-overview"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="reexports.html">reexports</a></code> <code><a href="reexports.html">GIC</a></code> <code><a href="reexports.html">EBIC</a></code> <code><a href="reexports.html">MBIC</a></code>
+
+        </dt>
+        <dd>Objects exported from other packages</dd>
+
+        <dt>
+
+          <code><a href="L0nmf-package.html">L0nmf</a></code> <code><a href="L0nmf-package.html">L0nmf-package</a></code>
+
+        </dt>
+        <dd>Scalable Sparse Nonnegative Matrix Factorization with Automatic Rank Selection and Flexible Noise Models</dd>
       </dl></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

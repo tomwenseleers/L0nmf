@@ -2,21 +2,47 @@
 
 ## L0nmf 0.1.0
 
-- Coupled multisample NMF shares spectra across aligned, sample-specific
-  log-concave profiles on irregular original grids, with disk-backed
-  observations and all seven signal families.
+### PSF estimation and deconvolution
 
-- Batched native spectral scores, shared row weights/offsets and cached
-  grouping geometry reduce repeated work in large multichannel fits.
+- [`estimate_psf()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf.md)
+  estimates constant or smoothly time-varying point spread functions
+  from standards or overlapping signals and returns a sparse design.
+- Alternating spike-train and kernel estimation supports single or
+  multiple channels, smooth backgrounds and information-criterion
+  checkpoints.
 
-- Original-channel completion checks conditional deletions, local
-  profile/spectral fusions and missed residual peaks, with
-  complete-likelihood safeguards and native local updates.
+### Sparse log-concave matrix factorization
 
-- Sparse log-concave NMF with local profile and spectral updates, rank
-  selection and full-channel refinement.
+- [`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+  estimates nonnegative profiles and loadings with hard log-concavity
+  constraints and automatic best rank tuning.
+- Local profile, spectrum and background updates, algebraic candidate
+  fusion, conditional deletion and residual additions use
+  original-channel criteria.
+- Gaussian, Poisson, quasipoisson, NB2, NB1, censored Gamma and
+  common-scale Gamma models, with pooled noise calibration and optional
+  temporal adjustment.
+- Optional channel aggregation accelerates initialization; final
+  refinement retains every original outcome channel.
 
-- Flexible noise families, pooled dispersion estimates, PSF calibration
-  and blind deconvolution.
+### Coupled multisample models
 
-- Experimental chromatogram datasets and simulation tools.
+- [`coupledNMF()`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+  shares spectra across samples with sample-specific profiles, areas and
+  backgrounds, allowing compounds to be absent from individual samples.
+- Monotone alignment, area-ordered profile compatibility and
+  exposure-aware likelihoods retain each sample’s original irregular
+  scan grid.
+- Disk-backed observations, batched native spectral scores, shared row
+  inputs, sparse profiles and OpenMP support efficient fitting.
+
+### Simulation and interpretation
+
+- Single- and multisample simulations include drifting retention times,
+  concentration-dependent width/tailing, broad profiles and missing
+  compounds.
+- Experimental multichannel signals, profile and spectral plots, factor
+  extraction, likelihood and information-criterion methods.
+- Tutorials follow PSF estimation, single-sample factorization and
+  coupled factorization; a separate mathematical article gives
+  objectives and pseudocode.

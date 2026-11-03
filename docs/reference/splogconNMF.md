@@ -254,7 +254,7 @@ nonnegative generalized matrix factorization (GMF), with a smooth
 background, log-concave profiles and automatic rank selection. See
 Kidzinski et al. (2022) and Castiglione et al. (2026). The function
 retains the NMF name; [the mathematical
-article](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.html#generalized-matrix-factorization)
+article](https://tomwenseleers.github.io/L0nmf/articles/algorithm.html#generalized-matrix-factorization)
 relates its mean model to the GMF formulation.
 
 **Deviance matrix factorization.** This is a rank-penalized, nonnegative
@@ -264,7 +264,7 @@ families with fixed noise parameters, the loss is a weighted Bregman
 divergence: Gaussian gives squared error, Poisson gives generalized KL,
 and uncensored Gamma gives Itakura–Saito. See Wang and Carvalho (2023),
 and Li and Tyagi (2023). The [mathematical
-article](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.html#deviance-matrix-factorization-and-bregman-nmf)
+article](https://tomwenseleers.github.io/L0nmf/articles/algorithm.html#deviance-matrix-factorization-and-bregman-nmf)
 gives the derivation and the negative-binomial case.
 
 **Model and selection criterion.** With scans in rows, write

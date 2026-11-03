@@ -1,6 +1,8 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://tomwenseleers.github.io/L0nmf/404.html</loc></url>
+<url><loc>https://tomwenseleers.github.io/L0nmf/articles/algorithm.html</loc></url>
 <url><loc>https://tomwenseleers.github.io/L0nmf/articles/coupled-nmf.html</loc></url>
+<url><loc>https://tomwenseleers.github.io/L0nmf/articles/estimate-psf.html</loc></url>
 <url><loc>https://tomwenseleers.github.io/L0nmf/articles/index.html</loc></url>
 <url><loc>https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.html</loc></url>
 <url><loc>https://tomwenseleers.github.io/L0nmf/authors.html</loc></url>
@@ -13,7 +15,6 @@
 <url><loc>https://tomwenseleers.github.io/L0nmf/reference/GCMS_data1.html</loc></url>
 <url><loc>https://tomwenseleers.github.io/L0nmf/reference/GCMS_data2.html</loc></url>
 <url><loc>https://tomwenseleers.github.io/L0nmf/reference/index.html</loc></url>
-<url><loc>https://tomwenseleers.github.io/L0nmf/reference/L0BestRankGNMF.html</loc></url>
 <url><loc>https://tomwenseleers.github.io/L0nmf/reference/L0glm_blind_deco.html</loc></url>
 <url><loc>https://tomwenseleers.github.io/L0nmf/reference/L0glm_deco_estkernel.html</loc></url>
 <url><loc>https://tomwenseleers.github.io/L0nmf/reference/L0glm_sparse_deco.html</loc></url>

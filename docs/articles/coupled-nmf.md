@@ -1,4 +1,4 @@
-# Coupled multisample factorization
+# Coupled multisample log-concave NMF with automatic best rank tuning
 
 [`coupledNMF()`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
 combines related multichannel samples into a common spectral library
@@ -66,132 +66,81 @@ grouping and coupled refinement on an eight-core Intel i9-11950H
 workstation. Both examples include different scan grids and
 concentration-dependent peak shapes.
 
-![](figures/coupled-profiles.png)
+![Aligned component profiles across the three
+samples](figures/coupled-profiles.png)
 
-![](figures/coupled-areas.png)
+Aligned component profiles across the three samples
+
+![Recovered occurrence areas and absent
+compounds](figures/coupled-areas.png)
+
+Recovered occurrence areas and absent compounds
 
 Shared spectra are estimated from all detected occurrences of a
 compound:
 
-![](figures/coupled-spectra.png)
+![Shared spectra recovered from all sample
+occurrences](figures/coupled-spectra.png)
 
-## Model on the original scan grids
+Shared spectra recovered from all sample occurrences
 
-For sample s, let u=w_s(t) be its monotone alignment map. Native bin
-edges t\_{si-1/2},t\_{si+1/2} define
+## Original scan grids, shared spectra and missing compounds
 
-\Delta u\_{si}=w_s(t\_{si+1/2})-w_s(t\_{si-1/2}),\qquad
-J\_{si}=\frac{\Delta u\_{si}}{\Delta t\_{si}}.
+Each sample retains its measured time grid, background and noise
+parameters. Monotone alignment changes profile coordinates and bin
+widths; observations are evaluated directly without resampling. Each
+detected occurrence has its own log-concave shape and amplitude, while
+its spectrum is shared.
 
-With known exposure e\_{si}\>0, the mean model is
+The joint criterion counts one unit-sum spectrum per consensus component
+and one amplitude per detected occurrence. Profile and background
+complexity are unpenalized. Original-channel likelihood checks decide
+whether a complete grouped/refined candidate is retained.
 
-\mu\_{sij}=e\_{si}\left\\J\_{si}\sum_g a\_{sg}h\_{sg}(u\_{si})p\_{gj}
-+(B_sA_s)\_{ij}\right\\+o\_{sij}.
+``` r
 
-Spectra have p\_{gj}\geq0 and \sum_jp\_{gj}=1. Each detected profile
-satisfies
+fit$areas
+fit$compounds
+fit$alignment
+single <- sampleNMF(fit, sample=1L)
+dim(single$H)
+dim(coef(single))
+plot(fit, type="areas")
+```
 
-h\_{sg}\geq0,\quad \sum_i\Delta u\_{si}h\_{sg}(u\_{si})=1,\quad
-\frac{\log h\_{sg,i+1}-\log h\_{sg,i}}{u\_{s,i+1}-u\_{si}} \text{ is
-nonincreasing}.
+An absent occurrence stays `NA`; this model does not fill undetected
+compounds. The [coupled model and
+algorithm](https://tomwenseleers.github.io/L0nmf/articles/algorithm.html#coupled-model)
+give the exact likelihood, Jacobian, normalization, pooled spectral
+updates and rank charge.
 
-The Jacobian preserves integrated area under alignment. No interpolation
-or resampling is applied to observations. Local likelihood evaluations
-use their original channels, weights, offsets and sample-specific noise
-parameters.
+## Noise, exposure and disk-backed fitting
 
-The rank-selection objective is
+Gaussian, Poisson, quasipoisson, NB2, NB1, censored Gamma and
+common-scale Gamma are supported. Noise parameters are shared over
+channels within each sample. Use positive `dispersion`/`theta` to fix
+known parameters; negative NB2 `theta` enables bounded
+likelihood-improving updates from its absolute starting value.
 
-\mathcal J=-2\sum\_{sij}w\_{sij}\ell_s(y\_{sij};\mu\_{sij})
-+\kappa\lambda\_{IC}\\(m-1)G+L+d\_{\rm noise}\\.
+Known observation exposure can be given as a scalar or scan vector in
+each sample description. It multiplies the mean; the identity-link
+`offset` adds known signal. The default unit exposure preserves the
+units of supplied data. Alignment’s change in bin widths preserves
+integrated occurrence areas.
 
-Here G is the number of common spectra and L the number of detected
-sample-compound occurrences. A unit-sum spectrum contributes m-1 free
-coordinates and each occurrence contributes an amplitude. Profile and
-baseline complexity are unpenalized shape-constrained nuisance terms in
-this rank criterion. For temporal-correlation adjustment, \kappa is the
-largest resolved sample information factor. Quasipoisson uses its
-frozen, scaled Poisson kernel. The same
-[`logLik()`](https://rdrr.io/r/stats/logLik.html),
-[`AIC()`](https://rdrr.io/r/stats/AIC.html),
-[`BIC()`](https://rdrr.io/r/stats/AIC.html) and
-[`GIC()`](https://tomwenseleers.github.io/L0glm/reference/model_criteria.html)
-interfaces apply.
+Observation matrices and factor checkpoints are stored per sample on
+disk. Only one sample’s observations are needed for a local update.
+Shared spectra, areas and compact matching summaries stay in memory.
+Supply `y` or independent `fit` components as RDS paths for file-backed
+input; use a new `path=` for each fit’s persistent store. Keep that
+store alongside saved fitted objects.
 
-## Alignment and local updates
+The native kernel pools spectral scores over sparse profile supports and
+uses OpenMP over channels. On 14,949 scans, 518 channels and 325
+profiles, one pooled score pass took 0.19 s; the [implementation
+details](https://tomwenseleers.github.io/L0nmf/articles/algorithm.html#coupled-algorithm)
+describe the update and threading structure.
 
-1.  Fit samples independently, optionally initializing in 32 aggregated
-    channel groups and returning to every original channel.
-2.  Match high-confidence spectra to a reference sample. Use the
-    1%-height peak start plus half the narrow-peak width as the timing
-    anchor.
-3.  Fit a robust low-dimensional drift spline, with log area ratio as a
-    nuisance term for concentration-related anchor motion. Retain its
-    drift component and enforce positive slope.
-4.  Group spectra algebraically when their timing and area-ordered
-    profile overlap are compatible. Each group has at most one
-    occurrence per sample. This clustering stage performs no NMF or GLM
-    refits.
-5.  Update local concave log profiles, pool spectral scores over
-    samples, and update each smooth background. Backtrack against the
-    original likelihood.
-6.  Retain a grouped fit when its complete penalized objective improves.
-    Return temporally ordered consensus spectra and sample-specific
-    areas.
-
-For a common spectral coefficient p\_{gj}, with design value
-x\_{sgi}=e\_{si}J\_{si}a\_{sg}h\_{sg}(u\_{si}), the pooled
-negative-log-likelihood score and Fisher information are
-
-U\_{gj}=\sum\_{si:g\in s}w\_{sij}x\_{sgi}g\_{\mu,sij},\qquad
-I\_{gj}=\sum\_{si:g\in s}w\_{sij}x\_{sgi}^{2}I\_{\mu,sij}.
-
-A nonnegative scoring step is followed by full-likelihood backtracking.
-Renormalizing a spectrum transfers its scale into the occurrence
-amplitudes and preserves the fitted signal. Profile updates use the
-corresponding chain-rule score in log coordinates and linear slope
-constraints on actual aligned times. Native OpenMP updates give
-identical results across thread counts in the validation examples.
-
-The native spectral kernel evaluates each cell’s likelihood derivatives
-once and pools them over all sparse profiles in a single threaded pass.
-On a beer chromatogram with 14,949 scans, 518 channels and 325 profiles,
-this reduced one pooled-score calculation from **5.45 s to 0.19 s**, a
-**28.7-fold speedup**, while matching the profile-wise calculation to
-numerical precision. Cached peak geometry also avoids rescanning every
-profile after each algebraic merge. Shared row-wise weights and offsets
-retain one vector throughout the coupled fit, with channel-specific
-matrices used when required.
-
-All seven [signal
-families](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
-are supported: Gaussian, Poisson, quasipoisson, NB2, NB1, censored Gamma
-and common-scale Gamma. Dispersion parameters are resolved from the
-original channels and frozen for group comparisons. NB2 additionally
-supports likelihood-improving shape updates when initialized with a
-negative `theta`.
-
-## Exposure and GC/MS files
-
-The default `exposure=1` models supplied intensities. When observations
-are integrated ion counts, supply their known integration durations. The
-time unit determines the unit of integrated areas; exposure specifies
-how the underlying rate becomes an observed mean.
-
-In quadrupole full-scan acquisition, effective per-mass acquisition time
-depends on the mass range, step size, scan speed and scan averaging, as
-described in the [Agilent acquisition
-documentation](https://openlab.help.agilent.com/en/mergedProjects/GCMSHelp/MEAcquiUI.htm).
-ANDI files may store arbitrary abundance units alongside scan duration
-and scan timing; see the [PyMassSpec ANDI
-implementation](https://pymassspec.readthedocs.io/en/master/_modules/pyms/GCMS/IO/ANDI.html).
-The exported number of mass peaks therefore does not determine physical
-dwell time. GCMSprime preserves vendor intensities and accepts explicit
-exposure values when they are known.
-
-For sample directories, alkane calibration and Excel/MSP exports, see
-[Multisample GC/MS
-experiments](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html).
-The likelihood and constrained-factorization background is developed in
-[Sparse log-concave
-NMF](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md).
+For sample-group directories, acquisition ordering, alkane standards and
+Excel/MSP reports, use the workflow in
+[GCMSprime](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html).

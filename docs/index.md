@@ -6,11 +6,12 @@ Sparse factors.\
 Interpretable signals.
 ======================
 
-Sparse nonnegative matrix factorization, log-concave profiles and
-flexible noise models.
+Scalable sparse nonnegative matrix factorization with log-concave
+profile shape constraints, flexible noise models and automatic best rank
+tuning for single or multiple samples.
 
 [Get started
-↗](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md)[Explore
+↗](https://tomwenseleers.github.io/L0nmf/articles/estimate-psf.md)[Explore
 the methods](https://tomwenseleers.github.io/L0nmf/reference/index.md)
 
 R · Local likelihood updates · Full spectra · Constant & varying PSFs
@@ -20,17 +21,21 @@ spectral loadings](logo-dark.svg)
 
 [**Sparse rank**Recover a parsimonious set of nonnegative
 components](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
-[**Peak shapes**Log-concave profiles and constant or time-varying
+[**Peak shape constraints**Log-concave profiles and constant or
+time-varying
 PSFs](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf.md)
-[**7 families**Gaussian, Poisson, quasi-Poisson, NB2, NB1 and two Gamma
+[**7 noise families**Gaussian, Poisson, quasi-Poisson, NB2, NB1 and two
+Gamma
 models](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md)
 
-L0nmf is part of a focused three-package toolkit:
-[L0glm](https://tomwenseleers.github.io/L0glm/) supplies fast sparse GLM
-selection, [L0nmf](https://tomwenseleers.github.io/L0nmf/) supplies
-sparse factorization and PSF estimation, and
-[GCMSprime](https://tomwenseleers.github.io/GCMSprime/) turns those
-methods into a chromatographic workflow.
+Scalable sparse nonnegative matrix factorization with log-concave
+profile shape constraints, flexible noise models and automatic best rank
+tuning for single or multiple samples.
+
+Start with a calibrated or estimated point spread function, then let
+each component acquire its own log-concave profile. Coupled models share
+spectra across samples while retaining sample-specific shapes, areas and
+observation grids.
 
 ## Installation
 
@@ -68,34 +73,31 @@ Recovered log-concave profiles and spectra
 
 The [worked
 example](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md)
-shows the model, likelihood and local updates in detail.
+shows fitting and diagnostics. The [algorithm and
+theory](https://tomwenseleers.github.io/L0nmf/articles/algorithm.md)
+give the likelihood, constraints and mathematical pseudocode.
 
 The final original-channel pass checks component deletions, local
 fusions and missed residual peaks, accepting each change only when the
 complete likelihood-and-compound criterion improves.
 
-## Methods and applications
+## Learn the methods
 
-- [Sparse log-concave factorization and its mathematical
-  model](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md)
-- [Constant and time-varying
-  PSFs](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf.md)
-- [Blind
-  deconvolution](https://tomwenseleers.github.io/L0nmf/reference/L0glm_blind_deco.md)
-- [Simulated
-  chromatograms](https://tomwenseleers.github.io/L0nmf/reference/simulate_GCMS.md)
-- [GC/MS input, output and reports in
-  GCMSprime](https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html)
+1.  [Estimate
+    PSFs](https://tomwenseleers.github.io/L0nmf/articles/estimate-psf.md):
+    known convolution, calibration and blind kernel estimation.
+2.  [Sparse log-concave NMF with automatic best rank
+    tuning](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md).
+3.  [Coupled multisample log-concave NMF with automatic best rank
+    tuning](https://tomwenseleers.github.io/L0nmf/articles/coupled-nmf.md).
 
-Gaussian, Poisson, quasi-Poisson, negative-binomial and Gamma
-observation models are supported for identity-link nonnegative signals.
-The help pages describe aggregation, temporal dispersion, censored
-observations and the full objective.
-
-[`L0BestRankGNMF()`](https://tomwenseleers.github.io/L0nmf/reference/L0BestRankGNMF.md)
-provides an experimental general factorization method. Its algorithm is
-being developed separately from the validated local log-concave
-workflow.
+The [mathematical
+article](https://tomwenseleers.github.io/L0nmf/articles/algorithm.md)
+develops the objectives and algorithms.
+[L0glm](https://tomwenseleers.github.io/L0glm/) supplies sparse GLM
+selection; [GCMSprime](https://tomwenseleers.github.io/GCMSprime/)
+applies these models to chromatogram files, quantification and spectral
+identification.
 
 ## Share spectra across samples
 
@@ -115,9 +117,9 @@ fit$areas
 coef(fit, normalize="l1")
 ```
 
-See [Coupled multisample
-factorization](https://tomwenseleers.github.io/L0nmf/articles/coupled-nmf.md)
-for simulations, plots and mathematical details, and
+See [Coupled multisample log-concave
+NMF](https://tomwenseleers.github.io/L0nmf/articles/coupled-nmf.md) for
+simulations, plots and mathematical details, and
 [GCMSprime](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html)
 for the directory-based chromatogram workflow.
 

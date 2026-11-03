@@ -370,8 +370,8 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #' the representative PSF width. The broad parent and a log-concave combined
 #' profile are tried as starts. Native updates jointly refine each proposed
 #' component and its overlapping neighbours, and the same refinement budget
-#' is applied to the unmerged control. Acceptance uses the complete original-
-#' channel criterion, with noise settings, weights, offsets and the background
+#' is applied to the unmerged control. Acceptance uses the complete criterion
+#' on the original channels, with noise settings, weights, offsets and the background
 #' fixed. `contained_fusion` stores the trial diagnostics and source groups.
 #'
 #' **Noise models.** Gaussian variance is \eqn{\phi}; quasipoisson variance is

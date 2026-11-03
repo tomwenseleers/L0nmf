@@ -546,6 +546,15 @@ concave-envelope projection removes numerical constraint residuals.
 Backtracking between feasible log profiles preserves concavity and
 accepts only likelihood improvements.
 
+The spectra act as covariates in each local profile update: Y\_{\mathcal
+W}^{T}=S\_{\mathcal B}^{T}H\_{\mathcal W,\mathcal B}^{T} +R\_{\mathcal
+W}^{T}. The current profiles and spectra provide the starts. Fine
+refinement uses the constrained log-profile quadratic directly, with no
+extra shrinkage toward zero or toward the initial PSF. Profile
+normalization transfers its scale into the corresponding spectrum. Every
+local block covers the full support of every component whose spectrum is
+updated.
+
 Fusion starts with spectral compatibility and profile overlap.
 Broad-anchor and contained-tail proposals are refined only within the
 affected windows; other compounds remain in an offset. The full
@@ -556,6 +565,18 @@ Neighbouring modes are guarded during its local refit.
 `control=list(profile_cycles=0L)` disables the main shape-refinement
 stage; `control=list(profile_fusion=FALSE)` disables the final
 conservative pass.
+
+A contained fragment can have a different profile from its broad parent
+while carrying almost the same spectrum. The final contained-fragment
+search therefore uses spectral cosine at least 0.97, at least 99% of the
+fragment’s profile mass within the parent’s 1%-height interval, and a
+fragment area no larger than 15% of the parent’s area. The parent FWHM
+must exceed four times the representative PSF FWHM. A parent-profile
+start and a log-concave combined-profile start are both tried. Each
+candidate and an unmerged control receive six local joint-refinement
+cycles, with four profile scoring steps per cycle. The complete
+original-channel criterion chooses between them. This prevents
+refinement gains alone from being attributed to a reduction in rank.
 
 ### Complete the fit on the original ion channels
 
@@ -670,12 +691,15 @@ w^{\rm pilot}\_{ij}=w\_{ij}\\
 
 It fits grouped nonnegative
 [`L0glm.fit()`](https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html)
-on the PSF design with compulsory background, using \lambda_R/m. This
-supplies candidate components; subsequent fits and acceptance use the
-requested family. A supplied `start` with profiles, spectra and optional
-background coefficients bypasses screening. The working Poisson fit
-initializes the factorization; complete rank decisions use J with the
-specified observation model.
+on the PSF design with compulsory background, using the unadjusted
+\lambda\_{\rm IC}. The starting search and original-channel polish use
+J_0=-2\ell\_\nu+m\lambda\_{\rm IC}K. This permissive initialization
+preserves candidates while the profiles are refined. Final rank
+comparisons use J=-2\ell\_\nu+m\kappa\lambda\_{\rm IC}K. When \kappa=1,
+the two criteria coincide. A supplied `start` with profiles, spectra and
+optional background coefficients bypasses screening. The working Poisson
+fit initializes the factorization; complete rank decisions use J with
+the specified observation model.
 
 **Algorithm N1 — sparse log-concave NMF with rank selection**
 
@@ -688,7 +712,7 @@ specified observation model.
     2.  Construct the corresponding exact or moment-matched aggregate
         noise model.
     3.  Initialize and fuse components in that reduced space, retaining
-        the original channel count in \lambda_R.
+        the original channel count in m\lambda\_{\rm IC}.
     4.  Lift loadings/background with group intensity fractions; return
         to every original channel for likelihood refinement.
 3.  Otherwise obtain the variance-matched grouped deconvolution start
@@ -704,23 +728,31 @@ specified observation model.
     3.  Generate spectral/overlap-compatible fusion candidates
         algebraically, starting with stronger components. Refine only
         the affected scan windows.
-    4.  Accept whole candidates only if their complete J decreases
-        within numerical tolerance. Check conditional deletions and zero
-        spectra.
+    4.  Accept whole initialization candidates only if their complete
+        J_0 decreases within numerical tolerance. Check conditional
+        deletions and zero spectra.
     5.  If NB2 shape updating is enabled, propose bounded steps in
         \log\theta and backtrack until the original likelihood improves.
-5.  Refine full-channel shapes, broad/contained-tail fusions and shared
-    local backgrounds. Finally check original-channel deletions,
-    compatible profile fusions and additions suggested by residual
-    working scores.
-6.  Return temporally ordered H,S, background, family/noise parameters,
+5.  On all original channels, run fine constrained profile/spectrum
+    updates, conditional deletions, compatible fusions and
+    residual-supported additions. Polish the accepted profiles again and
+    revisit retained narrow-fragment candidates under J_0.
+6.  Restore the requested information multiplier and evaluate the
+    resulting initialization under J. Test contained fragments of broad
+    components against equally refined unmerged local controls. Accept
+    only complete original-channel improvements under this fixed final
+    criterion.
+7.  Return temporally ordered H,S, background, family/noise parameters,
     likelihood, rank criterion, stage acceptance ledger and timings.
 
 `profile_cycles`, `fusion_passes` and the other stage controls bound the
 work; local solvers also stop when their score/step change is
-sufficiently small. For fixed noise parameters, every accepted stage
-uses the same original-channel objective. The reduced-space search
-supplies an initializer, followed by original-channel rank checks.
+sufficiently small. The initialization ledger records its unadjusted
+criterion. When the final information multiplier differs from one, the
+final ledger begins at the completed initialization and uses the fixed
+adjusted criterion throughout. The noise scale remains on its marginal
+variance scale. The reduced-space search supplies an initializer; final
+rank checks use every original channel.
 
 **Subroutine Q — local likelihood and shape update**
 

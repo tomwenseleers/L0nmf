@@ -710,6 +710,15 @@ log-profile increments preserve the existing fine-scale curvature; a
 concave-envelope projection removes numerical constraint residuals.
 Backtracking between feasible log profiles preserves concavity and
 accepts only likelihood improvements.</p>
+<p>The spectra act as covariates in each local profile update: <span class="math display">
+Y_{\mathcal W}^{T}=S_{\mathcal B}^{T}H_{\mathcal W,\mathcal B}^{T}
++R_{\mathcal W}^{T}.
+</span> The current profiles and spectra provide the starts. Fine
+refinement uses the constrained log-profile quadratic directly, with no
+extra shrinkage toward zero or toward the initial PSF. Profile
+normalization transfers its scale into the corresponding spectrum. Every
+local block covers the full support of every component whose spectrum is
+updated.</p>
 <p>Fusion starts with spectral compatibility and profile overlap.
 Broad-anchor and contained-tail proposals are refined only within the
 affected windows; other compounds remain in an offset. The full
@@ -720,6 +729,18 @@ Neighbouring modes are guarded during its local refit.
 <code>control=list(profile_cycles=0L)</code> disables the main
 shape-refinement stage; <code>control=list(profile_fusion=FALSE)</code>
 disables the final conservative pass.</p>
+<p>A contained fragment can have a different profile from its broad
+parent while carrying almost the same spectrum. The final
+contained-fragment search therefore uses spectral cosine at least 0.97,
+at least 99% of the fragment’s profile mass within the parent’s
+1%-height interval, and a fragment area no larger than 15% of the
+parent’s area. The parent FWHM must exceed four times the representative
+PSF FWHM. A parent-profile start and a log-concave combined-profile
+start are both tried. Each candidate and an unmerged control receive six
+local joint-refinement cycles, with four profile scoring steps per
+cycle. The complete original-channel criterion chooses between them.
+This prevents refinement gains alone from being attributed to a
+reduction in rank.</p>
 <div class="section level3">
 <h3 id="complete-the-fit-on-the-original-ion-channels">Complete the fit on the original ion channels<a class="anchor" aria-label="anchor" href="#complete-the-fit-on-the-original-ion-channels"></a>
 </h3>
@@ -841,8 +862,12 @@ w^{\rm pilot}_{ij}=w_{ij}\,
 \frac{\widetilde\mu_{ij}}{\operatorname{Var}(Y_{ij}\mid\widetilde\mu_{ij},\nu)}.
 </span></p>
 <p>It fits grouped nonnegative <code><a href="https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html" class="external-link">L0glm.fit()</a></code> on the PSF
-design with compulsory background, using <span class="math inline">\lambda_R/m</span>. This supplies candidate
-components; subsequent fits and acceptance use the requested family. A
+design with compulsory background, using the unadjusted <span class="math inline">\lambda_{\rm IC}</span>. The starting search and
+original-channel polish use <span class="math display">
+J_0=-2\ell_\nu+m\lambda_{\rm IC}K.
+</span> This permissive initialization preserves candidates while the
+profiles are refined. Final rank comparisons use <span class="math inline">J=-2\ell_\nu+m\kappa\lambda_{\rm IC}K</span>. When
+<span class="math inline">\kappa=1</span>, the two criteria coincide. A
 supplied <code>start</code> with profiles, spectra and optional
 background coefficients bypasses screening. The working Poisson fit
 initializes the factorization; complete rank decisions use <span class="math inline">J</span> with the specified observation model.</p>
@@ -859,7 +884,8 @@ observations/offsets.</li>
 <li>Construct the corresponding exact or moment-matched aggregate noise
 model.</li>
 <li>Initialize and fuse components in that reduced space, retaining the
-original channel count in <span class="math inline">\lambda_R</span>.</li>
+original channel count in <span class="math inline">m\lambda_{\rm
+IC}</span>.</li>
 <li>Lift loadings/background with group intensity fractions; return to
 every original channel for likelihood refinement.</li>
 </ol>
@@ -878,25 +904,34 @@ component signal. Preserve the specified family likelihood.</li>
 <li>Generate spectral/overlap-compatible fusion candidates
 algebraically, starting with stronger components. Refine only the
 affected scan windows.</li>
-<li>Accept whole candidates only if their complete <span class="math inline">J</span> decreases within numerical tolerance. Check
-conditional deletions and zero spectra.</li>
+<li>Accept whole initialization candidates only if their complete <span class="math inline">J_0</span> decreases within numerical tolerance.
+Check conditional deletions and zero spectra.</li>
 <li>If NB2 shape updating is enabled, propose bounded steps in <span class="math inline">\log\theta</span> and backtrack until the original
 likelihood improves.</li>
 </ol>
 </li>
-<li>Refine full-channel shapes, broad/contained-tail fusions and shared
-local backgrounds. Finally check original-channel deletions, compatible
-profile fusions and additions suggested by residual working scores.</li>
+<li>On all original channels, run fine constrained profile/spectrum
+updates, conditional deletions, compatible fusions and
+residual-supported additions. Polish the accepted profiles again and
+revisit retained narrow-fragment candidates under <span class="math inline">J_0</span>.</li>
+<li>Restore the requested information multiplier and evaluate the
+resulting initialization under <span class="math inline">J</span>. Test
+contained fragments of broad components against equally refined unmerged
+local controls. Accept only complete original-channel improvements under
+this fixed final criterion.</li>
 <li>Return temporally ordered <span class="math inline">H,S</span>,
 background, family/noise parameters, likelihood, rank criterion, stage
 acceptance ledger and timings.</li>
 </ol>
 <p><code>profile_cycles</code>, <code>fusion_passes</code> and the other
 stage controls bound the work; local solvers also stop when their
-score/step change is sufficiently small. For fixed noise parameters,
-every accepted stage uses the same original-channel objective. The
-reduced-space search supplies an initializer, followed by
-original-channel rank checks.</p>
+score/step change is sufficiently small. The initialization ledger
+records its unadjusted criterion. When the final information multiplier
+differs from one, the final ledger begins at the completed
+initialization and uses the fixed adjusted criterion throughout. The
+noise scale remains on its marginal variance scale. The reduced-space
+search supplies an initializer; final rank checks use every original
+channel.</p>
 <p><strong>Subroutine Q — local likelihood and shape update</strong></p>
 <ol style="list-style-type: decimal">
 <li>Subtract the focus component from the current mean to obtain the

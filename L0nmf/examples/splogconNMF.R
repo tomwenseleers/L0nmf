@@ -16,7 +16,7 @@ fit
 c(compounds = fit$rank, GIC = GIC(fit), seconds = fit$seconds[["total"]])
 # Broad profiles with nearly identical shapes can share complementary ion sets.
 # A conservative fusion pass runs on all original channels after preclustering.
-fit$profile_fusion$merges
+fit$contained_fusion
 matplot(fit$H, type = "l", lty = 1, xlab = "Scan", ylab = "Elution profile")
 
 # For overdispersed intensities, estimate one common noise scale from temporal
@@ -37,7 +37,7 @@ Y <- GCMS_data1
 X <- convmatrix(convkernel("gaussian", 65L, list(sigma = 8)), nrow(Y))
 f1 <- splogconNMF(X, Y, background = matrix(1, nrow(Y), 1L),
   family = quasipoisson("identity"), precluster = 16L,
-  correlation = "none", ncores = 8L)
+  correlation = "auto", ncores = 8L)
 c(compounds = f1$rank, GIC = GIC(f1), seconds = f1$seconds[["total"]])
 matplot(as.numeric(rownames(Y)), as.matrix(f1$H), type = "l", lty = 1,
   xlab = "Retention time (min)", ylab = "Unit-area elution profile")
@@ -50,7 +50,7 @@ X <- convmatrix(convkernel("gaussian", 65L, list(sigma = 6)), nrow(Y))
 B <- splines::bs(time, df = 4L, intercept = TRUE)
 f2 <- splogconNMF(X, Y, background = B,
   family = quasipoisson("identity"), precluster = 32L,
-  correlation = "none", ncores = 8L)
+  correlation = "auto", ncores = 8L)
 c(compounds = f2$rank, GIC = GIC(f2), seconds = f2$seconds[["total"]])
 plotmat(fitted(f2), xlab = "Retention time (min)", ylab = "Mass (m/z)",
   main = "Fitted GC/MS chromatogram")

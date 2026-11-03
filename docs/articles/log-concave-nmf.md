@@ -27,7 +27,7 @@ Y <- GCMS_data1
 X <- convmatrix(convkernel("gaussian", 65L, list(sigma=8)), nrow(Y))
 B <- matrix(1, nrow(Y), 1L)
 fit <- splogconNMF(X, Y, background=B,
-  family=quasipoisson("identity"), precluster=16L, correlation="none")
+  family=quasipoisson("identity"), precluster=16L, correlation="auto")
 fit$rank
 dim(fit$H)
 dim(coef(fit))
@@ -64,7 +64,52 @@ profile-apex order. The [GCMSprime
 tutorial](https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html)
 develops the chromatographic interpretation, file input and reports.
 
+## A broad asymmetric component
+
+The beer-volatile window combines narrow overlapping peaks with a much
+broader acid contribution. A low-dimensional spline accounts for the
+smooth background:
+
+``` r
+
+data(GCMS_data2)
+Y2 <- GCMS_data2
+t2 <- as.numeric(rownames(Y2))
+X2 <- convmatrix(convkernel("gaussian", 65L, list(sigma=6)), nrow(Y2))
+B2 <- splines::bs(t2, df=4L, intercept=TRUE)
+fit2 <- splogconNMF(X2, Y2, background=B2,
+  family=quasipoisson("identity"), precluster=32L, correlation="auto")
+fit2$rank
+fit2$contained_fusion$broad
+```
+
+![Log-concave profiles and full-channel spectra, including the broad
+component](../reference/figures/gcms-data2-profiles-spectra.png)
+
+Log-concave profiles and full-channel spectra, including the broad
+component
+
+The corresponding GCMSprime CDF workflows use the same full-channel
+backend and the default temporal information adjustment:
+
+| Window         | Channels | Components | Quasi-GIC | Adjusted weighted R² |
+|:---------------|---------:|-----------:|----------:|---------------------:|
+| Hydrocarbons   |      671 |          6 |   246,473 |              0.98999 |
+| Beer volatiles |      518 |         38 | 1,467,419 |              0.99498 |
+
+The accompanying [CDF
+workflow](https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html)
+reports measured timings and complete-criterion tables for both windows,
+with downloadable traces, heatmaps, complete profile/spectrum panels and
+MSP libraries.
+
 ## Automatic best rank tuning
+
+The initialization keeps a permissive pool of components while native
+constrained likelihood updates refine their profiles and spectra. Final
+rank selection applies the requested temporal information adjustment.
+Small fragments contained within a broad profile are compared with an
+equally refined unmerged local model on all original channels.
 
 The default `lambda="gic"` compares complete fits by likelihood and
 component count. After dividing the likelihood by the original channel
@@ -78,6 +123,8 @@ have no extra rank penalty.
 fit$objective
 fit$history[, c("stage", "delta", "accepted", "compounds")]
 fit$cleanup
+fit$initialization
+fit$contained_fusion
 c(AIC=AIC(fit), BIC=BIC(fit), GIC=GIC(fit))
 ```
 

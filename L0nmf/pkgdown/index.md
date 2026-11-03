@@ -39,7 +39,7 @@ data(GCMS_data1)
 X <- convmatrix(convkernel("gaussian", 65L, list(sigma=8)), nrow(GCMS_data1))
 fit <- splogconNMF(X, GCMS_data1, background=matrix(1,nrow(X),1),
                   family=quasipoisson("identity"), precluster=16L,
-                  correlation="none")
+                  correlation="auto")
 fit
 GIC(fit)
 matplot(as.matrix(fit$H), type="l", lty=1, xlab="Scan", ylab="Elution profile")
@@ -52,7 +52,7 @@ The factors retain every original outcome channel. Profiles have unit area, nonn
 
 The [worked example](articles/log-concave-nmf.html) shows fitting and diagnostics. The [algorithm and theory](articles/algorithm.html) give the likelihood, constraints and mathematical pseudocode.
 
-The final original-channel pass checks component deletions, local fusions and missed residual peaks, accepting each change only when the complete likelihood-and-compound criterion improves.
+The final original-channel pass checks component deletions, local fusions and missed residual peaks, accepting each change only when the complete likelihood-and-compound criterion improves. Native log-concave profile updates and joint spectral fits start from the current factors. Small fragments contained in broad profiles are compared with equally refined unmerged local models.
 
 ## Learn the methods
 

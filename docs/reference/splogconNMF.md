@@ -182,7 +182,7 @@ print(x, ...)
   Named list: `broad_repeats=1L`, `full_sweeps=1L`, `final_polishes=1L`,
   `native_sweeps=6L`, `block_sweeps=6L`, `psf_width=NULL`,
   `screen_factor=1`, `censor=0.5`, `linkage="ward"`,
-  `joint_trials=NULL`, `profile_cycles=10L`, `fusion_passes=5L`,
+  `joint_trials=NULL`, `profile_cycles=4L`, `fusion_passes=0L`,
   `profile_fusion=TRUE`. `joint_trials` uses direct Poisson fusion for
   Poisson data and joint local refinement for the other families.
   `psf_width` supplies the typical FWHM in scans. When omitted, local
@@ -195,17 +195,18 @@ print(x, ...)
   its own detection limit unless overridden here. `linkage` may be
   `"ward"` or `"bregman"`. `joint_trials` allows overlapping compounds
   to adjust together during local fusion refinement. `profile_cycles`
-  bounds the original-channel shape/background refinement; zero disables
-  it. `fusion_passes` bounds broad-anchor and compatible-tail fusion
-  after that refinement. For a narrow, spectrally matching fragment
-  contained in a broad profile, a guarded whole-profile refit can also
-  update the shared background. Neighbouring modes stay within one
-  quarter of their initial FWHM, and the merge is retained only when the
-  original-channel criterion decreases. `profile_fusion` enables a final
-  conservative fusion pass on all original channels, followed by one
-  local likelihood-based profile/spectrum refit. `original_cleanup=TRUE`
-  enables a final original-channel deletion, local fusion and
-  residual-discovery pass. Set it to `FALSE` to skip that pass.
+  bounds the smooth shape/background initialization; positive values
+  also enable fine native profile/spectrum refinement. Zero skips these
+  shape-polishing cycles. `fusion_passes` optionally adds broad-anchor
+  and compatible-tail searches during initialization. `profile_fusion`
+  enables algebraic profile fusion, retained contained-fragment
+  proposals and a final broad-fragment pass on every original channel.
+  Broad fusions are compared with an equally refined unmerged local
+  model. The entire support of every updated component is included in
+  the local fit, with the remaining components and background held in an
+  offset. `original_cleanup=TRUE` enables a final original-channel
+  deletion, local fusion and residual-discovery pass. Set it to `FALSE`
+  to skip that pass.
 
 - start:
 
@@ -232,11 +233,11 @@ An object of class `splogconNMF`, containing sparse unit-sum profiles
 `H`, spectra `S`, background coefficients `alpha`, the background basis,
 fitted means `mu`, `rank`, resolved noise settings `spec`, original
 data, offsets and weights, `objective`, `loglik`, stage ledger
-`history`, `ledger_error`, aggregation and `profile_fusion` diagnostics,
-controls and timings `seconds`.
-[`coef()`](https://rdrr.io/r/stats/coef.html) returns spectra and
-[`fitted()`](https://rdrr.io/r/stats/fitted.values.html) the full mean
-matrix. [`logLik()`](https://rdrr.io/r/stats/logLik.html),
+`history`, `ledger_error`, `initialization`, aggregation,
+`profile_fusion` and `contained_fusion` diagnostics, controls and
+timings `seconds`. [`coef()`](https://rdrr.io/r/stats/coef.html) returns
+spectra and [`fitted()`](https://rdrr.io/r/stats/fitted.values.html) the
+full mean matrix. [`logLik()`](https://rdrr.io/r/stats/logLik.html),
 [`AIC()`](https://rdrr.io/r/stats/AIC.html),
 [`BIC()`](https://rdrr.io/r/stats/AIC.html),
 [`GIC()`](https://tomwenseleers.github.io/L0glm/reference/model_criteria.html),
@@ -275,13 +276,14 @@ that support. The objective is
 where \\K\\ is the number of compounds and \\\nu\\ contains the shared
 noise parameters. An IC preset uses \\\lambda_R=m\kappa\lambda\_{IC}\\,
 with \\m\\ original channels. A numeric `lambda` supplies the total
-compound penalty before multiplication by \\\kappa\\. The initial
-grouped fit uses \\\lambda_R/m\\. Each compound contributes one
-selection count; spectral entries and profile complexity have no
-separate penalty. This is a compound-count model-selection convention.
-The IC methods use \\mK\\ plus the number of estimated shared noise
-parameters as their complexity count; it is distinct from counting every
-free profile ordinate.
+compound penalty before multiplication by \\\kappa\\. The permissive
+initialization uses the unadjusted preset \\\lambda\_{IC}\\; the
+requested information factor is applied for final rank selection. Each
+compound contributes one selection count; spectral entries and profile
+complexity have no separate penalty. This is a compound-count
+model-selection convention. The IC methods use \\mK\\ plus the number of
+estimated shared noise parameters as their complexity count; it is
+distinct from counting every free profile ordinate.
 
 **Initialization and local updates.** A variance-matched grouped Poisson
 working fit supplies candidate components, using
@@ -297,11 +299,13 @@ I_i}\right\\.\$\$ Backtracking checks the actual loss, with an explicit
 zero-boundary check. Poisson and quasipoisson use a specialized
 bracketed scalar likelihood solve. Background terms use small
 constrained quadratic solves, and all channels run independently through
-OpenMP. Poisson profile proposals use four warm native IRLS iterations.
-During a full profile sweep, an adaptive ridge tether centred on the
-preceding profile stabilizes weak tails, with local penalty weights
-proportional to the inverse squared profile ordinate. The final
-acceptance test uses the complete likelihood-and-rank criterion.
+OpenMP. Initial local profile proposals can use an adaptive ridge tether
+centred on the current profile. Fine refinement instead uses constrained
+Fisher scoring in log-profile coordinates, starting from the current
+profile and spectrum. It enforces hard log concavity within the
+quadratic update and checks the original-scale loss by backtracking.
+This refinement adds no penalty toward zero or toward the initial PSF; a
+small diagonal stabilizes the quadratic solve.
 
 Spectral clustering proposes fusions without fitting a model. It
 compares normalized spectra through Jensen–Shannon information loss and
@@ -309,9 +313,13 @@ joins overlapping compatible profiles. A least concave majorant of the
 log profile enforces hard log concavity. Local refinement reallocates
 signal between overlapping compounds and checks the actual criterion.
 Every complete stage is accepted against its full working data, and
-final refinement and scoring use all original observations. `history`
-records each accepted or rejected stage; `ledger_error` checks the
-accumulated criterion change.
+final refinement and scoring use all original observations.
+`initialization` records the permissive starting search and its
+unadjusted criterion. When the working-correlation factor changes the
+final penalty, `history` starts from the resulting initialization and
+records the final-criterion updates. Otherwise it also includes the
+initialization stages. `ledger_error` checks the accumulated criterion
+change within this ledger.
 
 **Original-channel completion.** The final cleanup tests component
 deletions, local fusions proposed by profile or spectral similarity, and
@@ -350,6 +358,18 @@ source component groups. Source IDs refer to components entering
 original-channel profile refinement, or the final pass when that
 refinement is disabled. Groups are retained across passes;
 `source_components` follows the returned temporal ordering.
+
+A second type of proposal absorbs a small, spectrally similar fragment
+whose profile is contained within a broad component. Candidate spectra
+have cosine similarity at least 0.97, at least 99\\ mass lies inside the
+parent's 1\\ is at most 15\\ the representative PSF width. The broad
+parent and a log-concave combined profile are tried as starts. Native
+updates jointly refine each proposed component and its overlapping
+neighbours, and the same refinement budget is applied to the unmerged
+control. Acceptance uses the complete criterion on the original
+channels, with noise settings, weights, offsets and the background
+fixed. `contained_fusion` stores the trial diagnostics and source
+groups.
 
 **Noise models.** Gaussian variance is \\\phi\\; quasipoisson variance
 is \\\phi\mu\\; NB2 variance is \\\mu+\mu^2/\theta\\; standard Gamma
@@ -463,7 +483,7 @@ fit
 c(compounds = fit$rank, GIC = GIC(fit), seconds = fit$seconds[["total"]])
 # Broad profiles with nearly identical shapes can share complementary ion sets.
 # A conservative fusion pass runs on all original channels after preclustering.
-fit$profile_fusion$merges
+fit$contained_fusion
 matplot(fit$H, type = "l", lty = 1, xlab = "Scan", ylab = "Elution profile")
 
 # For overdispersed intensities, estimate one common noise scale from temporal
@@ -484,7 +504,7 @@ Y <- GCMS_data1
 X <- convmatrix(convkernel("gaussian", 65L, list(sigma = 8)), nrow(Y))
 f1 <- splogconNMF(X, Y, background = matrix(1, nrow(Y), 1L),
   family = quasipoisson("identity"), precluster = 16L,
-  correlation = "none", ncores = 8L)
+  correlation = "auto", ncores = 8L)
 c(compounds = f1$rank, GIC = GIC(f1), seconds = f1$seconds[["total"]])
 matplot(as.numeric(rownames(Y)), as.matrix(f1$H), type = "l", lty = 1,
   xlab = "Retention time (min)", ylab = "Unit-area elution profile")
@@ -497,7 +517,7 @@ X <- convmatrix(convkernel("gaussian", 65L, list(sigma = 6)), nrow(Y))
 B <- splines::bs(time, df = 4L, intercept = TRUE)
 f2 <- splogconNMF(X, Y, background = B,
   family = quasipoisson("identity"), precluster = 32L,
-  correlation = "none", ncores = 8L)
+  correlation = "auto", ncores = 8L)
 c(compounds = f2$rank, GIC = GIC(f2), seconds = f2$seconds[["total"]])
 plotmat(fitted(f2), xlab = "Retention time (min)", ylab = "Mass (m/z)",
   main = "Fitted GC/MS chromatogram")

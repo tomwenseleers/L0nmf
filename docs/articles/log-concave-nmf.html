@@ -103,7 +103,7 @@ to other ordered multichannel measurements.</p>
 <span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/convmatrix.html" class="external-link">convmatrix</a></span><span class="op">(</span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/convkernel.html" class="external-link">convkernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="fl">65L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma<span class="op">=</span><span class="fl">8</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">B</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span>, <span class="fl">1L</span><span class="op">)</span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/splogconNMF.html">splogconNMF</a></span><span class="op">(</span><span class="va">X</span>, <span class="va">Y</span>, background<span class="op">=</span><span class="va">B</span>,</span>
-<span>  family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster<span class="op">=</span><span class="fl">16L</span>, correlation<span class="op">=</span><span class="st">"none"</span><span class="op">)</span></span>
+<span>  family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster<span class="op">=</span><span class="fl">16L</span>, correlation<span class="op">=</span><span class="st">"auto"</span><span class="op">)</span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">rank</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">H</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span></span>
@@ -136,18 +136,77 @@ tutorial</a> develops the chromatographic interpretation, file input and
 reports.</p>
 </div>
 <div class="section level2">
+<h2 id="a-broad-asymmetric-component">A broad asymmetric component<a class="anchor" aria-label="anchor" href="#a-broad-asymmetric-component"></a>
+</h2>
+<p>The beer-volatile window combines narrow overlapping peaks with a
+much broader acid contribution. A low-dimensional spline accounts for
+the smooth background:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">GCMS_data2</span><span class="op">)</span></span>
+<span><span class="va">Y2</span> <span class="op">&lt;-</span> <span class="va">GCMS_data2</span></span>
+<span><span class="va">t2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">Y2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">X2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/convmatrix.html" class="external-link">convmatrix</a></span><span class="op">(</span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/convkernel.html" class="external-link">convkernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="fl">65L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma<span class="op">=</span><span class="fl">6</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">B2</span> <span class="op">&lt;-</span> <span class="fu">splines</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/splines/bs.html" class="external-link">bs</a></span><span class="op">(</span><span class="va">t2</span>, df<span class="op">=</span><span class="fl">4L</span>, intercept<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/splogconNMF.html">splogconNMF</a></span><span class="op">(</span><span class="va">X2</span>, <span class="va">Y2</span>, background<span class="op">=</span><span class="va">B2</span>,</span>
+<span>  family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster<span class="op">=</span><span class="fl">32L</span>, correlation<span class="op">=</span><span class="st">"auto"</span><span class="op">)</span></span>
+<span><span class="va">fit2</span><span class="op">$</span><span class="va">rank</span></span>
+<span><span class="va">fit2</span><span class="op">$</span><span class="va">contained_fusion</span><span class="op">$</span><span class="va">broad</span></span></code></pre></div>
+<div class="float">
+<img src="../reference/figures/gcms-data2-profiles-spectra.png" alt="Log-concave profiles and full-channel spectra, including the broad component"><div class="figcaption">Log-concave profiles and full-channel spectra,
+including the broad component</div>
+</div>
+<p>The corresponding GCMSprime CDF workflows use the same full-channel
+backend and the default temporal information adjustment:</p>
+<table class="table">
+<thead><tr class="header">
+<th align="left">Window</th>
+<th align="right">Channels</th>
+<th align="right">Components</th>
+<th align="right">Quasi-GIC</th>
+<th align="right">Adjusted weighted R²</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Hydrocarbons</td>
+<td align="right">671</td>
+<td align="right">6</td>
+<td align="right">246,473</td>
+<td align="right">0.98999</td>
+</tr>
+<tr class="even">
+<td align="left">Beer volatiles</td>
+<td align="right">518</td>
+<td align="right">38</td>
+<td align="right">1,467,419</td>
+<td align="right">0.99498</td>
+</tr>
+</tbody>
+</table>
+<p>The accompanying <a href="https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html" class="external-link">CDF
+workflow</a> reports measured timings and complete-criterion tables for
+both windows, with downloadable traces, heatmaps, complete
+profile/spectrum panels and MSP libraries.</p>
+</div>
+<div class="section level2">
 <h2 id="automatic-best-rank-tuning">Automatic best rank tuning<a class="anchor" aria-label="anchor" href="#automatic-best-rank-tuning"></a>
 </h2>
+<p>The initialization keeps a permissive pool of components while native
+constrained likelihood updates refine their profiles and spectra. Final
+rank selection applies the requested temporal information adjustment.
+Small fragments contained within a broad profile are compared with an
+equally refined unmerged local model on all original channels.</p>
 <p>The default <code>lambda="gic"</code> compares complete fits by
 likelihood and component count. After dividing the likelihood by the
 original channel count, each retained component incurs one rank charge.
 On the unscaled likelihood the charge is <code>m * lambda_IC</code>,
 with an optional temporal information adjustment. Profile complexity and
 background coefficients have no extra rank penalty.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span><span class="op">$</span><span class="va">objective</span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">history</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"stage"</span>, <span class="st">"delta"</span>, <span class="st">"accepted"</span>, <span class="st">"compounds"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">cleanup</span></span>
+<span><span class="va">fit</span><span class="op">$</span><span class="va">initialization</span></span>
+<span><span class="va">fit</span><span class="op">$</span><span class="va">contained_fusion</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>AIC<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, BIC<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">BIC</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, GIC<span class="op">=</span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/model_criteria.html" class="external-link">GIC</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Reported criteria count <code>m * rank</code> plus estimated shared
 noise parameters. Other presets are <code>"aic"</code>,
@@ -235,7 +294,7 @@ The original channel count sets the rank charge in both workflows; final
 scoring uses the original observations and specified noise model.</p>
 <p>For a longer signal, replace the constant background with a
 low-dimensional nonnegative spline basis:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">B</span> <span class="op">&lt;-</span> <span class="fu">splines</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/splines/bs.html" class="external-link">bs</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span>, df<span class="op">=</span><span class="fl">4L</span>, intercept<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p>Background coefficients are fitted conditionally on the component
 signal and remain unpenalized in rank selection. Known additive signals

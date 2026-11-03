@@ -14,7 +14,7 @@
 <div class="l0-stat-grid">
 <a href="reference/splogconNMF.html"><strong>Sparse rank</strong><span>Recover a parsimonious set of nonnegative components</span></a>
 <a href="reference/estimate_psf.html"><strong>Peak shapes</strong><span>Log-concave profiles and constant or time-varying PSFs</span></a>
-<a href="articles/log-concave-nmf.html"><strong>5 families</strong><span>Gaussian, Poisson, quasi-Poisson, negative binomial and Gamma</span></a>
+<a href="articles/log-concave-nmf.html"><strong>7 families</strong><span>Gaussian, Poisson, quasi-Poisson, NB2, NB1 and two Gamma models</span></a>
 </div>
 
 L0nmf is part of a focused three-package toolkit: [L0glm](https://tomwenseleers.github.io/L0glm/) supplies fast sparse GLM selection, [L0nmf](https://tomwenseleers.github.io/L0nmf/) supplies sparse factorization and PSF estimation, and [GCMSprime](https://tomwenseleers.github.io/GCMSprime/) turns those methods into a chromatographic workflow.
@@ -61,6 +61,25 @@ The final original-channel pass checks component deletions, local fusions and mi
 Gaussian, Poisson, quasi-Poisson, negative-binomial and Gamma observation models are supported for identity-link nonnegative signals. The help pages describe aggregation, temporal dispersion, censored observations and the full objective.
 
 `L0BestRankGNMF()` provides an experimental general factorization method. Its algorithm is being developed separately from the validated local log-concave workflow.
+
+## Share spectra across samples
+
+`coupledNMF()` aligns related samples and estimates common spectra with
+sample-specific log-concave profiles, integrated areas and smooth backgrounds.
+It supports all seven signal families, irregular scan grids and disk-backed
+observations. In a three-sample simulation with all 258 channels, it recovers
+all 78 compound occurrences in 29.69 seconds. With compounds absent from half
+the samples, all 37 present occurrences are recovered in 21.92 seconds.
+
+```r
+fit <- coupledNMF(samples, family=quasipoisson("identity"), precluster=32L)
+fit$areas
+coef(fit, normalize="l1")
+```
+
+See [Coupled multisample factorization](articles/coupled-nmf.html) for simulations,
+plots and mathematical details, and [GCMSprime](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html)
+for the directory-based chromatogram workflow.
 
 ## Citation
 

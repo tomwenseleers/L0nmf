@@ -50,6 +50,25 @@ Gaussian, Poisson, quasi-Poisson, negative-binomial and Gamma observation models
 
 `L0BestRankGNMF()` provides an experimental general factorization method. Its algorithm is being developed separately from the validated local log-concave workflow.
 
+## Share spectra across samples
+
+`coupledNMF()` aligns related samples and estimates common spectra with
+sample-specific log-concave profiles, integrated areas and smooth backgrounds.
+It supports all seven signal families, irregular scan grids and disk-backed
+observations. In a three-sample simulation with all 258 channels, it recovers
+all 78 compound occurrences in 29.69 seconds. With compounds absent from half
+the samples, all 37 present occurrences are recovered in 21.92 seconds.
+
+```r
+fit <- coupledNMF(samples, family=quasipoisson("identity"), precluster=32L)
+fit$areas
+coef(fit, normalize="l1")
+```
+
+See [Coupled multisample factorization](https://tomwenseleers.github.io/L0nmf/articles/coupled-nmf.html) for simulations,
+plots and mathematical details, and [GCMSprime](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html)
+for the directory-based chromatogram workflow.
+
 ## Citation
 
 An article describing the methods implemented in L0nmf is in preparation.

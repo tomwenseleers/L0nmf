@@ -60,6 +60,9 @@ estimate_psf(
   [GCMS_data1](https://tomwenseleers.github.io/L0nmf/reference/GCMS_data1.md)
   and
   [GCMS_data2](https://tomwenseleers.github.io/L0nmf/reference/GCMS_data2.md).
+  A result from `estimate_psf(method="standard")` reuses its fitted
+  calibration directly, constructing a sparse design on the requested
+  sample grid.
 
 - method:
 
@@ -139,6 +142,12 @@ No observed matrix is retained.
 
 ## Details
 
+**Reuse a standard calibration.** Fit a solvent-trimmed ladder TIC once
+with `method="standard"`, then pass that result as `standard` for
+additional samples. Its local peak kernels and their retention times are
+reused; the sparse design is rebuilt for each sample's own grid. The
+calibration retains the noise model used to estimate it.
+
 **Standard calibration.** A lower-quantile spline estimates background.
 Isolated calibration peaks are retained using signal-to-noise and
 profile geometry. Each peak is fitted on its original observation scale:
@@ -204,8 +213,8 @@ trains with the L0 penalty. *Analytica Chimica Acta* 705, 218–226.
 [`estimate_psf_from_std()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf_from_std.md),
 [`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md),
 [`glm_cluster()`](https://tomwenseleers.github.io/L0glm/reference/glm_cluster.html),
-[`convkernel()`](https://tomwenseleers.github.io/L0glm/reference/convkernel.html),
-[`convmatrix()`](https://tomwenseleers.github.io/L0glm/reference/convmatrix.html)
+[`convkernel()`](https://tomwenseleers.github.io/L0nmf/reference/convkernel.md),
+[`convmatrix()`](https://tomwenseleers.github.io/L0nmf/reference/convmatrix.md)
 
 ## Examples
 

@@ -250,6 +250,7 @@ system.time(fit.mc <- L0nnpois(
   parallelize = TRUE,
   ncores = round(parallel::detectCores(logical = FALSE))
 ))
+# TODO: replace with L0glm.fit with quasipoisson or also allow L0nnpois to estimate the dispersion
 
 plotmat(GCMS_data1, 
         xlab = "Elution time (min)",
@@ -260,8 +261,7 @@ rows = Matrix::rowSums(fit.mc$coefficients)[which(Matrix::rowSums(fit.mc$coeffic
 nrows = rows/max(rows)
 abline(v = which(Matrix::rowSums(fit.mc$coefficients)!=0),
        col = sapply(nrows, function (alpha) adjustcolor("cyan", alpha = alpha)))
-# TODO: cluster together compounds with similar mass spectra when joined elution profiles
-# are log concave
+
 
 hist(Matrix::rowSums(fit.mc$coefficients)[which(Matrix::rowSums(fit.mc$coefficients)!=0)])
 

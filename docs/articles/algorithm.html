@@ -1253,6 +1253,72 @@ parameterizations. The compound-count criterion, local log-concave
 fusion and their integration with L0glm’s grouped initialization are
 developments of this package.</p>
 </div>
+<div class="section level2">
+<h2 id="parallel-samples-and-bounded-memory-updates">Parallel samples and bounded-memory updates<a class="anchor" aria-label="anchor" href="#parallel-samples-and-bounded-memory-updates"></a>
+</h2>
+<p>With common spectra <span class="math inline">P</span> fixed,
+sample-specific factors are conditionally independent. The coupled
+criterion is</p>
+<p><span class="math display">
+J=-2\sum_s\ell_s(Y_s;\mu_s)
+  +\lambda\{(m-1)G+L+d_{\mathrm{noise}}\},
+</span></p>
+<p>where <span class="math inline">G</span> is the number of shared
+compounds and <span class="math inline">L</span> the number of detected
+sample-compound occurrences. Profile and background updates leave this
+rank charge fixed. They can therefore run concurrently over samples,
+with each accepted update decreasing its own contribution to the full
+criterion. Pooled spectral gradients and information are computed per
+sample and summed in acquisition order. The shared spectral step is
+accepted against the full original-channel likelihood.</p>
+<p>A common channel map has a one-hot membership matrix <span class="math inline">A\in\{0,1\}^{m\times q}</span>, giving aggregated
+observations <span class="math inline">\bar Y_s=Y_sA</span> and spectra
+<span class="math inline">\bar P=PA</span>. The map is learned once from
+summed time-bin counts or supplied as a saved
+<code><a href="../reference/channel_groups.html">channel_groups()</a></code> object. Only this map-learning step uses a
+common time grid. The fitting grids, bin exposures and sparse PSF
+matrices <span class="math inline">X_s</span> remain sample
+specific.</p>
+<p>For Poisson and common-scale quasipoisson observations with shared
+scan weights, channel sums provide inexpensive profile proposals. Each
+proposal is checked on all original channels in its affected time
+window. Other families retain their original-channel profile objective.
+Spectral, background and likelihood passes read at most 32 original
+channels per block through a native binary-matrix reader. Thus
+aggregation accelerates the proposal and matching steps while the target
+criterion continues to use the original observations.</p>
+<p>The execution order is:</p>
+<ol style="list-style-type: decimal">
+<li>Learn or load the common channel map.</li>
+<li>Fit independent samples concurrently, each with its own sparse
+PSF.</li>
+<li>Estimate alignment and build the common spectral candidate
+graph.</li>
+<li>With spectra fixed, update profiles and backgrounds independently
+across samples; calculate pooled spectral contributions
+concurrently.</li>
+<li>Reduce contributions in sample order and update the shared
+spectra.</li>
+<li>Group compatible occurrences, refreshing only graph edges incident
+to a merged root. Distances and ordering of unaffected proposals are
+retained.</li>
+<li>Accept the complete candidate using the original-channel penalized
+objective and return full spectra, original-grid profiles and integrated
+areas.</li>
+</ol>
+<p><code>ncores</code> is a total logical-CPU budget. With <span class="math inline">W</span> concurrent sample workers, each receives
+<span class="math inline">\lfloor\texttt{ncores}/W\rfloor</span> native
+threads. BLAS runs with one thread during batch fitting and its caller
+setting is restored afterwards. Only the assigned sample and compact
+factors are sent to each worker; the complete observation cache is never
+serialized to every worker.</p>
+<p>The resident observation cache uses <span class="math inline">8q\sum_s n_s</span> bytes. For 1,000 samples with
+10,000 scans and 32 groups, this is 2.56 GB, plus factors and
+active-worker buffers. Original observations and factor checkpoints are
+disk backed. Sparse sample-specific PSFs are modest in size: a measured
+14,946-by-14,946 design with 1.47 million stored nonzero values occupied
+16.9 MiB.</p>
+</div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>

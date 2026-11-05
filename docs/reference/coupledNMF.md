@@ -3,7 +3,8 @@
 Align related multichannel samples and estimate common spectra with
 sample-specific nonnegative areas, log-concave profiles and backgrounds.
 Observations remain on their original time grids. Samples are read from
-a disk-backed store one at a time during fitting.
+a disk-backed store in bounded blocks during fitting. Independent
+samples are processed concurrently within a single logical-core budget.
 
 ## Usage
 
@@ -105,8 +106,13 @@ plot(
 
 - precluster:
 
-  Maximum outcome groups for independent initialization. Coupled
-  refinement and selection always use all original channels.
+  Maximum common outcome groups, default `32L`; `NULL` or `FALSE`
+  disables aggregation. A saved
+  [`channel_groups()`](https://tomwenseleers.github.io/L0nmf/reference/channel_groups.md)
+  map can be reused. The default map is learned from samples summed in
+  common time bins. Matching and Poisson/quasipoisson profile proposals
+  use this common representation; likelihood checks and spectral
+  estimation retain all original channels.
 
 - dispersion, theta:
 
@@ -126,17 +132,22 @@ plot(
 
 - ncores:
 
-  Number of native OpenMP threads; defaults to physical cores.
+  Total logical-CPU budget, defaulting to physical cores. Up to
+  `min(length(samples), ncores)` sample workers are used. The remaining
+  budget determines native threads per worker; BLAS uses one thread
+  during fitting. Caller BLAS settings are restored afterwards.
 
 - control:
 
   Named controls: `cycles=10L`, `initial_cycles=5L`, `rounds=3L`,
   `q=64L`, `rt_tolerance=NULL`, `alignment_window=NULL`, `ridge=TRUE`,
-  `censor=0.5`, `correlation="none"`, and `initial=list()` for controls
-  passed to independent
+  `censor=0.5`, `correlation="none"`, `workers=NULL`, `cache=TRUE`, and
+  `initial=list()` for controls passed to independent
   [`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
   fits. Default matching windows are derived from the supplied or
-  estimated narrow-peak widths.
+  estimated narrow-peak widths. `workers` limits concurrent samples
+  within `ncores`. `cache=TRUE` holds only aggregated observations in
+  RAM during fitting; `FALSE` reloads those blocks from disk.
 
 - verbose:
 
@@ -179,7 +190,8 @@ plot(
 
 A `coupledNMF` object with consensus spectra `P`, integrated `areas`,
 occurrence table `compounds`, monotone `alignment`, disk-backed factor
-`paths` and sample `store`, objective history, likelihood and timings.
+`paths` and sample `store`, objective history, likelihood and timings,
+the reusable `channel_groups` map and `parallel` thread allocation.
 `fitted(object, sample=...)` reconstructs one sample on its original
 grid.
 
@@ -216,6 +228,18 @@ described in
 [`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md).
 Noise scales are held fixed when comparing groupings. Undetected
 sample-compound combinations have `NA` area and are not filled in.
+
+Each sample retains its own sparse PSF design and original scan grid.
+The shared cache contains scans-by-aggregate matrices, while
+original-channel observations remain on disk. Shared spectral and
+background updates read at most 32 original channels per sample block.
+Poisson/quasipoisson profile proposals use sums of channels and are
+accepted against the original-channel likelihood in the affected time
+window. Other noise families use their original-channel profile
+objective. Parallel sample updates hold spectra fixed, and spectral
+contributions are reduced in acquisition order. Only the assigned sample
+and compact factors cross worker sockets. The cache and live worker
+connections are released before returning the fitted object.
 
 ## See also
 

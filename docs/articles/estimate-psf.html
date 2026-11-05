@@ -184,6 +184,25 @@ coordinate is recognized automatically:</p>
 <span><span class="va">psf</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimate_psf.html">estimate_psf</a></span><span class="op">(</span><span class="va">GCMS_data2</span>, nwindows<span class="op">=</span><span class="fl">3L</span>, method<span class="op">=</span><span class="st">"standard"</span><span class="op">)</span></span>
 <span><span class="va">psf</span><span class="op">$</span><span class="va">method</span></span>
 <span><span class="va">psf</span><span class="op">$</span><span class="va">aggregation</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="reuse-one-standard-across-samples">Reuse one standard across samples<a class="anchor" aria-label="anchor" href="#reuse-one-standard-across-samples"></a>
+</h2>
+<p>Fit the total-ion chromatogram of an isolated-peak standard once,
+after excluding the solvent region. Pass times explicitly for an unnamed
+vector. Then use its calibration to build a sparse convolution design on
+each sample’s scan grid:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">keep</span> <span class="op">&lt;-</span> <span class="va">standard_time</span> <span class="op">&gt;=</span> <span class="fl">3</span>  <span class="co"># minutes; choose the end of the solvent interval</span></span>
+<span><span class="va">calibration</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimate_psf.html">estimate_psf</a></span><span class="op">(</span><span class="va">standard_tic</span><span class="op">[</span><span class="va">keep</span><span class="op">]</span>, time<span class="op">=</span><span class="va">standard_time</span><span class="op">[</span><span class="va">keep</span><span class="op">]</span>,</span>
+<span>  method<span class="op">=</span><span class="st">"standard"</span>, nwindows<span class="op">=</span><span class="fl">10L</span><span class="op">)</span></span>
+<span><span class="va">psf</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimate_psf.html">estimate_psf</a></span><span class="op">(</span><span class="va">sample_signal</span>, time<span class="op">=</span><span class="va">sample_time</span>, standard<span class="op">=</span><span class="va">calibration</span>,</span>
+<span>  method<span class="op">=</span><span class="st">"standard"</span>, nwindows<span class="op">=</span><span class="fl">10L</span><span class="op">)</span></span>
+<span><span class="va">X</span> <span class="op">&lt;-</span> <span class="va">psf</span><span class="op">$</span><span class="va">X</span></span></code></pre></div>
+<p>The standard’s local peak shapes are reused. Each sample gets a
+design on its own time grid and can have a different number of scans.
+Use <code>method="auto"</code> if the sample also needs blind refinement
+from those starting shapes.</p>
 <p>Gaussian, Poisson, quasipoisson, NB2, NB1 and the two Gamma
 parameterizations are supported with identity links. Noise scales are
 shared across channels. Aggregation diagnostics record the variance

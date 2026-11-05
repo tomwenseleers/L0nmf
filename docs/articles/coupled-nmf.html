@@ -95,9 +95,10 @@ only some samples.</p>
 <p>Each sample description contains <code>y</code>, <code>time</code>,
 and either a candidate PSF matrix <code>X</code> or an independent
 <code><a href="../reference/splogconNMF.html">splogconNMF()</a></code> fit. Matrices can be supplied through RDS
-paths. Observations, factors, weights and offsets are stored per sample,
-and the optimization loop reads one sample at a time. Common spectra and
-compact alignment summaries are shared in memory.</p>
+paths. Observations, factors, weights and offsets are stored per sample.
+Workers process independent samples concurrently and read original ions
+in blocks during coupled refinement. Common spectra and compact
+alignment summaries are shared in memory.</p>
 <div class="section level2">
 <h2 id="three-samples-shared-spectra-and-different-peak-shapes">Three samples, shared spectra and different peak shapes<a class="anchor" aria-label="anchor" href="#three-samples-shared-spectra-and-different-peak-shapes"></a>
 </h2>
@@ -183,6 +184,30 @@ occurrences</div>
 </div>
 </div>
 <div class="section level2">
+<h2 id="sixteen-samples-with-parallel-fitting">Sixteen samples with parallel fitting<a class="anchor" aria-label="anchor" href="#sixteen-samples-with-parallel-fitting"></a>
+</h2>
+<p>A 16-sample simulation has 1,200 scans and 258 ion channels per
+sample, 48 shared compounds and 380 true occurrences. Peak widths and
+tails vary with concentration and retention time. A common 32-group map
+accelerates initialization and matching, and each spectrum is estimated
+on all 258 ions.</p>
+<p>The complete CDF-to-results workflow via <a href="https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#sixteen-simulated-chromatograms" class="external-link">GCMSprime</a>
+took <strong>65.05 s with 16 single-threaded sample workers</strong> on
+an Intel Core i9-11950H (8 physical and 16 logical cores), compared with
+<strong>75.97 s</strong> with eight workers and <strong>298.94
+s</strong> with one. All core budgets recovered the same 48 compounds
+and 380 occurrences (F1 = 1, MCC = 1), with median spectral cosine
+0.999994 and joint GIC 9,832,385.06.</p>
+<div class="float">
+<img src="figures/samples16-performance.png" alt="Elapsed time by stage and agreement between true and recovered spectra"><div class="figcaption">Elapsed time by stage and agreement between true
+and recovered spectra</div>
+</div>
+<div class="float">
+<img src="figures/samples16-areas.png" alt="Recovered areas and absent occurrences across all sixteen samples"><div class="figcaption">Recovered areas and absent occurrences across
+all sixteen samples</div>
+</div>
+</div>
+<div class="section level2">
 <h2 id="original-scan-grids-shared-spectra-and-missing-compounds">Original scan grids, shared spectra and missing compounds<a class="anchor" aria-label="anchor" href="#original-scan-grids-shared-spectra-and-missing-compounds"></a>
 </h2>
 <p>Each sample retains its measured time grid, background and noise
@@ -223,11 +248,16 @@ each sample description. It multiplies the mean; the identity-link
 preserves the units of supplied data. Alignment’s change in bin widths
 preserves integrated occurrence areas.</p>
 <p>Observation matrices and factor checkpoints are stored per sample on
-disk. Only one sample’s observations are needed for a local update.
-Shared spectra, areas and compact matching summaries stay in memory.
-Supply <code>y</code> or independent <code>fit</code> components as RDS
-paths for file-backed input; use a new <code>path=</code> for each fit’s
-persistent store. Keep that store alongside saved fitted objects.</p>
+disk. Each worker uses its assigned sample’s factors and observations.
+Shared spectra, areas and compact matching summaries stay in memory. By
+default only the common aggregate observations are cached across
+samples, using 2.56 GB for 1,000 samples with 10,000 scans and 32
+groups. Set <code>control=list(cache=FALSE)</code> to read those data
+from disk. <code>ncores</code> sets the total logical-core budget and
+<code>control$workers</code> can cap concurrency. Supply <code>y</code>
+or independent <code>fit</code> components as RDS paths for file-backed
+input; use a new <code>path=</code> for each fit’s persistent store.
+Keep that store alongside saved fitted objects.</p>
 <p>The native kernel pools spectral scores over sparse profile supports
 and uses OpenMP over channels. On 14,949 scans, 518 channels and 325
 profiles, one pooled score pass took 0.19 s; the <a href="algorithm.html#coupled-algorithm">implementation details</a>

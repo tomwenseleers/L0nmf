@@ -153,41 +153,41 @@ ORCID: <a href="https://orcid.org/0000-0002-1434-861X" class="external-link">000
 <span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"gsignal"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://codeberg.org/jaganmn/Matrix" class="external-link">Matrix</a></span><span class="op">)</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/gjmvanboxtel/gsignal" class="external-link">gsignal</a></span><span class="op">)</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="co">### ---- synthetic spike train ----------------------------------------</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span>  <span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">100</span></span>
 <span>  <span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
 <span>  <span class="va">a</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">20</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">rpois</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">10</span><span class="op">)</span>      <span class="co"># random spikes</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="co">### ---- bi-Gaussian PSF via kernel() ---------------------------------</span></span>
 <span>  <span class="va">L</span> <span class="op">&lt;-</span> <span class="fl">31</span></span>
 <span>  <span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="convkernel.html">convkernel</a></span><span class="op">(</span><span class="st">"bigaussian"</span>, <span class="va">L</span>,</span>
 <span>                  params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma1 <span class="op">=</span> <span class="fl">1</span>, sigma2 <span class="op">=</span> <span class="fl">4</span><span class="op">)</span><span class="op">)</span>  <span class="co"># default p = 0.5</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">g</span>, type <span class="op">=</span> <span class="st">"l"</span>, main <span class="op">=</span> <span class="st">"Bi-Gaussian PSF"</span>, ylab <span class="op">=</span> <span class="st">"density"</span><span class="op">)</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="co">### ---------- 1.1 FULL convolution -----------------------------------</span></span>
 <span>  <span class="va">y_ref_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/gsignal/man/conv.html" class="external-link">conv</a></span><span class="op">(</span><span class="va">a</span>, <span class="va">g</span>, shape <span class="op">=</span> <span class="st">"full"</span><span class="op">)</span><span class="op">)</span>        <span class="co"># reference</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="va">A_full</span> <span class="op">&lt;-</span> <span class="fu">convmatrix</span><span class="op">(</span><span class="va">g</span>, <span class="va">n</span>, shape <span class="op">=</span> <span class="st">"full"</span><span class="op">)</span>                 <span class="co"># sparse full conv matrix</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/all.equal-methods.html" class="external-link">all.equal</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">A_full</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/pkg/gsignal/man/convmtx.html" class="external-link">convmtx</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">n</span><span class="op">)</span>, tol <span class="op">=</span> <span class="fl">1e-12</span><span class="op">)</span>   <span class="co"># matches convmtx</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="va">y_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">A_full</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">a</span><span class="op">)</span>                          <span class="co"># A  %*%  a</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="op">(</span><span class="va">n</span> <span class="op">+</span> <span class="va">L</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span>, <span class="va">y_ref_full</span>, type <span class="op">=</span> <span class="st">"l"</span>,</span>
 <span>       main <span class="op">=</span> <span class="st">"FULL convolution"</span>, xlab <span class="op">=</span> <span class="st">"time index"</span>, ylab <span class="op">=</span> <span class="st">"signal"</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="op">(</span><span class="va">n</span> <span class="op">+</span> <span class="va">L</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span>, <span class="va">y_full</span>, col <span class="op">=</span> <span class="fl">2</span>, lty <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>             <span class="co"># identical</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="va">centre_shift</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">L</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span> <span class="op">/</span> <span class="fl">2</span> <span class="op">-</span> <span class="fl">1</span>                            <span class="co"># PSF peak offset</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">n</span><span class="op">)</span> <span class="op">+</span> <span class="va">centre_shift</span> <span class="op">-</span> <span class="fl">1</span>, <span class="va">a</span>, type <span class="op">=</span> <span class="st">"h"</span>, col <span class="op">=</span> <span class="fl">4</span><span class="op">)</span>    <span class="co"># spike locations</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/all.equal-methods.html" class="external-link">all.equal</a></span><span class="op">(</span><span class="va">y_full</span>, <span class="va">y_ref_full</span>, tol <span class="op">=</span> <span class="fl">1e-12</span><span class="op">)</span>                 <span class="co"># matches conv</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="co">### ---------- 1.2 SAME-size convolution ------------------------------</span></span>
 <span>  <span class="va">y_ref_same</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/gsignal/man/conv.html" class="external-link">conv</a></span><span class="op">(</span><span class="va">a</span>, <span class="va">g</span>, shape <span class="op">=</span> <span class="st">"same"</span><span class="op">)</span><span class="op">)</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="va">A_same</span> <span class="op">&lt;-</span> <span class="fu">convmatrix</span><span class="op">(</span><span class="va">g</span>, <span class="va">n</span>, shape <span class="op">=</span> <span class="st">"same"</span><span class="op">)</span>                 <span class="co"># sparse conv matrix</span></span>
 <span>  <span class="va">y_same</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">A_same</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">a</span><span class="op">)</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">n</span>, <span class="va">y_ref_same</span>, type <span class="op">=</span> <span class="st">"l"</span>,</span>
 <span>       main <span class="op">=</span> <span class="st">"SAME-length convolution"</span>, xlab <span class="op">=</span> <span class="st">"time index"</span>, ylab <span class="op">=</span> <span class="st">"signal"</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">n</span>, <span class="va">y_same</span>, col <span class="op">=</span> <span class="fl">2</span>, lty <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>                       <span class="co"># identical</span></span>
@@ -230,3 +230,4 @@ ORCID: <a href="https://orcid.org/0000-0002-1434-861X" class="external-link">000
 
 
   </body></html>
+

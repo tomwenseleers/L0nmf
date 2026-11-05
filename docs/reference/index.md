@@ -48,6 +48,9 @@
   : Coupled sparse log-concave factorization of multiple samples
 - [`sampleNMF()`](https://tomwenseleers.github.io/L0nmf/reference/sampleNMF.md)
   : Extract one sample's factorization from a coupled fit
+- [`channel_groups()`](https://tomwenseleers.github.io/L0nmf/reference/channel_groups.md)
+  [`aggregate_channels()`](https://tomwenseleers.github.io/L0nmf/reference/channel_groups.md)
+  : Learn and reuse a common channel aggregation
 
 ## Noise calibration and profile constraints
 

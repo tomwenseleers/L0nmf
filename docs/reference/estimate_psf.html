@@ -98,7 +98,9 @@ sample must use the same time units.</p></dd>
 <dt id="arg-standard">standard<a class="anchor" aria-label="anchor" href="#arg-standard"></a></dt>
 <dd><p>Optional nonoverlapping calibration signal, with its own
 retention-time names or <code>list(Y=..., time=...)</code>. Defaults to
-<code>attr(y, "alkanes_TIC")</code>, supplied with <a href="GCMS_data1.html">GCMS_data1</a> and <a href="GCMS_data2.html">GCMS_data2</a>.</p></dd>
+<code>attr(y, "alkanes_TIC")</code>, supplied with <a href="GCMS_data1.html">GCMS_data1</a> and <a href="GCMS_data2.html">GCMS_data2</a>.
+A result from <code>estimate_psf(method="standard")</code> reuses its fitted calibration
+directly, constructing a sparse design on the requested sample grid.</p></dd>
 
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
@@ -170,7 +172,12 @@ The result can be passed directly as <code>X=psf$X</code> to <code><a href="splo
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p><strong>Standard calibration.</strong> A lower-quantile spline estimates background.
+    <p><strong>Reuse a standard calibration.</strong> Fit a solvent-trimmed ladder TIC once
+with <code>method="standard"</code>, then pass that result as <code>standard</code> for additional
+samples. Its local peak kernels and their retention times are reused;
+the sparse design is rebuilt for each sample's own grid. The calibration
+retains the noise model used to estimate it.</p>
+<p><strong>Standard calibration.</strong> A lower-quantile spline estimates background.
 Isolated calibration peaks are retained using signal-to-noise and profile
 geometry. Each peak is fitted on its original observation scale:
 $$\mu_{ij}=b_{ij}+o_{ij}+h_i s_j,\qquad h_i&gt;0,\quad
@@ -223,7 +230,7 @@ Deconvolution of pulse trains with the L0 penalty.
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><a href="https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html" class="external-link">GCMSdeco()</a>, <code><a href="L0glm_blind_deco.html">L0glm_blind_deco()</a></code>, <code><a href="estimate_psf_from_std.html">estimate_psf_from_std()</a></code>,
-<code><a href="splogconNMF.html">splogconNMF()</a></code>, <code><a href="https://tomwenseleers.github.io/L0glm/reference/glm_cluster.html" class="external-link">glm_cluster()</a></code>, <code><a href="https://tomwenseleers.github.io/L0glm/reference/convkernel.html" class="external-link">convkernel()</a></code>, <code><a href="https://tomwenseleers.github.io/L0glm/reference/convmatrix.html" class="external-link">convmatrix()</a></code></p></div>
+<code><a href="splogconNMF.html">splogconNMF()</a></code>, <code><a href="https://tomwenseleers.github.io/L0glm/reference/glm_cluster.html" class="external-link">glm_cluster()</a></code>, <code><a href="convkernel.html">convkernel()</a></code>, <code><a href="convmatrix.html">convmatrix()</a></code></p></div>
     </div>
 
     <div class="section level2">

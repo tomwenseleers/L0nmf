@@ -125,6 +125,28 @@ psf$method
 psf$aggregation
 ```
 
+## Reuse one standard across samples
+
+Fit the total-ion chromatogram of an isolated-peak standard once, after
+excluding the solvent region. Pass times explicitly for an unnamed
+vector. Then use its calibration to build a sparse convolution design on
+each sample’s scan grid:
+
+``` r
+
+keep <- standard_time >= 3  # minutes; choose the end of the solvent interval
+calibration <- estimate_psf(standard_tic[keep], time=standard_time[keep],
+  method="standard", nwindows=10L)
+psf <- estimate_psf(sample_signal, time=sample_time, standard=calibration,
+  method="standard", nwindows=10L)
+X <- psf$X
+```
+
+The standard’s local peak shapes are reused. Each sample gets a design
+on its own time grid and can have a different number of scans. Use
+`method="auto"` if the sample also needs blind refinement from those
+starting shapes.
+
 Gaussian, Poisson, quasipoisson, NB2, NB1 and the two Gamma
 parameterizations are supported with identity links. Noise scales are
 shared across channels. Aggregation diagnostics record the variance

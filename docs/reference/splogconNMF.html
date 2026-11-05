@@ -145,7 +145,7 @@ and shark-fin peaks while retaining all original outcome channels.</p>
 
 <dt id="arg-x">X<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
 <dd><p>Nonnegative scans-by-candidates matrix, typically shifted copies of
-a point-spread function from <code><a href="https://tomwenseleers.github.io/L0glm/reference/convmatrix.html" class="external-link">convmatrix()</a></code> or <code><a href="L0glm_blind_deco.html">L0glm_blind_deco()</a></code>. Columns
+a point-spread function from <code><a href="convmatrix.html">convmatrix()</a></code> or <code><a href="L0glm_blind_deco.html">L0glm_blind_deco()</a></code>. Columns
 must have contiguous log-concave positive support. Dense and sparse inputs
 are accepted and stored sparsely; columns are normalized to unit sum.</p></dd>
 
@@ -186,7 +186,8 @@ updates. A fixed shape in the supplied NB family is respected.</p></dd>
 
 
 <dt id="arg-precluster">precluster<a class="anchor" aria-label="anchor" href="#arg-precluster"></a></dt>
-<dd><p><code>NULL</code> or <code>FALSE</code> uses every channel throughout. <code>TRUE</code>
+<dd><p>A saved <code><a href="channel_groups.html">channel_groups()</a></code> map shares the same aggregation
+across analyses. <code>NULL</code> or <code>FALSE</code> uses every channel throughout. <code>TRUE</code>
 uses up to 32 groups; an integer supplies another maximum. Size-adjusted
 Poisson clustering, aggregation, selection and fusion operate in that
 reduced space, followed by refinement on all original channels.</p></dd>

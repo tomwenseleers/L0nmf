@@ -43,11 +43,25 @@
 - [`coupledNMF()`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
   shares spectra across samples with sample-specific profiles, areas and
   backgrounds, allowing compounds to be absent from individual samples.
+
 - Monotone alignment, area-ordered profile compatibility and
   exposure-aware likelihoods retain each sample’s original irregular
   scan grid.
+
 - Disk-backed observations, batched native spectral scores, shared row
   inputs, sparse profiles and OpenMP support efficient fitting.
+
+- A total logical-core budget schedules independent fits and coupled
+  sample updates concurrently, with deterministic spectral reductions
+  and restored BLAS settings. Native block reads retain bounded
+  original-channel buffers.
+
+- Common saved channel maps, a compact aggregate cache and full-channel
+  acceptance checks support reusable, memory-efficient multisample
+  analyses.
+
+- Incremental fusion candidates retain the same greedy order while
+  refreshing only edges affected by a merge.
 
 ### Simulation and interpretation
 

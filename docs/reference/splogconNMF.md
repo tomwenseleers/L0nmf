@@ -99,7 +99,7 @@ print(x, ...)
 
   Nonnegative scans-by-candidates matrix, typically shifted copies of a
   point-spread function from
-  [`convmatrix()`](https://tomwenseleers.github.io/L0glm/reference/convmatrix.html)
+  [`convmatrix()`](https://tomwenseleers.github.io/L0nmf/reference/convmatrix.md)
   or
   [`L0glm_blind_deco()`](https://tomwenseleers.github.io/L0nmf/reference/L0glm_blind_deco.md).
   Columns must have contiguous log-concave positive support. Dense and
@@ -151,10 +151,13 @@ print(x, ...)
 
 - precluster:
 
-  `NULL` or `FALSE` uses every channel throughout. `TRUE` uses up to 32
-  groups; an integer supplies another maximum. Size-adjusted Poisson
-  clustering, aggregation, selection and fusion operate in that reduced
-  space, followed by refinement on all original channels.
+  A saved
+  [`channel_groups()`](https://tomwenseleers.github.io/L0nmf/reference/channel_groups.md)
+  map shares the same aggregation across analyses. `NULL` or `FALSE`
+  uses every channel throughout. `TRUE` uses up to 32 groups; an integer
+  supplies another maximum. Size-adjusted Poisson clustering,
+  aggregation, selection and fusion operate in that reduced space,
+  followed by refinement on all original channels.
 
 - weights:
 

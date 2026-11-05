@@ -36,7 +36,9 @@ sample must use the same time units.}
 
 \item{standard}{Optional nonoverlapping calibration signal, with its own
 retention-time names or \code{list(Y=..., time=...)}. Defaults to
-\code{attr(y, "alkanes_TIC")}, supplied with \link{GCMS_data1} and \link{GCMS_data2}.}
+\code{attr(y, "alkanes_TIC")}, supplied with \link{GCMS_data1} and \link{GCMS_data2}.
+A result from \code{estimate_psf(method="standard")} reuses its fitted calibration
+directly, constructing a sparse design on the requested sample grid.}
 
 \item{method}{\code{"auto"} calibrates from an available standard and then refines
 on the sample; without a standard it uses blind sample estimation.
@@ -95,6 +97,12 @@ retention-time names and the bundled data's \code{alkanes_TIC} attributes are
 recognised automatically.
 }
 \details{
+\strong{Reuse a standard calibration.} Fit a solvent-trimmed ladder TIC once
+with \code{method="standard"}, then pass that result as \code{standard} for additional
+samples. Its local peak kernels and their retention times are reused;
+the sparse design is rebuilt for each sample's own grid. The calibration
+retains the noise model used to estimate it.
+
 \strong{Standard calibration.} A lower-quantile spline estimates background.
 Isolated calibration peaks are retained using signal-to-noise and profile
 geometry. Each peak is fitted on its original observation scale:

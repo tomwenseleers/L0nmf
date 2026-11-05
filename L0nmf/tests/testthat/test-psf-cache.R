@@ -1,0 +1,23 @@
+test_that("standard calibrations can be reused on native sample grids", {
+  set.seed(44);time<-seq(0,20,length.out=500)
+  mean<-2+3000*dnorm(time,4,.15)+4000*dnorm(time,11,.2)+5000*dnorm(time,17,.25)
+  tic<-as.numeric(rpois(length(time),mean))
+  calibration<-estimate_psf(tic,time=time,method="standard",nwindows=3L,ncores=1L)
+  expect_equal(calibration$calibration$peak_timepoints,c(4,11,17),tolerance=.12)
+  expect_true(max(abs(calibration$psf_offsets))<2)
+  explicit<-estimate_psf(tic,time=time,standard=list(Y=matrix(tic,ncol=1),time=time),
+    method="standard",nwindows=3L,ncores=1L)
+  expect_equal(explicit$X,calibration$X,tolerance=0)
+  reused<-estimate_psf(tic,time=time,standard=calibration,method="standard",nwindows=3L,ncores=1L)
+  expect_equal(reused$X,calibration$X,tolerance=0)
+  expect_equal(reused$psf_kernels,calibration$psf_kernels,tolerance=0)
+  calibration$X<-calibration$X_spikes<-NULL
+  other_time<-seq(0,20,length.out=620)
+  other<-estimate_psf(rep(0,620),time=other_time,standard=calibration,
+    method="standard",nwindows=5L,ncores=1L)
+  expect_equal(dim(other$X),c(620L,620L))
+  expect_equal(as.numeric(colSums(other$X)),rep(1,620),tolerance=1e-12)
+  expect_equal(other$method,"standard")
+  expect_equal(other$iterations,0L)
+  expect_equal(other$spec,calibration$spec)
+})

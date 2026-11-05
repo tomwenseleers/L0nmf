@@ -17,6 +17,8 @@
 #' @param standard Optional nonoverlapping calibration signal, with its own
 #'   retention-time names or `list(Y=..., time=...)`. Defaults to
 #'   `attr(y, "alkanes_TIC")`, supplied with [GCMS_data1] and [GCMS_data2].
+#'   A result from `estimate_psf(method="standard")` reuses its fitted calibration
+#'   directly, constructing a sparse design on the requested sample grid.
 #' @param method `"auto"` calibrates from an available standard and then refines
 #'   on the sample; without a standard it uses blind sample estimation.
 #'   `"standard"` uses calibration alone, treating `y` as the standard when
@@ -52,6 +54,12 @@
 #' @param verbose Print the estimation mode, aggregation and fitted PSF width.
 #'
 #' @details
+#' **Reuse a standard calibration.** Fit a solvent-trimmed ladder TIC once
+#' with `method="standard"`, then pass that result as `standard` for additional
+#' samples. Its local peak kernels and their retention times are reused;
+#' the sparse design is rebuilt for each sample's own grid. The calibration
+#' retains the noise model used to estimate it.
+#'
 #' **Standard calibration.** A lower-quantile spline estimates background.
 #' Isolated calibration peaks are retained using signal-to-noise and profile
 #' geometry. Each peak is fitted on its original observation scale:
@@ -155,7 +163,15 @@ estimate_psf <- function(y, family=quasipoisson("identity"), time=NULL,
     return(refined)
   }
   if(method=="auto") method<-"blind"
-  if(method=="standard"&&is.null(standard)) standard<-y
+  if(method=="standard"&&is.null(standard)) standard<-sample
+  if(method=="standard"&&is.list(standard)&&!is.null(standard$calibration$psf_kernels)) {
+    calibration<-standard$calibration
+    grid<-.psf_calibration_grid(calibration,time,nwindows)
+    return(.psf_result(time,grid$kernels,calibration$psf_offsets,grid$points,ncores,
+      "standard",calibration,NULL,standard$spec,standard$aggregation,
+      if(is.null(standard$aggregation$original_channels))1L else standard$aggregation$original_channels,
+      control,begun,verbose))
+  }
   input<-if(method=="standard") .psf_input(standard) else sample
   spec<-slcn_family(family,dispersion,theta)
   W<-slcn_weights(weights,nrow(input$Y),ncol(input$Y))
@@ -176,13 +192,8 @@ estimate_psf <- function(y, family=quasipoisson("identity"), time=NULL,
   dt<-median(diff(time))
   if(method=="standard") {
     calibration<-.psf_standard(work,input$time,W,O,local_spec,dt,control,ncores)
-    centres<-.5+(seq_len(nwindows)-.5)*n/nwindows
-    points<-approx(seq_len(n),time,xout=centres,rule=2)$y
-    logs<-t(apply(calibration$psf_kernels,1L,.psf_log_tail))
-    kernels<-t(vapply(points,function(t) {
-      z<-.psf_interp_log_kernel(t,calibration$peak_timepoints,logs,TRUE)
-      h<-exp(z-max(z));h/sum(h)
-    },numeric(ncol(logs))))
+    grid<-.psf_calibration_grid(calibration,time,nwindows)
+    points<-grid$points;kernels<-grid$kernels
     offsets<-calibration$psf_offsets;windows<-NULL
   } else {
     L<-control$L
@@ -233,6 +244,28 @@ estimate_psf <- function(y, family=quasipoisson("identity"), time=NULL,
     }
     offsets<-(seq_len(L)-(L+1L)%/%2L)*dt;calibration<-NULL
   }
+  .psf_result(time,kernels,offsets,points,ncores,method,calibration,windows,spec,
+    aggregated,ncol(work),control,begun,verbose)
+}
+
+.psf_calibration_grid<-function(calibration,time,nwindows) {
+  if(!is.matrix(calibration$psf_kernels)||!nrow(calibration$psf_kernels)||
+      length(calibration$peak_timepoints)!=nrow(calibration$psf_kernels)||
+      length(calibration$psf_offsets)!=ncol(calibration$psf_kernels))
+    stop("Supply a standard calibration returned by estimate_psf().",call.=FALSE)
+  n<-length(time);centres<-.5+(seq_len(nwindows)-.5)*n/nwindows
+  points<-approx(seq_len(n),time,xout=centres,rule=2)$y
+  logs<-t(apply(calibration$psf_kernels,1L,.psf_log_tail))
+  kernels<-t(vapply(points,function(t) {
+    z<-.psf_interp_log_kernel(t,calibration$peak_timepoints,logs,TRUE)
+    h<-exp(z-max(z));h/sum(h)
+  },numeric(ncol(logs))))
+  list(points=points,kernels=kernels)
+}
+
+.psf_result<-function(time,kernels,offsets,points,ncores,method,calibration,windows,
+                     spec,aggregated,channels,control,begun,verbose) {
+  n<-length(time);nwindows<-nrow(kernels)
   X<-if(nwindows==1L)convmatrix(as.numeric(kernels),n) else
     .psf_build_sparse_matrix(time,points,offsets,kernels,log_floor=0,
       drop_tol=1e-12,normalize=TRUE,smooth=TRUE)
@@ -241,7 +274,7 @@ estimate_psf <- function(y, family=quasipoisson("identity"), time=NULL,
     h<-X[,j];sum(h>=max(h)/2)
   },0L)
   if(method=="blind"&&control$maxiter==0L)method<-"fixed"
-  if(verbose) cat("PSF:",method,",",nwindows,"anchor(s),",ncol(work),
+  if(verbose) cat("PSF:",method,",",nwindows,"anchor(s),",channels,
     "calibration channel(s); median FWHM",median(width),"scans\n")
   list(X=X,X_spikes=X,g_hat=if(nwindows==1L)as.numeric(kernels) else kernels,
     psf_kernels=kernels,psf_offsets=offsets,psf_timepoints=points,time=time,

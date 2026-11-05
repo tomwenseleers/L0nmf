@@ -7,8 +7,8 @@ cpl_coupled_ll <- function(f,Y,mu) {
   slcn_loglik(Y,mu,f$kind,f$phi,f$theta,as.numeric(f$weights),as.integer(f$ncores),f$censor)
 }
 cpl_coupled_score <- function(state,samples=seq_along(state$paths),penalty=TRUE) {
-  ll<-0
-  for(s in samples) {f<-readRDS(state$paths[s]);Y<-cpl_sample_data(state$store,s);ll<-ll+cpl_coupled_ll(f,Y,cpl_coupled_mean(f,state))}
+  values<-cpl_apply(state$runtime,cpl_tasks(state,samples,"score"),cpl_sample_operation)
+  ll<-0;for(value in values)ll<-ll+value
   -2*ll + if(penalty)state$lambda*((ncol(state$P)-1L)*length(unique(state$map))+state$L+state$nuisance_df) else 0
 }
 cpl_coupled_checkpoint <- function(state,s,f,tag) {
@@ -17,46 +17,19 @@ cpl_coupled_checkpoint <- function(state,s,f,tag) {
   state
 }
 cpl_coupled_profile_pass <- function(state,samples=seq_along(state$paths),roots=NULL,steps=4L,q=32L) {
-  for(s in samples) {
-    f<-readRDS(state$paths[s]);Y<-cpl_sample_data(state$store,s);mu<-cpl_coupled_mean(f,state)
-    ids<-state$map[f$gid];block<-if(is.null(roots))seq_len(ncol(f$H)) else which(ids%in%roots)
-    if(!length(block))next
-    for(k in block[order(f$area[block]*state$scale[ids[block]],decreasing=TRUE)]) {
-      at<-which(f$H[,k]>0);if(length(at)<3L)next
-      h<-as.numeric(f$H[at,k]);sp<-state$P[ids[k],]*f$area[k]*state$scale[ids[k]]
-      W<-cpl_observation_block(f$weights,at)
-      z<-slcn_log_profile(Y[at,,drop=FALSE],mu[at,,drop=FALSE],h,sp,
-        f$kind,f$phi,f$theta,as.numeric(W),length(at),censor=f$censor,
-        maxit=as.integer(steps),q=as.integer(q),nthreads=as.integer(f$ncores),mode=2L,
-        time=f$aligned_time[at],exposure=f$exposure[at])
-      hnew<-z$profile;scale<-sum(hnew*f$quadrature[at])
-      if(!is.finite(scale)||scale<=0)next
-      nextmu<-mu[at,,drop=FALSE]+(f$exposure[at]*(hnew-h))%o%sp
-      delta<-slcn_loglik(Y[at,,drop=FALSE],nextmu,
-        f$kind,f$phi,f$theta,as.numeric(W),as.integer(f$ncores),f$censor)-
-        slcn_loglik(Y[at,,drop=FALSE],mu[at,,drop=FALSE],f$kind,f$phi,f$theta,as.numeric(W),as.integer(f$ncores),f$censor)
-      if(is.finite(delta)&&delta>= -1e-7) {
-        f$H[at,k]<-hnew/scale;f$area[k]<-f$area[k]*scale;mu[at,]<-nextmu
-      }
-    }
-    state<-cpl_coupled_checkpoint(state,s,f,"profile")
-  }
-  state
+  cpl_parallel_pass(state,samples,"profile",roots,steps=steps,q=q)
 }
 
 cpl_coupled_spectrum_pass <- function(state,samples=seq_along(state$paths),roots=NULL) {
   if(is.null(roots))roots<-sort(unique(state$map))
   if(!length(roots))return(state)
   m<-ncol(state$P);gradient<-information<-matrix(0,length(roots),m)
-  for(s in samples) {
-    f<-readRDS(state$paths[s]);Y<-cpl_sample_data(state$store,s);mu<-cpl_coupled_mean(f,state)
-    ids<-state$map[f$gid]
-    selected<-which(ids%in%roots)
-    if(!length(selected))next
-    z<-slcn_pooled_spectra(Y,mu,as(f$H[,selected,drop=FALSE],"dgCMatrix"),
-      f$exposure,f$area[selected]*state$scale[ids[selected]],f$kind,f$phi,f$theta,
-      as.numeric(f$weights),as.integer(f$ncores),f$censor)
-    j<-match(ids[selected],roots)
+  tasks<-cpl_tasks(state,samples,"gradient",roots)
+  contributions<-cpl_apply(state$runtime,tasks,cpl_sample_operation)
+  for(i in seq_along(samples)) {
+    z<-contributions[[i]];if(is.null(z))next
+    f<-readRDS(state$paths[samples[i]]);ids<-state$map[f$gid]
+    j<-match(ids[tasks[[i]]$selected],roots)
     gradient[j,]<-gradient[j,,drop=FALSE]+z$gradient
     information[j,]<-information[j,,drop=FALSE]+z$information
   }
@@ -73,23 +46,7 @@ cpl_coupled_spectrum_pass <- function(state,samples=seq_along(state$paths),roots
   state
 }
 cpl_coupled_background_pass <- function(state,samples=seq_along(state$paths)) {
-  for(s in samples) {
-    f<-readRDS(state$paths[s]);if(!ncol(f$background))next
-    Y<-cpl_sample_data(state$store,s);mu<-cpl_coupled_mean(f,state)
-    B<-f$background*f$raw_exposure;fixed<-pmax(mu-B%*%f$alpha,0)
-    W<-cpl_weight_matrix(f$weights,nrow(Y))
-    z<-if(f$kind==0L)nuisance_gaussian_cpp(B,Y,fixed,W/f$phi,f$alpha,
-      rep(1L,ncol(B)),as.integer(f$ncores)) else if(f$kind%in%1:2)
-      nuisance_poisson_cpp(B,Y,fixed,W/f$phi,f$alpha,80L,1e-8,as.integer(f$ncores)) else NULL
-    if(is.null(z)) {
-      z<-slcn_spectral(Y,mu,as(Matrix(B,sparse=TRUE),"dgCMatrix"),t(f$alpha),
-        f$kind,f$phi,f$theta,as.numeric(W),nrow(Y),0L,4L,as.integer(f$ncores),20L,1e-8,f$censor)
-      z<-list(coefficients=t(z$S),background=z$mu-fixed)
-    }
-    if(cpl_coupled_ll(f,Y,fixed+z$background)>=cpl_coupled_ll(f,Y,mu)-1e-7)f$alpha<-z$coefficients
-    state<-cpl_coupled_checkpoint(state,s,f,"background")
-  }
-  state
+  cpl_parallel_pass(state,samples,"background")
 }
 cpl_optimize_coupled <- function(state,cycles=4L,samples=seq_along(state$paths),roots=NULL,record=TRUE,
                              q=32L,joint_profiles=FALSE) {
@@ -119,8 +76,9 @@ cpl_coupled_occurrences <- function(state) {
   }
   do.call(rbind,out)
 }
-cpl_coupled_proposals <- function(state,method="cosine",rt_tolerance=state$control$rt_tolerance,occ=NULL) {
+cpl_coupled_proposals <- function(state,method="cosine",rt_tolerance=state$control$rt_tolerance,occ=NULL,spectra=NULL) {
   if(is.null(occ))occ<-cpl_coupled_occurrences(state)
+  if(is.null(spectra))spectra<-if(is.null(state$channel_groups))state$P else aggregate_channels(state$P,state$channel_groups,state$mass)
   groups<-split(seq_len(nrow(occ)),occ$root);ids<-as.integer(names(groups))
   center<-vapply(groups,function(i)stats::weighted.mean(occ$anchor[i],sqrt(occ$area[i])),0)
   proposals<-list()
@@ -130,7 +88,7 @@ cpl_coupled_proposals <- function(state,method="cosine",rt_tolerance=state$contr
     a<-sorted[aa];later<-sorted[which(seq_along(sorted)>aa & center[sorted]<=center[a]+rt_tolerance)]
     for(b in later) {
       if(length(intersect(occ$sample[groups[[a]]],occ$sample[groups[[b]]])))next
-      distance<-as.numeric(cpl_spectral_distance(state$P[ids[a],,drop=FALSE],state$P[ids[b],,drop=FALSE],method))
+      distance<-as.numeric(cpl_spectral_distance(spectra[ids[a],,drop=FALSE],spectra[ids[b],,drop=FALSE],method))
       if(distance > if(method=="cosine") .035 else .18)next
       proposals[[length(proposals)+1L]]<-data.frame(a=ids[a],b=ids[b],distance=distance,rt_gap=abs(center[a]-center[b]))
     }
@@ -150,12 +108,14 @@ cpl_batch_spectral_groups <- function(state,method="cosine",ridge=TRUE) {
   state$scale[]<-1;rejected<-character();audit<-list()
   # Profiles and occurrence amplitudes stay fixed during algebraic grouping.
   occ<-cpl_coupled_occurrences(state)
+  matching<-if(is.null(state$channel_groups))state$P else aggregate_channels(state$P,state$channel_groups,state$mass)
+  proposals<-cpl_coupled_proposals(state,method,occ=occ,spectra=matching)
   repeat {
-    proposals<-cpl_coupled_proposals(state,method,occ=occ)
     if(!nrow(proposals))break
     keys<-paste(proposals$a,proposals$b,sep=";");proposals<-proposals[!keys%in%rejected,,drop=FALSE]
     if(!nrow(proposals))break
-    p<-proposals[1L,];hit<-which(occ$root%in%c(p$a,p$b))
+    p<-proposals[1L,];proposals<-proposals[-1L,,drop=FALSE]
+    hit<-which(occ$root%in%c(p$a,p$b))
     profiles<-times<-list();areas<-numeric(length(hit))
     for(j in seq_along(hit)) {
       v<-occ[hit[j],];f<-readRDS(state$paths[v$sample]);profiles[[j]]<-as.numeric(f$H[,v$local])
@@ -167,8 +127,10 @@ cpl_batch_spectral_groups <- function(state,method="cosine",ridge=TRUE) {
     if(check$pass) {
       weight<-vapply(c(p$a,p$b),function(g)sum(occ$area[occ$root==g]),0)
       state$P[p$a,]<-as.numeric(crossprod(weight,state$P[c(p$a,p$b),,drop=FALSE]))/sum(weight)
+      matching[p$a,]<-as.numeric(crossprod(weight,matching[c(p$a,p$b),,drop=FALSE]))/sum(weight)
       state$map[state$map==p$b]<-p$a
       occ$root[occ$root==p$b]<-p$a
+      proposals<-cpl_refresh_proposals(state,method,occ,matching,proposals,c(p$a,p$b))
     } else rejected<-c(rejected,paste(p$a,p$b,sep=";"))
   }
   state$batch_grouping<-if(length(audit))do.call(rbind,audit)else data.frame()
@@ -176,6 +138,31 @@ cpl_batch_spectral_groups <- function(state,method="cosine",ridge=TRUE) {
   state$history<-rbind(state$history,data.frame(stage="algebraic_grouping",cycle=0L,
     objective=after,delta=after-before,seconds=proc.time()[["elapsed"]]-begun))
   state
+}
+
+# Unchanged roots retain their distances and time gaps. Refresh only edges
+# incident to a merged root, preserving the complete greedy proposal order.
+cpl_refresh_proposals <- function(state,method,occ,spectra,proposals,changed) {
+  if(nrow(proposals))proposals<-proposals[!proposals$a%in%changed&!proposals$b%in%changed,,drop=FALSE]
+  groups<-split(seq_len(nrow(occ)),occ$root);ids<-as.integer(names(groups))
+  center<-vapply(groups,function(i)stats::weighted.mean(occ$anchor[i],sqrt(occ$area[i])),0)
+  extra<-list()
+  for(root in intersect(changed,ids)) {
+    a<-match(root,ids)
+    neighbors<-which(seq_along(ids)!=a &
+      pmax(center,center[a])<=pmin(center,center[a])+state$control$rt_tolerance)
+    for(b in neighbors) {
+      if(length(intersect(occ$sample[groups[[a]]],occ$sample[groups[[b]]])))next
+      pair<-if(center[a]<center[b]||(center[a]==center[b]&&ids[a]<ids[b]))c(a,b)else c(b,a)
+      distance<-as.numeric(cpl_spectral_distance(spectra[ids[pair[1]],,drop=FALSE],spectra[ids[pair[2]],,drop=FALSE],method))
+      if(distance>if(method=="cosine").035 else .18)next
+      extra[[length(extra)+1L]]<-data.frame(a=ids[pair[1]],b=ids[pair[2]],distance=distance,
+        rt_gap=abs(center[a]-center[b]))
+    }
+  }
+  if(length(extra))proposals<-rbind(proposals,do.call(rbind,extra))
+  if(nrow(proposals))proposals<-proposals[order(proposals$distance,proposals$rt_gap,proposals$a,proposals$b),,drop=FALSE]
+  proposals
 }
 
 cpl_compact_coupled <- function(state) {
@@ -334,26 +321,17 @@ cpl_read_matrix_file <- function(path,n,m,channels=NULL,rows=NULL) {
   if(is.null(channels)) channels<-seq_len(m)
   if(is.null(rows)) rows<-seq_len(n)
   if(any(channels<1|channels>m)||any(rows<1|rows>n))stop("Invalid matrix slice.")
-  con<-file(path,"rb");on.exit(close(con))
-  if(identical(as.integer(channels),seq_len(m))&&identical(as.integer(rows),seq_len(n))) {
-    x<-readBin(con,"double",n=as.double(n)*m,size=8L,endian="little")
-    if(length(x)!=as.double(n)*m)stop("Truncated sample matrix.")
-    return(matrix(x,n,m))
-  }
-  Y<-matrix(0,length(rows),length(channels))
-  contiguous<-length(rows)>0L && all(diff(rows)==1L)
-  for(j in seq_along(channels)) {
-    start<-if(contiguous)rows[1L]-1L else 0L
-    count<-if(contiguous)length(rows) else n
-    seek(con,((channels[j]-1)*as.double(n)+start)*8,origin="start")
-    z<-readBin(con,"double",n=count,size=8L,endian="little")
-    if(length(z)!=count)stop("Truncated sample matrix.")
-    Y[,j]<-if(contiguous)z else z[rows]
-  }
-  Y
+  if(!length(channels)||!length(rows))return(matrix(0,length(rows),length(channels)))
+  slcn_read_block(path,as.integer(n),as.integer(channels),as.integer(rows))
 }
 cpl_sample_data <- function(store,s,channels=NULL,rows=NULL,aggregate=FALSE) {
   d<-store$manifest$directory[s];meta<-readRDS(file.path(d,"metadata.rds"))
+  if(aggregate&&!is.null(store$cache)) {
+    out<-store$cache[[s]]
+    if(!is.null(rows))out<-out[rows,,drop=FALSE]
+    if(!is.null(channels))out<-out[,channels,drop=FALSE]
+    return(out)
+  }
   m<-if(aggregate)meta$aggregate_channels else meta$m
   cpl_read_matrix_file(file.path(d,if(aggregate)"aggregate.bin" else "observed.bin"),meta$n,m,channels,rows)
 }

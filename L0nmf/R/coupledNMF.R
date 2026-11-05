@@ -3,7 +3,8 @@
 #' Align related multichannel samples and estimate common spectra with
 #' sample-specific nonnegative areas, log-concave profiles and backgrounds.
 #' Observations remain on their original time grids. Samples are read from a
-#' disk-backed store one at a time during fitting.
+#' disk-backed store in bounded blocks during fitting. Independent samples are
+#' processed concurrently within a single logical-core budget.
 #'
 #' @param samples List of sample descriptions. Each contains `y` (a numeric
 #'   scans-by-channels matrix, or an RDS file containing one), increasing `time`,
@@ -23,20 +24,29 @@
 #'   noise parameters. Background and profile complexity are unpenalized.
 #' @param path New directory for the sample store and fitted factors. Keep this
 #'   directory with the saved R object; its paths are used by `fitted()` and plots.
-#' @param precluster Maximum outcome groups for independent initialization.
-#'   Coupled refinement and selection always use all original channels.
+#' @param precluster Maximum common outcome groups, default `32L`; `NULL` or
+#'   `FALSE` disables aggregation. A saved [channel_groups()] map can be reused.
+#'   The default map is learned from samples summed in common time bins. Matching
+#'   and Poisson/quasipoisson profile proposals use this common representation;
+#'   likelihood checks and spectral estimation retain all original channels.
 #' @param dispersion,theta Shared-across-channels noise parameters, as in
 #'   [splogconNMF()]. They may be supplied per sample in its description.
 #'   Resolved dispersions are frozen; a negative NB2 theta enables bounded
 #'   likelihood-improving shape updates in the coupled iterations.
 #' @param method Spectral distance for anchor matching and grouping.
 #' @param align Estimate monotone sample-level time warps.
-#' @param ncores Number of native OpenMP threads; defaults to physical cores.
+#' @param ncores Total logical-CPU budget, defaulting to physical cores. Up to
+#'   `min(length(samples), ncores)` sample workers are used. The remaining budget
+#'   determines native threads per worker; BLAS uses one thread during fitting.
+#'   Caller BLAS settings are restored afterwards.
 #' @param control Named controls: `cycles=10L`, `initial_cycles=5L`, `rounds=3L`,
 #'   `q=64L`, `rt_tolerance=NULL`, `alignment_window=NULL`, `ridge=TRUE`,
-#'   `censor=0.5`, `correlation="none"`, and `initial=list()` for controls passed
+#'   `censor=0.5`, `correlation="none"`, `workers=NULL`, `cache=TRUE`, and
+#'   `initial=list()` for controls passed
 #'   to independent [splogconNMF()] fits. Default matching windows are derived
-#'   from the supplied or estimated narrow-peak widths.
+#'   from the supplied or estimated narrow-peak widths. `workers` limits concurrent
+#'   samples within `ncores`. `cache=TRUE` holds only aggregated observations in
+#'   RAM during fitting; `FALSE` reloads those blocks from disk.
 #' @param verbose Print initialization and coupled objective progress.
 #' @param object,x A fitted coupled model.
 #' @param sample One sample index or name; `NULL` in `coef()` returns consensus
@@ -77,9 +87,21 @@
 #' [splogconNMF()]. Noise scales are held fixed when comparing groupings.
 #' Undetected sample-compound combinations have `NA` area and are not filled in.
 #'
+#' Each sample retains its own sparse PSF design and original scan grid. The
+#' shared cache contains scans-by-aggregate matrices, while original-channel
+#' observations remain on disk. Shared spectral and background updates read at
+#' most 32 original channels per sample block. Poisson/quasipoisson profile
+#' proposals use sums of channels and are accepted against the original-channel
+#' likelihood in the affected time window. Other noise families use their
+#' original-channel profile objective. Parallel sample updates hold spectra
+#' fixed, and spectral contributions are reduced in acquisition order. Only the
+#' assigned sample and compact factors cross worker sockets. The cache and live
+#' worker connections are released before returning the fitted object.
+#'
 #' @return A `coupledNMF` object with consensus spectra `P`, integrated `areas`,
 #'   occurrence table `compounds`, monotone `alignment`, disk-backed factor
-#'   `paths` and sample `store`, objective history, likelihood and timings.
+#'   `paths` and sample `store`, objective history, likelihood and timings,
+#'   the reusable `channel_groups` map and `parallel` thread allocation.
 #'   `fitted(object, sample=...)` reconstructs one sample on its original grid.
 #' @seealso [splogconNMF()], [estimate_psf()], [simulate_GCMS_samples()]
 #' @examples
@@ -105,10 +127,9 @@ coupledNMF <- function(samples, family=poisson("identity"), lambda="gic",
   begun<-proc.time()[["elapsed"]];method<-match.arg(method)
   if(!is.list(samples)||length(samples)<2L)stop("Supply at least two sample descriptions.")
   if(!is.logical(align)||length(align)!=1L||is.na(align))stop("align must be TRUE or FALSE.")
-  if(is.null(ncores))ncores<-parallel::detectCores(logical=FALSE)
-  if(length(ncores)!=1L||!is.finite(ncores)||ncores<1||ncores!=floor(ncores))stop("Invalid ncores.")
+  ncores<-cpl_core_count(ncores)
   defaults<-list(cycles=10L,initial_cycles=5L,rounds=3L,q=64L,rt_tolerance=NULL,
-    alignment_window=NULL,ridge=TRUE,censor=.5,correlation="none",initial=list())
+    alignment_window=NULL,ridge=TRUE,censor=.5,correlation="none",initial=list(),workers=NULL,cache=TRUE)
   if(!is.list(control)||length(control)&&(is.null(names(control))||anyDuplicated(names(control))||
       length(setdiff(names(control),names(defaults)))))stop("Use named coupled controls.")
   ctl<-utils::modifyList(defaults,control)
@@ -120,8 +141,12 @@ coupledNMF <- function(samples, family=poisson("identity"), lambda="gic",
   if(!is.finite(ctl$censor)||length(ctl$censor)!=1L||ctl$censor<0)stop("Invalid censor.")
   if(dir.exists(path))stop("Use a new, empty store path.")
   dir.create(path,recursive=TRUE);path<-normalizePath(path,winslash="/",mustWork=TRUE)
-  initial<-system.time(store<-cpl_prepare(samples,path,family,dispersion,theta,precluster,ncores,ctl,verbose))[["elapsed"]]
+  if(!is.logical(ctl$cache)||length(ctl$cache)!=1L||is.na(ctl$cache))stop("cache must be TRUE or FALSE.")
+  runtime<-cpl_runtime(ncores,length(samples),ctl$workers)
+  on.exit(cpl_close_runtime(runtime),add=TRUE)
+  initial<-system.time(store<-cpl_prepare(samples,path,family,dispersion,theta,precluster,ncores,ctl,verbose,runtime,lambda))[["elapsed"]]
   state<-cpl_initialize(store,method,align,ncores,lambda,ctl)
+  state$runtime<-runtime;state$parallel<-runtime$budget
   state<-cpl_optimize_coupled(state,cycles=ctl$initial_cycles,q=ctl$q)
   reference<-cpl_coupled_score(state);candidate<-state
   for(round in seq_len(ctl$rounds)) {
@@ -147,6 +172,7 @@ coupledNMF <- function(samples, family=poisson("identity"), lambda="gic",
     meta<-readRDS(file.path(d,"metadata.rds"));meta$initial<-NULL
     saveRDS(meta,file.path(d,"metadata.rds"),compress=FALSE)
   }
+  state$runtime<-NULL;state$store$cache<-NULL
   saveRDS(state,file.path(path,"model.rds"))
   state
 }
@@ -154,16 +180,30 @@ coupledNMF <- function(samples, family=poisson("identity"), lambda="gic",
 cpl_edges <- function(time) {
   d<-diff(time);c(time[1L]-d[1L]/2,(utils::head(time,-1L)+utils::tail(time,-1L))/2,utils::tail(time,1L)+utils::tail(d,1L)/2)
 }
-cpl_prepare <- function(samples,path,family,dispersion,theta,precluster,ncores,ctl,verbose) {
-  entries<-vector("list",length(samples));axis<-NULL
-  for(s in seq_along(samples)) {
-    x<-samples[[s]];if(!is.list(x)||is.null(x$y)||is.null(x$time))stop("Each sample needs y and time.")
+cpl_prepare <- function(samples,path,family,dispersion,theta,precluster,ncores,ctl,verbose,runtime=NULL,lambda="gic") {
+  groups<-cpl_common_groups(samples,precluster,ncores)
+  first<-samples[[1L]]$y;if(is.character(first))first<-readRDS(first)
+  axis<-colnames(first);if(is.null(axis))axis<-as.character(seq_len(ncol(first)))
+  tasks<-lapply(seq_along(samples),function(s)list(x=samples[[s]],s=s,path=path,
+    family=family,dispersion=dispersion,theta=theta,groups=groups,axis=axis,ctl=ctl,
+    threads=if(is.null(runtime))ncores else runtime$budget$threads,verbose=verbose,lambda=lambda))
+  results<-cpl_apply(runtime,tasks,cpl_prepare_sample)
+  manifest<-do.call(rbind,lapply(results,`[[`,"entry"))
+  if(anyDuplicated(manifest$sample_id))stop("Use unique sample_id values.")
+  saveRDS(manifest,file.path(path,"manifest.rds"),compress=FALSE)
+  list(path=path,manifest=manifest,channel_groups=groups,cache=if(ctl$cache)lapply(results,`[[`,"aggregate")else NULL)
+}
+
+cpl_prepare_sample <- function(task) {
+    x<-task$x;s<-task$s;path<-task$path;family<-task$family
+    dispersion<-task$dispersion;theta<-task$theta;ctl<-task$ctl;precluster<-task$groups
+    ncores<-task$threads;verbose<-task$verbose
+    if(!is.list(x)||is.null(x$y)||is.null(x$time))stop("Each sample needs y and time.")
     Y<-if(is.character(x$y))readRDS(x$y)else x$y;Y<-as.matrix(Y);storage.mode(Y)<-"double"
     n<-nrow(Y);m<-ncol(Y);time<-as.numeric(x$time)
     if(n<9L||!m||length(time)!=n||any(!is.finite(time))||any(diff(time)<=0)||any(!is.finite(Y)))stop("Invalid sample data/time.")
     mass<-colnames(Y);if(is.null(mass))mass<-as.character(seq_len(m))
-    if(is.null(axis))axis<-mass
-    if(!identical(mass,axis))stop("Sample channel names and ordering must agree.")
+    if(!identical(mass,task$axis))stop("Sample channel names and ordering must agree.")
     edges<-if(is.null(x$edges))cpl_edges(time)else x$edges
     if(length(edges)!=n+1L||any(!is.finite(edges))||any(diff(edges)<=0)||any(time<=utils::head(edges,-1L)|time>=utils::tail(edges,-1L)))stop("Invalid bin edges.")
     E<-if(is.null(x$exposure))rep(1,n)else rep_len(x$exposure,n)
@@ -183,7 +223,8 @@ cpl_prepare <- function(samples,path,family,dispersion,theta,precluster,ncores,c
     if(is.null(f)) {
       X<-x$X
       if(is.null(X))X<-estimate_psf(pmax(Y,0),time=time,family=family,nwindows=1L,precluster=1L,ncores=ncores)$X
-      f<-splogconNMF(X,Y,family=family,background=B*E,lambda="gic",precluster=precluster,
+      f<-splogconNMF(X,Y,family=family,background=B*E,
+        lambda=if(is.numeric(task$lambda))task$lambda*m else task$lambda,precluster=precluster,
         dispersion=if(is.null(x$dispersion))dispersion else x$dispersion,
         theta=if(is.null(x$theta))theta else x$theta,weights=W,offset=O,
         correlation=ctl$correlation,ncores=ncores,control=ctl$initial,verbose=verbose)
@@ -214,13 +255,15 @@ cpl_prepare <- function(samples,path,family,dispersion,theta,precluster,ncores,c
       initial=initial,weights=if(is.null(wfile))W else wfile,
       offset=if(is.null(ofile))O else ofile,censor=ctl$censor)
     saveRDS(meta,file.path(d,"metadata.rds"),compress=FALSE)
-    entries[[s]]<-data.frame(sample_id=id,directory=d,n=n,m=m,group=meta$group)
+    aggregate<-if(is.null(precluster))NULL else aggregate_channels(Y,precluster,mass)
+    if(!is.null(aggregate)) {
+      meta$aggregate_channels<-ncol(aggregate)
+      cpl_write_matrix_file(aggregate,file.path(d,"aggregate.bin"))
+      saveRDS(meta,file.path(d,"metadata.rds"),compress=FALSE)
+    }
+    entry<-data.frame(sample_id=id,directory=d,n=n,m=m,group=meta$group)
     if(verbose)cat("Initialized",id,":",ncol(f$H),"occurrences\n")
-  }
-  manifest<-do.call(rbind,entries)
-  if(anyDuplicated(manifest$sample_id))stop("Use unique sample_id values.")
-  saveRDS(manifest,file.path(path,"manifest.rds"),compress=FALSE)
-  list(path=path,manifest=manifest)
+    list(entry=entry,aggregate=if(ctl$cache)aggregate else NULL)
 }
 
 cpl_initialize <- function(store,method,align,ncores,lambda,ctl) {
@@ -228,7 +271,7 @@ cpl_initialize <- function(store,method,align,ncores,lambda,ctl) {
   # Retain spectra and anchor summaries globally; load profile matrices singly.
   fits<-lapply(meta,function(m) {
     f<-readRDS(m$initial)
-    list(S=f$S,spec=f$spec,geometry=cpl_profile_anchors(f$H,f$S,m$time,m$small_width))
+    list(S=if(is.null(store$channel_groups))f$S else aggregate_channels(f$S,store$channel_groups,m$mass),spec=f$spec,geometry=cpl_profile_anchors(f$H,f$S,m$time,m$small_width))
   })
   if(is.null(ctl$rt_tolerance))ctl$rt_tolerance<-max(vapply(meta,`[[`,0,"small_width"))
   if(is.null(ctl$alignment_window))ctl$alignment_window<-5*ctl$rt_tolerance
@@ -243,7 +286,7 @@ cpl_initialize <- function(store,method,align,ncores,lambda,ctl) {
   total<-sum(vapply(fits,function(f)nrow(f$S),0L))
   state<-list(store=store,paths=character(length(meta)),P=matrix(0,total,m),map=seq_len(total),
     scale=rep(1,total),serial=0L,lambda=scalar*factor,L=0L,nuisance_df=0L,alignment=alignment,
-    history=data.frame(),control=ctl,mass=meta[[1]]$mass,n=N,p=N,quasi=FALSE,information_factor=factor)
+    history=data.frame(),control=ctl,mass=meta[[1]]$mass,channel_groups=store$channel_groups,n=N,p=N,quasi=FALSE,information_factor=factor)
   for(s in seq_along(meta)) {
     z<-meta[[s]];a<-readRDS(z$initial);fits[s]<-list(NULL);warp<-alignment$maps[[s]]$evaluate
     quadrature<-diff(warp(z$edges));J<-quadrature/diff(z$edges);E<-z$raw_exposure*J
@@ -352,25 +395,7 @@ plot.coupledNMF <- function(x,type=c("areas","spectra","profiles"),sample=NULL,c
 }
 
 cpl_noise_pass <- function(state,samples) {
-  for(s in samples) {
-    f<-readRDS(state$paths[s])
-    if(f$kind!=3L||!isTRUE(f$spec$theta_update))next
-    Y<-cpl_sample_data(state$store,s);mu<-cpl_coupled_mean(f,state)
-    for(iteration in 1:3) {
-      score<-slcn_nb_score(Y,mu,f$theta,as.numeric(f$weights),f$ncores)
-      move<-if(is.finite(score[2L])&&score[2L]<0)-score[1L]/score[2L]else sign(score[1L])
-      move<-max(-1,min(1,move));theta0<-f$theta;reference<-cpl_coupled_ll(f,Y,mu)
-      for(half in 0:12) {
-        f$theta<-max(1e-6,min(1e8,theta0*exp(move/2^half)))
-        if(cpl_coupled_ll(f,Y,mu)>=reference)break
-        f$theta<-theta0
-      }
-      if(abs(log(f$theta/theta0))<1e-4)break
-    }
-    f$spec$theta<-f$theta
-    state<-cpl_coupled_checkpoint(state,s,f,"noise")
-  }
-  state
+  cpl_parallel_pass(state,samples,"noise")
 }
 
 #' Extract one sample's factorization from a coupled fit

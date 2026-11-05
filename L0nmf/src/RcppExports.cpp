@@ -154,6 +154,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// slcn_read_block
+NumericMatrix slcn_read_block(std::string path, int n, IntegerVector channels, IntegerVector rows);
+RcppExport SEXP _L0nmf_slcn_read_block(SEXP pathSEXP, SEXP nSEXP, SEXP channelsSEXP, SEXP rowsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type path(pathSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type channels(channelsSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type rows(rowsSEXP);
+    rcpp_result_gen = Rcpp::wrap(slcn_read_block(path, n, channels, rows));
+    return rcpp_result_gen;
+END_RCPP
+}
 // slcn_state
 SEXP slcn_state(NumericMatrix y, NumericMatrix mu);
 RcppExport SEXP _L0nmf_slcn_state(SEXP ySEXP, SEXP muSEXP) {
@@ -394,6 +408,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_L0nmf_slcn_log_profile", (DL_FUNC) &_L0nmf_slcn_log_profile, 19},
     {"_L0nmf_logconc_quadratic_cpp", (DL_FUNC) &_L0nmf_logconc_quadratic_cpp, 5},
     {"_L0nmf_logconc_profile_cpp", (DL_FUNC) &_L0nmf_logconc_profile_cpp, 14},
+    {"_L0nmf_slcn_read_block", (DL_FUNC) &_L0nmf_slcn_read_block, 4},
     {"_L0nmf_slcn_state", (DL_FUNC) &_L0nmf_slcn_state, 2},
     {"_L0nmf_slcn_local", (DL_FUNC) &_L0nmf_slcn_local, 3},
     {"_L0nmf_slcn_commit", (DL_FUNC) &_L0nmf_slcn_commit, 3},

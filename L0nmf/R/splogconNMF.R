@@ -209,7 +209,8 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #'   freezes a temporal moment estimate; a positive value fixes it; a negative
 #'   value initializes at its absolute value and enables pooled likelihood
 #'   updates. A fixed shape in the supplied NB family is respected.
-#' @param precluster `NULL` or `FALSE` uses every channel throughout. `TRUE`
+#' @param precluster A saved [channel_groups()] map shares the same aggregation
+#'   across analyses. `NULL` or `FALSE` uses every channel throughout. `TRUE`
 #'   uses up to 32 groups; an integer supplies another maximum. Size-adjusted
 #'   Poisson clustering, aggregation, selection and fusion operate in that
 #'   reduced space, followed by refinement on all original channels.
@@ -522,6 +523,8 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
   if (spec$name %in% c("Gamma", "Gamma_scale") && any(ifelse(Y == 0, control$censor == 0, Y < control$censor)))
     stop("Represent observations below the Gamma detection limit by zero.")
   if (!is.null(start)) start <- slcn_start(start, n, m, B, O)
+  channel_map <- if(inherits(precluster,"nmf_channel_groups"))precluster else NULL
+  if(!is.null(channel_map))precluster<-channel_map$k
   if (identical(precluster, TRUE)) precluster <- 32L
   if (identical(precluster, FALSE)) precluster <- NULL
   if (!is.null(precluster) && (length(precluster) != 1L || !is.finite(precluster) || precluster < 1 || precluster != as.integer(precluster))) stop("precluster must be NULL, logical or a positive integer.")
@@ -540,11 +543,13 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
   initial_spec$correlation <- 0
   clustering_seconds <- aggregate_seconds <- 0;aggregation <- NULL
   if (is.null(start) && !is.null(precluster) && !identical(precluster, FALSE) && precluster < m) {
-    clustering_seconds <- system.time(cl <- glm_cluster(pmax(Y, 0), family = poisson("identity"),
+    clustering_seconds <- system.time(cl <- if(!is.null(channel_map))
+      list(clusterids=cpl_channel_index(channel_map,if(is.null(colnames(Y)))as.character(seq_len(m))else colnames(Y))) else
+      glm_cluster(pmax(Y, 0), family = poisson("identity"),
       weights = W, method = "poissondist", size_fac = colSums(pmax(Y, 0)),
       rowbins = if (all(W == 1)) 5L else 1L,
       k = as.integer(precluster), linkage = control$linkage, nthreads = ncores))[["elapsed"]]
-    group <- cl$clusterids;g <- max(group)
+    group <- match(cl$clusterids,sort(unique(cl$clusterids)));g <- max(group)
     P <- sparseMatrix(i = seq_len(m), j = group, x = 1, dims = c(m, g))
     aggregate_Y <- as.matrix(Y %*% P)
     fractions <- colSums(pmax(Y, 0)) / as.numeric(colSums(pmax(Y, 0) %*% P))[group]

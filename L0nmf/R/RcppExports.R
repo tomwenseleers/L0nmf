@@ -29,6 +29,10 @@ logconc_profile_cpp <- function(y, mean, profile, spectrum, family, phi, theta, 
     .Call(`_L0nmf_logconc_profile_cpp`, y, mean, profile, spectrum, family, phi, theta, weights, full_n, first, maxit, censor, ridge, prior)
 }
 
+slcn_read_block <- function(path, n, channels, rows) {
+    .Call(`_L0nmf_slcn_read_block`, path, n, channels, rows)
+}
+
 slcn_state <- function(y, mu) {
     .Call(`_L0nmf_slcn_state`, y, mu)
 }

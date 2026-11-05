@@ -1029,3 +1029,62 @@ and [Gamma](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/GammaDist.h
 parameterizations. The compound-count criterion, local log-concave fusion and
 their integration with L0glm's grouped initialization are developments of this
 package.
+
+
+## Parallel samples and bounded-memory updates
+
+With common spectra $P$ fixed, sample-specific factors are conditionally
+independent. The coupled criterion is
+
+$$
+J=-2\sum_s\ell_s(Y_s;\mu_s)
+  +\lambda\{(m-1)G+L+d_{\mathrm{noise}}\},
+$$
+
+where $G$ is the number of shared compounds and $L$ the number of detected
+sample-compound occurrences. Profile and background updates leave this rank
+charge fixed. They can therefore run concurrently over samples, with each
+accepted update decreasing its own contribution to the full criterion.
+Pooled spectral gradients and information are computed per sample and summed
+in acquisition order. The shared spectral step is accepted against the full
+original-channel likelihood.
+
+A common channel map has a one-hot membership matrix $A\in\{0,1\}^{m\times q}$,
+giving aggregated observations $\bar Y_s=Y_sA$ and spectra $\bar P=PA$.
+The map is learned once from summed time-bin counts or supplied as a saved
+`channel_groups()` object. Only this map-learning step uses a common time grid.
+The fitting grids, bin exposures and sparse PSF matrices $X_s$ remain sample
+specific.
+
+For Poisson and common-scale quasipoisson observations with shared scan
+weights, channel sums provide inexpensive profile proposals. Each proposal is
+checked on all original channels in its affected time window. Other families
+retain their original-channel profile objective. Spectral, background and
+likelihood passes read at most 32 original channels per block through a native
+binary-matrix reader. Thus aggregation accelerates the proposal and matching
+steps while the target criterion continues to use the original observations.
+
+The execution order is:
+
+1. Learn or load the common channel map.
+2. Fit independent samples concurrently, each with its own sparse PSF.
+3. Estimate alignment and build the common spectral candidate graph.
+4. With spectra fixed, update profiles and backgrounds independently across
+   samples; calculate pooled spectral contributions concurrently.
+5. Reduce contributions in sample order and update the shared spectra.
+6. Group compatible occurrences, refreshing only graph edges incident to a
+   merged root. Distances and ordering of unaffected proposals are retained.
+7. Accept the complete candidate using the original-channel penalized objective
+   and return full spectra, original-grid profiles and integrated areas.
+
+`ncores` is a total logical-CPU budget. With $W$ concurrent sample workers, each
+receives $\lfloor\texttt{ncores}/W\rfloor$ native threads. BLAS runs with one
+thread during batch fitting and its caller setting is restored afterwards.
+Only the assigned sample and compact factors are sent to each worker; the
+complete observation cache is never serialized to every worker.
+
+The resident observation cache uses $8q\sum_s n_s$ bytes. For 1,000 samples with
+10,000 scans and 32 groups, this is 2.56 GB, plus factors and active-worker
+buffers. Original observations and factor checkpoints are disk backed. Sparse
+sample-specific PSFs are modest in size: a measured 14,946-by-14,946 design
+with 1.47 million stored nonzero values occupied 16.9 MiB.

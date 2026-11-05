@@ -81,8 +81,11 @@ noise parameters. Background and profile complexity are unpenalized.}
 \item{path}{New directory for the sample store and fitted factors. Keep this
 directory with the saved R object; its paths are used by \code{fitted()} and plots.}
 
-\item{precluster}{Maximum outcome groups for independent initialization.
-Coupled refinement and selection always use all original channels.}
+\item{precluster}{Maximum common outcome groups, default \code{32L}; \code{NULL} or
+\code{FALSE} disables aggregation. A saved \code{\link[=channel_groups]{channel_groups()}} map can be reused.
+The default map is learned from samples summed in common time bins. Matching
+and Poisson/quasipoisson profile proposals use this common representation;
+likelihood checks and spectral estimation retain all original channels.}
 
 \item{dispersion, theta}{Shared-across-channels noise parameters, as in
 \code{\link[=splogconNMF]{splogconNMF()}}. They may be supplied per sample in its description.
@@ -93,13 +96,19 @@ likelihood-improving shape updates in the coupled iterations.}
 
 \item{align}{Estimate monotone sample-level time warps.}
 
-\item{ncores}{Number of native OpenMP threads; defaults to physical cores.}
+\item{ncores}{Total logical-CPU budget, defaulting to physical cores. Up to
+\code{min(length(samples), ncores)} sample workers are used. The remaining budget
+determines native threads per worker; BLAS uses one thread during fitting.
+Caller BLAS settings are restored afterwards.}
 
 \item{control}{Named controls: \code{cycles=10L}, \code{initial_cycles=5L}, \code{rounds=3L},
 \code{q=64L}, \code{rt_tolerance=NULL}, \code{alignment_window=NULL}, \code{ridge=TRUE},
-\code{censor=0.5}, \code{correlation="none"}, and \code{initial=list()} for controls passed
+\code{censor=0.5}, \code{correlation="none"}, \code{workers=NULL}, \code{cache=TRUE}, and
+\code{initial=list()} for controls passed
 to independent \code{\link[=splogconNMF]{splogconNMF()}} fits. Default matching windows are derived
-from the supplied or estimated narrow-peak widths.}
+from the supplied or estimated narrow-peak widths. \code{workers} limits concurrent
+samples within \code{ncores}. \code{cache=TRUE} holds only aggregated observations in
+RAM during fitting; \code{FALSE} reloads those blocks from disk.}
 
 \item{verbose}{Print initialization and coupled objective progress.}
 
@@ -121,14 +130,16 @@ spectra, and in \code{plot()} selects all samples.}
 \value{
 A \code{coupledNMF} object with consensus spectra \code{P}, integrated \code{areas},
 occurrence table \code{compounds}, monotone \code{alignment}, disk-backed factor
-\code{paths} and sample \code{store}, objective history, likelihood and timings.
+\code{paths} and sample \code{store}, objective history, likelihood and timings,
+the reusable \code{channel_groups} map and \code{parallel} thread allocation.
 \code{fitted(object, sample=...)} reconstructs one sample on its original grid.
 }
 \description{
 Align related multichannel samples and estimate common spectra with
 sample-specific nonnegative areas, log-concave profiles and backgrounds.
 Observations remain on their original time grids. Samples are read from a
-disk-backed store one at a time during fitting.
+disk-backed store in bounded blocks during fitting. Independent samples are
+processed concurrently within a single logical-core budget.
 }
 \details{
 Let \code{u = w_s(t)} be a monotone alignment map and \code{J} its binwise Jacobian.
@@ -159,6 +170,17 @@ It is a rank-selection criterion with unpenalized profile and baseline
 complexity. Quasipoisson uses the scaled likelihood kernel described in
 \code{\link[=splogconNMF]{splogconNMF()}}. Noise scales are held fixed when comparing groupings.
 Undetected sample-compound combinations have \code{NA} area and are not filled in.
+
+Each sample retains its own sparse PSF design and original scan grid. The
+shared cache contains scans-by-aggregate matrices, while original-channel
+observations remain on disk. Shared spectral and background updates read at
+most 32 original channels per sample block. Poisson/quasipoisson profile
+proposals use sums of channels and are accepted against the original-channel
+likelihood in the affected time window. Other noise families use their
+original-channel profile objective. Parallel sample updates hold spectra
+fixed, and spectral contributions are reduced in acquisition order. Only the
+assigned sample and compact factors cross worker sockets. The cache and live
+worker connections are released before returning the fitted object.
 }
 \examples{
 set.seed(19)

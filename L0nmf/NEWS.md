@@ -34,6 +34,14 @@
 * Disk-backed observations, batched native spectral scores, shared row inputs,
   sparse profiles and OpenMP support efficient fitting.
 
+* A total logical-core budget schedules independent fits and coupled sample
+  updates concurrently, with deterministic spectral reductions and restored
+  BLAS settings. Native block reads retain bounded original-channel buffers.
+* Common saved channel maps, a compact aggregate cache and full-channel
+  acceptance checks support reusable, memory-efficient multisample analyses.
+* Incremental fusion candidates retain the same greedy order while refreshing
+  only edges affected by a merge.
+
 ## Simulation and interpretation
 
 * Single- and multisample simulations include drifting retention times,

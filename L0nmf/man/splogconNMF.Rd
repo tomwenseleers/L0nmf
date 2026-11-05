@@ -106,7 +106,8 @@ freezes a temporal moment estimate; a positive value fixes it; a negative
 value initializes at its absolute value and enables pooled likelihood
 updates. A fixed shape in the supplied NB family is respected.}
 
-\item{precluster}{\code{NULL} or \code{FALSE} uses every channel throughout. \code{TRUE}
+\item{precluster}{A saved \code{\link[=channel_groups]{channel_groups()}} map shares the same aggregation
+across analyses. \code{NULL} or \code{FALSE} uses every channel throughout. \code{TRUE}
 uses up to 32 groups; an integer supplies another maximum. Size-adjusted
 Poisson clustering, aggregation, selection and fusion operate in that
 reduced space, followed by refinement on all original channels.}

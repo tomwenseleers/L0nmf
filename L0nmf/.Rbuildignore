@@ -5,3 +5,4 @@
 ^vignettes/articles$
 ^examples$
 ^src/.*[.](o|so|dll|rds)$
+^\.Rprofile$

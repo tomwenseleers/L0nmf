@@ -8,7 +8,11 @@ Authors@R: c(
            email = "tom.wenseleers@kuleuven.be"),
     person("Christophe", "Vanderaa", role = "aut",
            email = "christophe.vanderaa@kuleuven.be"))
-Description: Sparse nonnegative matrix factorization with hard log-concave profiles, adaptive ridge selection, flexible noise models and point spread function estimation.
+Description: Separates overlapping ordered signals into nonnegative
+    log-concave profiles and channel loadings, with automatic rank selection,
+    optional smooth backgrounds and flexible noise models. Estimates constant
+    or time-varying point spread functions and fits coupled models that share
+    loadings across samples on their original observation grids.
 License: GPL (>= 2)
 Encoding: UTF-8
 Depends: R (>= 4.1.0)

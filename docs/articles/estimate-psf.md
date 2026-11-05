@@ -7,12 +7,19 @@ PSF, shifted copies form a convolution design matrix, and
 [`L0glm.fit()`](https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html)
 can estimate a sparse set of impulse locations and amplitudes directly.
 
-When the PSF is unknown, two conditional problems can be alternated:
-estimate the spike train given the kernel, then estimate the kernel
-given the spike train.
+When the PSF is unknown, alternate two conditional fits. Estimate the
+spike train with the current kernel, then estimate the kernel with those
+spikes held fixed.
 [`estimate_psf()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf.md)
-combines this blind estimation with isolated-standard calibration and
-windowed estimation of smoothly time-varying kernels.
+can also calibrate the kernel from isolated standards and estimate how
+it changes across overlapping windows.
+
+The resulting sparse matrix `X` serves two purposes. Use it directly in
+[`L0glm.fit()`](https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html)
+when a common response shape at each position is adequate. Use it to
+initialize [log-concave
+NMF](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md)
+when components at the same position may have different widths or tails.
 
 ## Deconvolve with a known, constant PSF
 

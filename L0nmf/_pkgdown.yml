@@ -33,7 +33,7 @@ navbar:
   components:
     intro:
       text: Get started
-      href: articles/estimate-psf.html
+      href: articles/log-concave-nmf.html
     tutorials:
       text: Tutorials
       menu:

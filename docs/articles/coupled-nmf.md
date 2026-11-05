@@ -21,10 +21,11 @@ Each sample description contains `y`, `time`, and either a candidate PSF
 matrix `X` or an independent
 [`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
 fit. Matrices can be supplied through RDS paths. Observations, factors,
-weights and offsets are stored per sample. Workers process independent
-samples concurrently and read original ions in blocks during coupled
-refinement. Common spectra and compact alignment summaries are shared in
-memory.
+weights and offsets are stored per sample. Each independent worker loads
+one sample into memory. During coupling, original observations and
+factor checkpoints remain in per-sample files, and spectral updates read
+the original ions in blocks. Shared spectra and compact alignment
+summaries stay in memory.
 
 ## Three samples, shared spectra and different peak shapes
 
@@ -43,7 +44,8 @@ samples <- lapply(sim$samples, function(s) list(
   y=s$Y, time=s$time, edges=s$edges, exposure=s$raw_exposure,
   sample_id=s$sample_id,
   X=convmatrix(dnorm(-8:8, sd=1.6), nrow(s$Y)),
-  background=splines::bs(s$time, df=4L, intercept=TRUE)))
+  background=splines::bs(s$time, df=4L, intercept=TRUE),
+  small_width=2 * sqrt(2 * log(100)) * 1.6 * median(diff(s$time))))
 
 fit <- coupledNMF(samples, family=poisson("identity"), ncores=8L,
   control=list(initial=list(profile_cycles=4L, fusion_passes=2L)))
@@ -57,15 +59,16 @@ occurrences**. With `presence=0.5`, the realized data contain **23
 shared compounds and 37 occurrences**, all recovered. Missing
 occurrences remain `NA` in the area table.
 
-| Simulation | True shared compounds | Recovered | True occurrences | Recovered | Total time |
-|:---|---:|---:|---:|---:|---:|
-| All compounds present | 26 | 26 | 78 | 78 | 29.69 s |
-| 50% presence probability | 23 | 23 | 37 | 37 | 21.92 s |
+| Simulation | True shared compounds | Recovered | True occurrences | Recovered | False calls | Total time |
+|:---|---:|---:|---:|---:|---:|---:|
+| All compounds present | 26 | 26 | 78 | 78 | 0 | 20.80 s |
+| 50% presence probability | 23 | 23 | 37 | 37 | 0 | 17.87 s |
 
-These elapsed times include independent initialization, alignment,
-grouping and coupled refinement on an eight-core Intel i9-11950H
-workstation. Both examples include different scan grids and
-concentration-dependent peak shapes.
+Each timing includes independent fits, alignment, grouping and coupled
+refinement, with a budget of eight logical cores and one BLAS thread per
+worker on an Intel Core i9-11950H. Simulation is excluded. Recovery uses
+the nearest normalized true spectrum, with cosine similarity at least
+0.9 and a single match per compound within each sample.
 
 ![Aligned component profiles across the three
 samples](figures/coupled-profiles.png)
@@ -95,9 +98,9 @@ ions.
 
 The complete CDF-to-results workflow via
 [GCMSprime](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#sixteen-simulated-chromatograms)
-took **65.05 s with 16 single-threaded sample workers** on an Intel Core
-i9-11950H (8 physical and 16 logical cores), compared with **75.97 s**
-with eight workers and **298.94 s** with one. All core budgets recovered
+took **63.91 s with 16 single-threaded sample workers** on an Intel Core
+i9-11950H (8 physical and 16 logical cores), compared with **71.95 s**
+with eight workers and **316.67 s** with one. All core budgets recovered
 the same 48 compounds and 380 occurrences (F1 = 1, MCC = 1), with median
 spectral cosine 0.999994 and joint GIC 9,832,385.06.
 
@@ -168,7 +171,7 @@ store. Keep that store alongside saved fitted objects.
 
 The native kernel pools spectral scores over sparse profile supports and
 uses OpenMP over channels. On 14,949 scans, 518 channels and 325
-profiles, one pooled score pass took 0.19 s; the [implementation
+profiles, one pooled score pass took 0.16 s; the [implementation
 details](https://tomwenseleers.github.io/L0nmf/articles/algorithm.html#coupled-algorithm)
 describe the update and threading structure.
 

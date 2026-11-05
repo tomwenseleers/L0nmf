@@ -40,8 +40,8 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="active nav-item"><a class="nav-link" href="../articles/estimate-psf.html">Get started</a></li>
-<li class="nav-item dropdown">
+<li class="nav-item"><a class="nav-link" href="../articles/log-concave-nmf.html">Get started</a></li>
+<li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials">
 <li><a class="dropdown-item" href="../articles/estimate-psf.html">Estimate PSFs</a></li>
@@ -86,11 +86,15 @@ With a known time-invariant PSF, shifted copies form a convolution
 design matrix, and <a href="https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html" class="external-link"><code>L0glm.fit()</code></a>
 can estimate a sparse set of impulse locations and amplitudes
 directly.</p>
-<p>When the PSF is unknown, two conditional problems can be alternated:
-estimate the spike train given the kernel, then estimate the kernel
-given the spike train. <code><a href="../reference/estimate_psf.html">estimate_psf()</a></code> combines this blind
-estimation with isolated-standard calibration and windowed estimation of
-smoothly time-varying kernels.</p>
+<p>When the PSF is unknown, alternate two conditional fits. Estimate the
+spike train with the current kernel, then estimate the kernel with those
+spikes held fixed. <code><a href="../reference/estimate_psf.html">estimate_psf()</a></code> can also calibrate the
+kernel from isolated standards and estimate how it changes across
+overlapping windows.</p>
+<p>The resulting sparse matrix <code>X</code> serves two purposes. Use
+it directly in <code><a href="https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html" class="external-link">L0glm.fit()</a></code> when a common response shape at
+each position is adequate. Use it to initialize <a href="log-concave-nmf.html">log-concave NMF</a> when components at the
+same position may have different widths or tails.</p>
 <div class="section level2">
 <h2 id="deconvolve-with-a-known-constant-psf">Deconvolve with a known, constant PSF<a class="anchor" aria-label="anchor" href="#deconvolve-with-a-known-constant-psf"></a>
 </h2>

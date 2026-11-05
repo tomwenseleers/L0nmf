@@ -1,1 +1,14 @@
-Larger reproducible benchmarks belong here. Exploratory tests and generated private data belong in the ignored `codex_sandbox/` directory.
+# Reproduce the examples
+
+Run `Rscript benchmarks/benchmark_gcms_windows.R` with the installed package
+on the R library path to fit both bundled matrices directly. The
+[single-sample tutorial](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.html)
+reports elapsed fitting time, component counts and quasi-GIC. The
+[coupled tutorial](https://tomwenseleers.github.io/L0nmf/articles/coupled-nmf.html)
+gives the three-sample simulation and links to the complete CDF benchmark.
+
+The November 2026 runs used L0nmf
+[`1c85840`](https://github.com/tomwenseleers/L0nmf/commit/1c85840)
+and L0glm [`d7bdece`](https://github.com/tomwenseleers/L0glm/commit/d7bdece),
+with R 4.5.0 and one BLAS thread on an Intel Core i9-11950H workstation.
+The tables give the OpenMP thread or worker budgets for each run.

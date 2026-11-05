@@ -1,16 +1,39 @@
 # Sparse log-concave NMF with automatic best rank tuning
 
-A convolution model gives every impulse the same local response shape.
-Real components can be broader, more asymmetric or more strongly tailed.
-Sparse log-concave NMF lets each component acquire its own positive
-profile and loading vector, while selecting how many components the
-observations support.
+A GC–MS chromatogram can contain several compounds at the same retention
+time. The time course of a compound is its elution profile, and the
+relative signals it produces across ions form its mass spectrum. Each
+measured scan contains a mixture of those contributions.
 
+A fixed convolution model places the same local response shape at each
+candidate position. That works well when the peaks have similar shapes.
+Broad, tailed or overloaded peaks can require several adjacent spikes to
+approximate one compound.
 [`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
-starts from sparse multichannel deconvolution on a candidate PSF design,
-fuses compatible components, refines their profiles and loadings, and
-checks residual evidence for additions or deletions. Local updates use
-the specified observation likelihood and hard log-concavity constraints.
+begins with such a dictionary and then estimates a separate log-concave
+profile and spectrum for every retained component. This lets the model
+combine compatible fragments and refine both the peak shapes and the
+spectra.
+
+## The factorization
+
+For n ordered scans and m channels, write the mean as
+
+M = H S + B A + O,\qquad H\in\mathbb{R}\_+^{n\times K},\quad
+S\in\mathbb{R}\_+^{K\times m}.
+
+Here K is the number of components, BA is an optional smooth background
+and O is a known additive offset. Component k contributes the outer
+product of column k of H and row k of S. The positive support of a
+profile is contiguous. On an evenly spaced grid, log-concavity means
+2\log H\_{ik}\geq \log H\_{i-1,k}+\log H\_{i+1,k} within that support.
+This includes familiar Gaussian and exponentially tailed peak shapes.
+
+Each column of H sums to one. The corresponding row of S then contains
+integrated channel intensities and can be normalized to a spectrum of
+relative intensities. The fit compares likelihood and rank so that
+another profile must explain enough of the signal to justify its
+inclusion.
 
 ## Fit profiles, loadings and background
 
@@ -27,20 +50,17 @@ Y <- GCMS_data1
 X <- convmatrix(convkernel("gaussian", 65L, list(sigma=8)), nrow(Y))
 B <- matrix(1, nrow(Y), 1L)
 fit <- splogconNMF(X, Y, background=B,
-  family=quasipoisson("identity"), precluster=16L, correlation="auto")
+  family=quasipoisson("identity"), precluster=16L, correlation="auto", ncores=8L)
 fit$rank
 dim(fit$H)
 dim(coef(fit))
 GIC(fit)
 ```
 
-The mean is `H %*% S + B %*% alpha + offset`. Each sparse column of `H`
-has contiguous support, unit sum and a concave log profile. Rows of `S`
-contain loadings on every original channel; their sums give the
-component’s total discrete integrated intensity. `B` is a nonnegative
-background basis. For unknown kernels, [estimate the
-PSF](https://tomwenseleers.github.io/L0nmf/articles/estimate-psf.md)
-first and pass its `X`.
+The constant background is supplied as a single column of ones. Use [PSF
+estimation](https://tomwenseleers.github.io/L0nmf/articles/estimate-psf.md)
+to build `X` when the initial response shape is unknown or varies with
+position.
 
 ## Inspect the recovered components
 
@@ -48,7 +68,7 @@ first and pass its `X`.
 
 matplot(as.matrix(fit$H), type="l", lty=1, xlab="Scan", ylab="Profile")
 matplot(t(coef(fit)), type="h", lty=1, xlab="Channel", ylab="Loading")
-plotmat(t(fitted(fit)), xlab="Scan", ylab="Channel")
+L0glm::plotmat(t(fitted(fit)), xlab="Scan", ylab="Channel")
 patterns <- coef(fit) / rowSums(coef(fit))
 fitted_signal <- fitted(fit)
 fit$seconds
@@ -78,7 +98,7 @@ t2 <- as.numeric(rownames(Y2))
 X2 <- convmatrix(convkernel("gaussian", 65L, list(sigma=6)), nrow(Y2))
 B2 <- splines::bs(t2, df=4L, intercept=TRUE)
 fit2 <- splogconNMF(X2, Y2, background=B2,
-  family=quasipoisson("identity"), precluster=32L, correlation="auto")
+  family=quasipoisson("identity"), precluster=32L, correlation="auto", ncores=8L)
 fit2$rank
 fit2$contained_fusion$broad
 ```
@@ -89,19 +109,19 @@ component](../reference/figures/gcms-data2-profiles-spectra.png)
 Log-concave profiles and full-channel spectra, including the broad
 component
 
-The corresponding GCMSprime CDF workflows use the same full-channel
-backend and the default temporal information adjustment:
+The table reports one direct fit of each matrix with eight OpenMP
+threads and one BLAS thread on an Intel Core i9-11950H. Constructing the
+PSF dictionary and background basis is outside the timing.
 
-| Window         | Channels | Components | Quasi-GIC | Adjusted weighted R² |
-|:---------------|---------:|-----------:|----------:|---------------------:|
-| Hydrocarbons   |      671 |          6 |   246,473 |              0.98999 |
-| Beer volatiles |      518 |         38 | 1,467,419 |              0.99498 |
+| Window         | Scans | Channels | Components | Quasi-GIC | Seconds |
+|:---------------|------:|---------:|-----------:|----------:|--------:|
+| Hydrocarbons   |   119 |      671 |          6 |   246,473 |    4.63 |
+| Beer volatiles | 1,764 |      518 |         38 | 1,467,426 |   67.00 |
 
-The accompanying [CDF
-workflow](https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html)
-reports measured timings and complete-criterion tables for both windows,
-with downloadable traces, heatmaps, complete profile/spectrum panels and
-MSP libraries.
+The [GCMSprime
+tutorial](https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html)
+times the complete CDF-to-MSP workflow separately and provides
+diagnostic plots and downloadable spectra.
 
 ## Automatic best rank tuning
 

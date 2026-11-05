@@ -1,10 +1,16 @@
 # Algorithms and theory for PSFs and sparse log-concave factorization
 
-L0nmf connects convolution and blind system identification to
-nonnegative factorization with flexible noise models. The ordered factor
-has a positive, log-concave profile; the other factor gives its
-multichannel loadings. Rank selection, backgrounds and noise calibration
-are part of the model.
+An ordered multichannel signal can be a mixture of overlapping
+components. Each component has one profile over the ordered coordinate
+and one vector of channel loadings. In GC–MS those factors describe how
+the compound elutes and which ions it produces.
+
+The algorithms below start with sparse deconvolution using a common
+local response shape. Blind fitting or calibration can estimate that
+response if needed. The log-concave factorization then allows each
+retained component to have its own shape, and the coupled model can
+share loadings across samples. Each stage uses the observation
+likelihood and a criterion for model size.
 
 This article follows the three tutorials: [PSF
 estimation](https://tomwenseleers.github.io/L0nmf/articles/estimate-psf.md),
@@ -895,14 +901,15 @@ constraints on actual aligned times. Native OpenMP updates give
 identical results across thread counts in the validation examples.
 
 The native spectral kernel evaluates each cell’s likelihood derivatives
-once and pools them over all sparse profiles in a single threaded pass.
-On a beer chromatogram with 14,949 scans, 518 channels and 325 profiles,
-this reduced one pooled-score calculation from **5.45 s to 0.19 s**, a
-**28.7-fold speedup**, while matching the profile-wise calculation to
-numerical precision. Cached peak geometry also avoids rescanning every
-profile after each algebraic merge. Shared row-wise weights and offsets
-retain one vector throughout the coupled fit, with channel-specific
-matrices used when required.
+once and pools them over the sparse profiles in one pass parallelized
+across channels. On a beer chromatogram with 14,949 scans, 518 channels
+and 325 profiles, the pooled score took **0.16 s** versus **4.53 s** for
+the profile-wise calculation. Both used eight threads and agreed to
+numerical precision. The **28.3-fold speedup** is for this kernel pass.
+Cached peak geometry also avoids rescanning every profile after each
+algebraic merge. Shared row-wise weights and offsets retain one vector
+throughout the coupled fit, with channel-specific matrices used when
+required.
 
 All seven [signal
 families](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)

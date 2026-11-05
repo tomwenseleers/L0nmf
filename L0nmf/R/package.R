@@ -1,5 +1,18 @@
 #' Scalable Sparse Nonnegative Matrix Factorization with Automatic Rank Selection and Flexible Noise Models
 #'
+#' @details
+#' For a scans-by-channels signal, each component is the product of an
+#' ordered nonnegative profile and a nonnegative vector of channel loadings.
+#' The positive part of the profile has a concave logarithm, which accommodates
+#' asymmetric peaks and tails. Chromatographic elution profiles and mass
+#' spectra are a motivating example.
+#'
+#' Use \code{\link{estimate_psf}} to build a sparse design from a standard
+#' or overlapping signals. \code{\link{splogconNMF}} starts from that design
+#' and estimates the number of components, their profiles and their loadings.
+#' \code{\link{coupledNMF}} shares loadings across samples and allows their
+#' profiles, areas and backgrounds to differ.
+#'
 #' @keywords internal
 #' @import L0glm
 #' @useDynLib L0nmf, .registration=TRUE

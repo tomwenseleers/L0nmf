@@ -8,7 +8,20 @@
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
-Sparse nonnegative matrix factorization with hard log-concave profiles, adaptive ridge selection, flexible noise models and point spread function estimation.
+Separates overlapping ordered signals into nonnegative log-concave profiles and channel loadings, with automatic rank selection, optional smooth backgrounds and flexible noise models. Estimates constant or time-varying point spread functions and fits coupled models that share loadings across samples on their original observation grids.
+}
+\details{
+For a scans-by-channels signal, each component is the product of an
+ordered nonnegative profile and a nonnegative vector of channel loadings.
+The positive part of the profile has a concave logarithm, which accommodates
+asymmetric peaks and tails. Chromatographic elution profiles and mass
+spectra are a motivating example.
+
+Use \code{\link{estimate_psf}} to build a sparse design from a standard
+or overlapping signals. \code{\link{splogconNMF}} starts from that design
+and estimates the number of components, their profiles and their loadings.
+\code{\link{coupledNMF}} shares loadings across samples and allows their
+profiles, areas and backgrounds to differ.
 }
 \seealso{
 Useful links:

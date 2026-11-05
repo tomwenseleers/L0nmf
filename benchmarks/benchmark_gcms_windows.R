@@ -1,6 +1,6 @@
 # Run from the L0nmf repository root.
-library(L0glm)
 library(L0nmf)
+RhpcBLASctl::blas_set_num_threads(1L)
 results <- list()
 for (name in c("GCMS_data1","GCMS_data2")) {
   data(list=name, package="L0nmf")
@@ -12,7 +12,7 @@ for (name in c("GCMS_data1","GCMS_data2")) {
     splines::bs(time,df=4L,intercept=TRUE)
   seconds <- system.time(fit <- splogconNMF(X,Y,background=B,
     family=quasipoisson("identity"),precluster=if(name=="GCMS_data1")16L else 32L,
-    correlation="none"))[["elapsed"]]
+    correlation="auto", ncores=8L))[["elapsed"]]
   results[[name]] <- data.frame(dataset=name,n=nrow(Y),channels=ncol(Y),
     compounds=fit$rank,GIC=GIC(fit),seconds=seconds)
 }

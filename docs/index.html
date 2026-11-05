@@ -18,8 +18,8 @@
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><link href="extra.css" rel="stylesheet">
 <meta property="og:title" content="L0nmf: Scalable Sparse Nonnegative Matrix Factorization with Automatic Rank Selection and Flexible Noise Models">
-<meta name="description" content="Sparse nonnegative matrix factorization with hard log-concave profiles, adaptive ridge selection, flexible noise models and point spread function estimation.">
-<meta property="og:description" content="Sparse nonnegative matrix factorization with hard log-concave profiles, adaptive ridge selection, flexible noise models and point spread function estimation.">
+<meta name="description" content="Separates overlapping ordered signals into nonnegative log-concave profiles and channel loadings, with automatic rank selection, optional smooth backgrounds and flexible noise models. Estimates constant or time-varying point spread functions and fits coupled models that share loadings across samples on their original observation grids.">
+<meta property="og:description" content="Separates overlapping ordered signals into nonnegative log-concave profiles and channel loadings, with automatic rank selection, optional smooth backgrounds and flexible noise models. Estimates constant or time-varying point spread functions and fits coupled models that share loadings across samples on their original observation grids.">
 <meta property="og:image" content="https://tomwenseleers.github.io/L0nmf/reference/figures/logo.png">
 <meta property="og:image:alt" content="L0nmf hex logo showing a sparse matrix factorized into profiles and spectral loadings">
 </head>
@@ -40,7 +40,7 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="articles/estimate-psf.html">Get started</a></li>
+<li class="nav-item"><a class="nav-link" href="articles/log-concave-nmf.html">Get started</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials">
@@ -76,10 +76,10 @@ SPARSE NONNEGATIVE MATRIX FACTORIZATION · LOG-CONCAVE PROFILES
 Sparse factors.<br><span>Interpretable signals.</span>
 </h1>
 <p class="l0-lead">
-Scalable sparse nonnegative matrix factorization with log-concave profile shape constraints, flexible noise models and automatic best rank tuning for single or multiple samples.
+Separate overlapping signals into log-concave profiles and nonnegative spectra. Estimate the number of components in one sample or share spectra across a whole experiment.
 </p>
 <div class="l0-actions">
-<a class="btn btn-primary" href="articles/estimate-psf.html">Get started <span aria-hidden="true">↗</span></a><a class="btn btn-outline-light" href="reference/index.html">Explore the methods</a>
+<a class="btn btn-primary" href="articles/log-concave-nmf.html">Get started <span aria-hidden="true">↗</span></a><a class="btn btn-outline-light" href="reference/index.html">Explore the methods</a>
 </div>
 <p class="l0-hero-note">
 R · Local likelihood updates · Full spectra · Constant &amp; varying PSFs
@@ -90,58 +90,80 @@ R · Local likelihood updates · Full spectra · Constant &amp; varying PSFs
 <div class="l0-stat-grid">
 <p><a href="reference/splogconNMF.html"><strong>Sparse rank</strong><span>Recover a parsimonious set of nonnegative components</span></a> <a href="reference/estimate_psf.html"><strong>Peak shape constraints</strong><span>Log-concave profiles and constant or time-varying PSFs</span></a> <a href="articles/log-concave-nmf.html"><strong>7 noise families</strong><span>Gaussian, Poisson, quasi-Poisson, NB2, NB1 and two Gamma models</span></a></p>
 </div>
-<p>Scalable sparse nonnegative matrix factorization with log-concave profile shape constraints, flexible noise models and automatic best rank tuning for single or multiple samples.</p>
-<p>Start with a calibrated or estimated point spread function, then let each component acquire its own log-concave profile. Coupled models share spectra across samples while retaining sample-specific shapes, areas and observation grids.</p>
+<p>In a GC–MS chromatogram, several compounds can elute at the same time. Each scan records the sum of their mass spectra, with contributions that change as the compounds pass through the instrument. L0nmf separates this mixture into an elution profile and a spectrum for each component, while estimating how many components the signal supports. The same model applies to ordered multichannel signals with nonnegative, single-peaked components.</p>
+<div class="section level2">
+<h2 id="what-the-model-estimates">What the model estimates<a class="anchor" aria-label="anchor" href="#what-the-model-estimates"></a>
+</h2>
+<p>For a scan-by-channel matrix <code>Y</code>, the fitted signal is <code>H %*% S + B %*% A</code>. Column <code>k</code> of <code>H</code> gives the shape of component <code>k</code> across scans. Row <code>k</code> of <code>S</code> gives its contributions to the original channels. A low-dimensional basis <code>B</code> can describe a smooth baseline, with coefficients in <code>A</code>. A known additive signal can also be supplied as an offset.</p>
+<p>On its positive interval, a <strong>log-concave profile</strong> has non-increasing slopes on the log scale. This admits symmetric peaks, asymmetric tails and broad triangular peaks. It gives the fit a way to separate overlapping components while allowing their shapes to differ. A rank penalty charges for each retained component, and local likelihood updates refine the profiles and spectra under the chosen noise model.</p>
+</div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"tomwenseleers/L0nmf/L0nmf"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"tomwenseleers/L0nmf"</span>, subdir<span class="op">=</span><span class="st">"L0nmf"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="recover-profiles-and-spectra">Recover profiles and spectra<a class="anchor" aria-label="anchor" href="#recover-profiles-and-spectra"></a>
+<h2 id="recover-overlapping-profiles-and-spectra">Recover overlapping profiles and spectra<a class="anchor" aria-label="anchor" href="#recover-overlapping-profiles-and-spectra"></a>
 </h2>
+<p>This short experimental window contains six co-eluting hydrocarbons. The initial dictionary <code>X</code> places a narrow Gaussian point spread function (PSF) at each possible peak location. The factorization can move away from that shape and gives each retained component its own log-concave profile.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tomwenseleers.github.io/L0glm/" class="external-link">L0glm</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tomwenseleers.github.io/L0nmf/">L0nmf</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tomwenseleers.github.io/L0nmf/">L0nmf</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">GCMS_data1</span><span class="op">)</span></span>
-<span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/convmatrix.html">convmatrix</a></span><span class="op">(</span><span class="fu"><a href="reference/convkernel.html">convkernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="fl">65L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma<span class="op">=</span><span class="fl">8</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">GCMS_data1</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/splogconNMF.html">splogconNMF</a></span><span class="op">(</span><span class="va">X</span>, <span class="va">GCMS_data1</span>, background<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span>,<span class="fl">1</span><span class="op">)</span>,</span>
-<span>                  family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster<span class="op">=</span><span class="fl">16L</span>,</span>
-<span>                  correlation<span class="op">=</span><span class="st">"auto"</span><span class="op">)</span></span>
-<span><span class="va">fit</span></span>
-<span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/model_criteria.html" class="external-link">GIC</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/matplot.html" class="external-link">matplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">H</span><span class="op">)</span>, type<span class="op">=</span><span class="st">"l"</span>, lty<span class="op">=</span><span class="fl">1</span>, xlab<span class="op">=</span><span class="st">"Scan"</span>, ylab<span class="op">=</span><span class="st">"Elution profile"</span><span class="op">)</span></span></code></pre></div>
-<p>The factors retain every original outcome channel. Profiles have unit area, nonnegative spectra carry their intensities, and a smooth unpenalized background captures baseline variation. Selection and fusion use a parsimonious rank criterion with local likelihood updates.</p>
+<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="va">GCMS_data1</span></span>
+<span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/convkernel.html">convkernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="fl">65L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">8</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/convmatrix.html">convmatrix</a></span><span class="op">(</span><span class="va">g</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/splogconNMF.html">splogconNMF</a></span><span class="op">(</span><span class="va">X</span>, <span class="va">Y</span>, background <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span>, <span class="fl">1L</span><span class="op">)</span>,</span>
+<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster <span class="op">=</span> <span class="fl">16L</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">fit</span><span class="op">$</span><span class="va">rank</span>                         <span class="co"># estimated number of components</span></span>
+<span><span class="va">profiles</span> <span class="op">&lt;-</span> <span class="va">fit</span><span class="op">$</span><span class="va">H</span>                 <span class="co"># scans x components</span></span>
+<span><span class="va">loadings</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>             <span class="co"># components x original channels</span></span>
+<span><span class="va">spectra</span> <span class="op">&lt;-</span> <span class="va">loadings</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">loadings</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/model_criteria.html" class="external-link">GIC</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
+<p>The columns of <code>profiles</code> sum to one, so each row sum in <code>loadings</code> gives the component’s total fitted signal across scans and channels. Grouping similar channels can speed up the initial search. The reported spectra use every original channel.</p>
 <div class="float">
-<img src="reference/figures/gcms-data1-profiles-spectra.png" alt="Recovered log-concave profiles and spectra"><div class="figcaption">Recovered log-concave profiles and spectra</div>
+<img src="reference/figures/gcms-data1-decomposition.png" alt="Observed signal, fitted log-concave profiles and recovered spectra for six hydrocarbons"><div class="figcaption">Observed signal, fitted log-concave profiles and recovered spectra for six hydrocarbons</div>
 </div>
-<p>The <a href="articles/log-concave-nmf.html">worked example</a> shows fitting and diagnostics. The <a href="articles/algorithm.html">algorithm and theory</a> give the likelihood, constraints and mathematical pseudocode.</p>
-<p>The final original-channel pass checks component deletions, local fusions and missed residual peaks, accepting each change only when the complete likelihood-and-compound criterion improves. Native log-concave profile updates and joint spectral fits start from the current factors. Small fragments contained in broad profiles are compared with equally refined unmerged local models.</p>
+<p>Each spectrum is displayed on a square-root relative-intensity scale.</p>
 </div>
 <div class="section level2">
-<h2 id="learn-the-methods">Learn the methods<a class="anchor" aria-label="anchor" href="#learn-the-methods"></a>
+<h2 id="choose-a-workflow">Choose a workflow<a class="anchor" aria-label="anchor" href="#choose-a-workflow"></a>
 </h2>
-<ol style="list-style-type: decimal">
-<li>
-<a href="articles/estimate-psf.html">Estimate PSFs</a>: known convolution, calibration and blind kernel estimation.</li>
-<li>
-<a href="articles/log-concave-nmf.html">Sparse log-concave NMF with automatic best rank tuning</a>.</li>
-<li>
-<a href="articles/coupled-nmf.html">Coupled multisample log-concave NMF with automatic best rank tuning</a>.</li>
-</ol>
-<p>The <a href="articles/algorithm.html">mathematical article</a> develops the objectives and algorithms. <a href="https://tomwenseleers.github.io/L0glm/" class="external-link">L0glm</a> supplies sparse GLM selection; <a href="https://tomwenseleers.github.io/GCMSprime/" class="external-link">GCMSprime</a> applies these models to chromatogram files, quantification and spectral identification.</p>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr>
+<th align="left">Data and objective</th>
+<th align="left">Method</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">Estimate a common response shape from a standard or overlapping signals</td>
+<td align="left">
+<a href="articles/estimate-psf.html">Estimate PSFs</a> with <code><a href="reference/estimate_psf.html">estimate_psf()</a></code>. The returned sparse design can use a constant or time-varying PSF.</td>
+</tr>
+<tr>
+<td align="left">Resolve components with individual shapes in one matrix</td>
+<td align="left">
+<a href="articles/log-concave-nmf.html">Sparse log-concave NMF</a> with <code><a href="reference/splogconNMF.html">splogconNMF()</a></code>. The tutorial covers rank selection, backgrounds and seven noise models.</td>
+</tr>
+<tr>
+<td align="left">Share spectra across related samples</td>
+<td align="left">
+<a href="articles/coupled-nmf.html">Coupled log-concave NMF</a> with <code><a href="reference/coupledNMF.html">coupledNMF()</a></code>. Each sample retains its own scan grid, peak shapes and areas. Components may be absent from individual samples.</td>
+</tr>
+</tbody>
+</table>
+<p>For a known and common PSF, <a href="https://tomwenseleers.github.io/L0glm/articles/deconvolution.html" class="external-link">L0glm</a> fits the sparse convolution model directly. <a href="https://tomwenseleers.github.io/GCMSprime/" class="external-link">GCMSprime</a> uses L0nmf for chromatogram files, retention-index calibration and library search. The <a href="articles/algorithm.html">algorithm and theory</a> give the objectives, shape constraints and mathematical pseudocode.</p>
 </div>
 <div class="section level2">
 <h2 id="share-spectra-across-samples">Share spectra across samples<a class="anchor" aria-label="anchor" href="#share-spectra-across-samples"></a>
 </h2>
-<p><code><a href="reference/coupledNMF.html">coupledNMF()</a></code> aligns related samples and estimates common spectra with sample-specific log-concave profiles, integrated areas and smooth backgrounds. It supports all seven signal families, irregular scan grids and disk-backed observations. In a three-sample simulation with all 258 channels, it recovers all 78 compound occurrences in 29.69 seconds. With compounds absent from half the samples, all 37 present occurrences are recovered in 21.92 seconds.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/coupledNMF.html">coupledNMF</a></span><span class="op">(</span><span class="va">samples</span>, family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster<span class="op">=</span><span class="fl">32L</span><span class="op">)</span></span>
-<span><span class="va">fit</span><span class="op">$</span><span class="va">areas</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span>, normalize<span class="op">=</span><span class="st">"l1"</span><span class="op">)</span></span></code></pre></div>
-<p>See <a href="articles/coupled-nmf.html">Coupled multisample log-concave NMF</a> for simulations, plots and mathematical details, and <a href="https://tomwenseleers.github.io/GCMSprime/articles/multisample.html" class="external-link">GCMSprime</a> for the directory-based chromatogram workflow.</p>
+<p>In the <a href="articles/coupled-nmf.html#sixteen-samples-with-parallel-fitting">16-sample benchmark</a>, the coupled model recovers all 48 shared compounds and 380 occurrences, with no false calls. The CDF workflow took <strong>63.91 s</strong> with 16 workers. Each sample has 1,200 scans and 258 ion channels, with retention-time drift and concentration-dependent peak shapes. The tutorial shows the recovered areas and timings by stage.</p>
 </div>
 <div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>

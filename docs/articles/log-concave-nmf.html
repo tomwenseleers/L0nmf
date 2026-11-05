@@ -40,8 +40,8 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="../articles/estimate-psf.html">Get started</a></li>
-<li class="active nav-item dropdown">
+<li class="active nav-item"><a class="nav-link" href="../articles/log-concave-nmf.html">Get started</a></li>
+<li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials">
 <li><a class="dropdown-item" href="../articles/estimate-psf.html">Estimate PSFs</a></li>
@@ -79,16 +79,42 @@
 
     
     
-<p>A convolution model gives every impulse the same local response
-shape. Real components can be broader, more asymmetric or more strongly
-tailed. Sparse log-concave NMF lets each component acquire its own
-positive profile and loading vector, while selecting how many components
-the observations support.</p>
-<p><code><a href="../reference/splogconNMF.html">splogconNMF()</a></code> starts from sparse multichannel
-deconvolution on a candidate PSF design, fuses compatible components,
-refines their profiles and loadings, and checks residual evidence for
-additions or deletions. Local updates use the specified observation
-likelihood and hard log-concavity constraints.</p>
+<p>A GC–MS chromatogram can contain several compounds at the same
+retention time. The time course of a compound is its elution profile,
+and the relative signals it produces across ions form its mass spectrum.
+Each measured scan contains a mixture of those contributions.</p>
+<p>A fixed convolution model places the same local response shape at
+each candidate position. That works well when the peaks have similar
+shapes. Broad, tailed or overloaded peaks can require several adjacent
+spikes to approximate one compound. <code><a href="../reference/splogconNMF.html">splogconNMF()</a></code> begins
+with such a dictionary and then estimates a separate log-concave profile
+and spectrum for every retained component. This lets the model combine
+compatible fragments and refine both the peak shapes and the
+spectra.</p>
+<div class="section level2">
+<h2 id="the-factorization">The factorization<a class="anchor" aria-label="anchor" href="#the-factorization"></a>
+</h2>
+<p>For <span class="math inline">n</span> ordered scans and <span class="math inline">m</span> channels, write the mean as</p>
+<p><span class="math display">
+M = H S + B A + O,\qquad
+H\in\mathbb{R}_+^{n\times K},\quad S\in\mathbb{R}_+^{K\times m}.
+</span></p>
+<p>Here <span class="math inline">K</span> is the number of components,
+<span class="math inline">BA</span> is an optional smooth background and
+<span class="math inline">O</span> is a known additive offset. Component
+<span class="math inline">k</span> contributes the outer product of
+column <span class="math inline">k</span> of <span class="math inline">H</span> and row <span class="math inline">k</span>
+of <span class="math inline">S</span>. The positive support of a profile
+is contiguous. On an evenly spaced grid, log-concavity means <span class="math inline">2\log H_{ik}\geq \log H_{i-1,k}+\log
+H_{i+1,k}</span> within that support. This includes familiar Gaussian
+and exponentially tailed peak shapes.</p>
+<p>Each column of <span class="math inline">H</span> sums to one. The
+corresponding row of <span class="math inline">S</span> then contains
+integrated channel intensities and can be normalized to a spectrum of
+relative intensities. The fit compares likelihood and rank so that
+another profile must explain enough of the signal to justify its
+inclusion.</p>
+</div>
 <div class="section level2">
 <h2 id="fit-profiles-loadings-and-background">Fit profiles, loadings and background<a class="anchor" aria-label="anchor" href="#fit-profiles-loadings-and-background"></a>
 </h2>
@@ -103,18 +129,14 @@ to other ordered multichannel measurements.</p>
 <span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/convmatrix.html">convmatrix</a></span><span class="op">(</span><span class="fu"><a href="../reference/convkernel.html">convkernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="fl">65L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma<span class="op">=</span><span class="fl">8</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">B</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span>, <span class="fl">1L</span><span class="op">)</span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/splogconNMF.html">splogconNMF</a></span><span class="op">(</span><span class="va">X</span>, <span class="va">Y</span>, background<span class="op">=</span><span class="va">B</span>,</span>
-<span>  family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster<span class="op">=</span><span class="fl">16L</span>, correlation<span class="op">=</span><span class="st">"auto"</span><span class="op">)</span></span>
+<span>  family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster<span class="op">=</span><span class="fl">16L</span>, correlation<span class="op">=</span><span class="st">"auto"</span>, ncores<span class="op">=</span><span class="fl">8L</span><span class="op">)</span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">rank</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">H</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/model_criteria.html" class="external-link">GIC</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
-<p>The mean is <code>H %*% S + B %*% alpha + offset</code>. Each sparse
-column of <code>H</code> has contiguous support, unit sum and a concave
-log profile. Rows of <code>S</code> contain loadings on every original
-channel; their sums give the component’s total discrete integrated
-intensity. <code>B</code> is a nonnegative background basis. For unknown
-kernels, <a href="estimate-psf.html">estimate the PSF</a> first and pass
-its <code>X</code>.</p>
+<p>The constant background is supplied as a single column of ones. Use
+<a href="estimate-psf.html">PSF estimation</a> to build <code>X</code>
+when the initial response shape is unknown or varies with position.</p>
 </div>
 <div class="section level2">
 <h2 id="inspect-the-recovered-components">Inspect the recovered components<a class="anchor" aria-label="anchor" href="#inspect-the-recovered-components"></a>
@@ -122,7 +144,7 @@ its <code>X</code>.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/matplot.html" class="external-link">matplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">H</span><span class="op">)</span>, type<span class="op">=</span><span class="st">"l"</span>, lty<span class="op">=</span><span class="fl">1</span>, xlab<span class="op">=</span><span class="st">"Scan"</span>, ylab<span class="op">=</span><span class="st">"Profile"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/matplot.html" class="external-link">matplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span>, type<span class="op">=</span><span class="st">"h"</span>, lty<span class="op">=</span><span class="fl">1</span>, xlab<span class="op">=</span><span class="st">"Channel"</span>, ylab<span class="op">=</span><span class="st">"Loading"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/plotmat.html" class="external-link">plotmat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span>, xlab<span class="op">=</span><span class="st">"Scan"</span>, ylab<span class="op">=</span><span class="st">"Channel"</span><span class="op">)</span></span>
+<span><span class="fu">L0glm</span><span class="fu">::</span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/plotmat.html" class="external-link">plotmat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span>, xlab<span class="op">=</span><span class="st">"Scan"</span>, ylab<span class="op">=</span><span class="st">"Channel"</span><span class="op">)</span></span>
 <span><span class="va">patterns</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums-methods.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fitted_signal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">seconds</span></span></code></pre></div>
@@ -148,44 +170,47 @@ the smooth background:</p>
 <span><span class="va">X2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/convmatrix.html">convmatrix</a></span><span class="op">(</span><span class="fu"><a href="../reference/convkernel.html">convkernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="fl">65L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma<span class="op">=</span><span class="fl">6</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">B2</span> <span class="op">&lt;-</span> <span class="fu">splines</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/splines/bs.html" class="external-link">bs</a></span><span class="op">(</span><span class="va">t2</span>, df<span class="op">=</span><span class="fl">4L</span>, intercept<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/splogconNMF.html">splogconNMF</a></span><span class="op">(</span><span class="va">X2</span>, <span class="va">Y2</span>, background<span class="op">=</span><span class="va">B2</span>,</span>
-<span>  family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster<span class="op">=</span><span class="fl">32L</span>, correlation<span class="op">=</span><span class="st">"auto"</span><span class="op">)</span></span>
+<span>  family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster<span class="op">=</span><span class="fl">32L</span>, correlation<span class="op">=</span><span class="st">"auto"</span>, ncores<span class="op">=</span><span class="fl">8L</span><span class="op">)</span></span>
 <span><span class="va">fit2</span><span class="op">$</span><span class="va">rank</span></span>
 <span><span class="va">fit2</span><span class="op">$</span><span class="va">contained_fusion</span><span class="op">$</span><span class="va">broad</span></span></code></pre></div>
 <div class="float">
 <img src="../reference/figures/gcms-data2-profiles-spectra.png" alt="Log-concave profiles and full-channel spectra, including the broad component"><div class="figcaption">Log-concave profiles and full-channel spectra,
 including the broad component</div>
 </div>
-<p>The corresponding GCMSprime CDF workflows use the same full-channel
-backend and the default temporal information adjustment:</p>
+<p>The table reports one direct fit of each matrix with eight OpenMP
+threads and one BLAS thread on an Intel Core i9-11950H. Constructing the
+PSF dictionary and background basis is outside the timing.</p>
 <table class="table">
 <thead><tr class="header">
 <th align="left">Window</th>
+<th align="right">Scans</th>
 <th align="right">Channels</th>
 <th align="right">Components</th>
 <th align="right">Quasi-GIC</th>
-<th align="right">Adjusted weighted R²</th>
+<th align="right">Seconds</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td align="left">Hydrocarbons</td>
+<td align="right">119</td>
 <td align="right">671</td>
 <td align="right">6</td>
 <td align="right">246,473</td>
-<td align="right">0.98999</td>
+<td align="right">4.63</td>
 </tr>
 <tr class="even">
 <td align="left">Beer volatiles</td>
+<td align="right">1,764</td>
 <td align="right">518</td>
 <td align="right">38</td>
-<td align="right">1,467,419</td>
-<td align="right">0.99498</td>
+<td align="right">1,467,426</td>
+<td align="right">67.00</td>
 </tr>
 </tbody>
 </table>
-<p>The accompanying <a href="https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html" class="external-link">CDF
-workflow</a> reports measured timings and complete-criterion tables for
-both windows, with downloadable traces, heatmaps, complete
-profile/spectrum panels and MSP libraries.</p>
+<p>The <a href="https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html" class="external-link">GCMSprime
+tutorial</a> times the complete CDF-to-MSP workflow separately and
+provides diagnostic plots and downloadable spectra.</p>
 </div>
 <div class="section level2">
 <h2 id="automatic-best-rank-tuning">Automatic best rank tuning<a class="anchor" aria-label="anchor" href="#automatic-best-rank-tuning"></a>

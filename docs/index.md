@@ -6,12 +6,12 @@ Sparse factors.\
 Interpretable signals.
 ======================
 
-Scalable sparse nonnegative matrix factorization with log-concave
-profile shape constraints, flexible noise models and automatic best rank
-tuning for single or multiple samples.
+Separate overlapping signals into log-concave profiles and nonnegative
+spectra. Estimate the number of components in one sample or share
+spectra across a whole experiment.
 
 [Get started
-↗](https://tomwenseleers.github.io/L0nmf/articles/estimate-psf.md)[Explore
+↗](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md)[Explore
 the methods](https://tomwenseleers.github.io/L0nmf/reference/index.md)
 
 R · Local likelihood updates · Full spectra · Constant & varying PSFs
@@ -28,103 +28,102 @@ PSFs](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf.md)
 Gamma
 models](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md)
 
-Scalable sparse nonnegative matrix factorization with log-concave
-profile shape constraints, flexible noise models and automatic best rank
-tuning for single or multiple samples.
+In a GC–MS chromatogram, several compounds can elute at the same time.
+Each scan records the sum of their mass spectra, with contributions that
+change as the compounds pass through the instrument. L0nmf separates
+this mixture into an elution profile and a spectrum for each component,
+while estimating how many components the signal supports. The same model
+applies to ordered multichannel signals with nonnegative, single-peaked
+components.
 
-Start with a calibrated or estimated point spread function, then let
-each component acquire its own log-concave profile. Coupled models share
-spectra across samples while retaining sample-specific shapes, areas and
-observation grids.
+## What the model estimates
+
+For a scan-by-channel matrix `Y`, the fitted signal is
+`H %*% S + B %*% A`. Column `k` of `H` gives the shape of component `k`
+across scans. Row `k` of `S` gives its contributions to the original
+channels. A low-dimensional basis `B` can describe a smooth baseline,
+with coefficients in `A`. A known additive signal can also be supplied
+as an offset.
+
+On its positive interval, a **log-concave profile** has non-increasing
+slopes on the log scale. This admits symmetric peaks, asymmetric tails
+and broad triangular peaks. It gives the fit a way to separate
+overlapping components while allowing their shapes to differ. A rank
+penalty charges for each retained component, and local likelihood
+updates refine the profiles and spectra under the chosen noise model.
 
 ## Installation
 
 ``` r
 
 install.packages("remotes")
-remotes::install_github("tomwenseleers/L0nmf/L0nmf")
+remotes::install_github("tomwenseleers/L0nmf", subdir="L0nmf")
 ```
 
-## Recover profiles and spectra
+## Recover overlapping profiles and spectra
+
+This short experimental window contains six co-eluting hydrocarbons. The
+initial dictionary `X` places a narrow Gaussian point spread function
+(PSF) at each possible peak location. The factorization can move away
+from that shape and gives each retained component its own log-concave
+profile.
 
 ``` r
 
-library(L0glm)
 library(L0nmf)
 data(GCMS_data1)
-X <- convmatrix(convkernel("gaussian", 65L, list(sigma=8)), nrow(GCMS_data1))
-fit <- splogconNMF(X, GCMS_data1, background=matrix(1,nrow(X),1),
-                  family=quasipoisson("identity"), precluster=16L,
-                  correlation="auto")
-fit
+Y <- GCMS_data1
+g <- convkernel("gaussian", 65L, list(sigma = 8))
+X <- convmatrix(g, nrow(Y))
+fit <- splogconNMF(X, Y, background = matrix(1, nrow(Y), 1L),
+  family = quasipoisson("identity"), precluster = 16L)
+
+fit$rank                         # estimated number of components
+profiles <- fit$H                 # scans x components
+loadings <- coef(fit)             # components x original channels
+spectra <- loadings / rowSums(loadings)
 GIC(fit)
-matplot(as.matrix(fit$H), type="l", lty=1, xlab="Scan", ylab="Elution profile")
 ```
 
-The factors retain every original outcome channel. Profiles have unit
-area, nonnegative spectra carry their intensities, and a smooth
-unpenalized background captures baseline variation. Selection and fusion
-use a parsimonious rank criterion with local likelihood updates.
+The columns of `profiles` sum to one, so each row sum in `loadings`
+gives the component’s total fitted signal across scans and channels.
+Grouping similar channels can speed up the initial search. The reported
+spectra use every original channel.
 
-![Recovered log-concave profiles and
-spectra](reference/figures/gcms-data1-profiles-spectra.png)
+![Observed signal, fitted log-concave profiles and recovered spectra for
+six hydrocarbons](reference/figures/gcms-data1-decomposition.png)
 
-Recovered log-concave profiles and spectra
+Observed signal, fitted log-concave profiles and recovered spectra for
+six hydrocarbons
 
-The [worked
-example](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md)
-shows fitting and diagnostics. The [algorithm and
+Each spectrum is displayed on a square-root relative-intensity scale.
+
+## Choose a workflow
+
+| Data and objective | Method |
+|:---|:---|
+| Estimate a common response shape from a standard or overlapping signals | [Estimate PSFs](https://tomwenseleers.github.io/L0nmf/articles/estimate-psf.md) with [`estimate_psf()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf.md). The returned sparse design can use a constant or time-varying PSF. |
+| Resolve components with individual shapes in one matrix | [Sparse log-concave NMF](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md) with [`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md). The tutorial covers rank selection, backgrounds and seven noise models. |
+| Share spectra across related samples | [Coupled log-concave NMF](https://tomwenseleers.github.io/L0nmf/articles/coupled-nmf.md) with [`coupledNMF()`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md). Each sample retains its own scan grid, peak shapes and areas. Components may be absent from individual samples. |
+
+For a known and common PSF,
+[L0glm](https://tomwenseleers.github.io/L0glm/articles/deconvolution.html)
+fits the sparse convolution model directly.
+[GCMSprime](https://tomwenseleers.github.io/GCMSprime/) uses L0nmf for
+chromatogram files, retention-index calibration and library search. The
+[algorithm and
 theory](https://tomwenseleers.github.io/L0nmf/articles/algorithm.md)
-give the likelihood, constraints and mathematical pseudocode.
-
-The final original-channel pass checks component deletions, local
-fusions and missed residual peaks, accepting each change only when the
-complete likelihood-and-compound criterion improves. Native log-concave
-profile updates and joint spectral fits start from the current factors.
-Small fragments contained in broad profiles are compared with equally
-refined unmerged local models.
-
-## Learn the methods
-
-1.  [Estimate
-    PSFs](https://tomwenseleers.github.io/L0nmf/articles/estimate-psf.md):
-    known convolution, calibration and blind kernel estimation.
-2.  [Sparse log-concave NMF with automatic best rank
-    tuning](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md).
-3.  [Coupled multisample log-concave NMF with automatic best rank
-    tuning](https://tomwenseleers.github.io/L0nmf/articles/coupled-nmf.md).
-
-The [mathematical
-article](https://tomwenseleers.github.io/L0nmf/articles/algorithm.md)
-develops the objectives and algorithms.
-[L0glm](https://tomwenseleers.github.io/L0glm/) supplies sparse GLM
-selection; [GCMSprime](https://tomwenseleers.github.io/GCMSprime/)
-applies these models to chromatogram files, quantification and spectral
-identification.
+give the objectives, shape constraints and mathematical pseudocode.
 
 ## Share spectra across samples
 
-[`coupledNMF()`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
-aligns related samples and estimates common spectra with sample-specific
-log-concave profiles, integrated areas and smooth backgrounds. It
-supports all seven signal families, irregular scan grids and disk-backed
-observations. In a three-sample simulation with all 258 channels, it
-recovers all 78 compound occurrences in 29.69 seconds. With compounds
-absent from half the samples, all 37 present occurrences are recovered
-in 21.92 seconds.
-
-``` r
-
-fit <- coupledNMF(samples, family=quasipoisson("identity"), precluster=32L)
-fit$areas
-coef(fit, normalize="l1")
-```
-
-See [Coupled multisample log-concave
-NMF](https://tomwenseleers.github.io/L0nmf/articles/coupled-nmf.md) for
-simulations, plots and mathematical details, and
-[GCMSprime](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html)
-for the directory-based chromatogram workflow.
+In the [16-sample
+benchmark](https://tomwenseleers.github.io/L0nmf/articles/coupled-nmf.html#sixteen-samples-with-parallel-fitting),
+the coupled model recovers all 48 shared compounds and 380 occurrences,
+with no false calls. The CDF workflow took **63.91 s** with 16 workers.
+Each sample has 1,200 scans and 258 ion channels, with retention-time
+drift and concentration-dependent peak shapes. The tutorial shows the
+recovered areas and timings by stage.
 
 ## Citation
 

@@ -40,7 +40,7 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="../articles/estimate-psf.html">Get started</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/log-concave-nmf.html">Get started</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials">
@@ -79,11 +79,16 @@
 
     
     
-<p>L0nmf connects convolution and blind system identification to
-nonnegative factorization with flexible noise models. The ordered factor
-has a positive, log-concave profile; the other factor gives its
-multichannel loadings. Rank selection, backgrounds and noise calibration
-are part of the model.</p>
+<p>An ordered multichannel signal can be a mixture of overlapping
+components. Each component has one profile over the ordered coordinate
+and one vector of channel loadings. In GC–MS those factors describe how
+the compound elutes and which ions it produces.</p>
+<p>The algorithms below start with sparse deconvolution using a common
+local response shape. Blind fitting or calibration can estimate that
+response if needed. The log-concave factorization then allows each
+retained component to have its own shape, and the coupled model can
+share loadings across samples. Each stage uses the observation
+likelihood and a criterion for model size.</p>
 <p>This article follows the three tutorials: <a href="estimate-psf.html">PSF estimation</a>, <a href="log-concave-nmf.html">single-sample factorization</a> and <a href="coupled-nmf.html">coupled multisample factorization</a>. It
 specifies the actual objectives, coordinate conventions, initialization
 and acceptance rules.</p>
@@ -1095,15 +1100,15 @@ use the corresponding chain-rule score in log coordinates and linear
 slope constraints on actual aligned times. Native OpenMP updates give
 identical results across thread counts in the validation examples.</p>
 <p>The native spectral kernel evaluates each cell’s likelihood
-derivatives once and pools them over all sparse profiles in a single
-threaded pass. On a beer chromatogram with 14,949 scans, 518 channels
-and 325 profiles, this reduced one pooled-score calculation from
-<strong>5.45 s to 0.19 s</strong>, a <strong>28.7-fold speedup</strong>,
-while matching the profile-wise calculation to numerical precision.
-Cached peak geometry also avoids rescanning every profile after each
-algebraic merge. Shared row-wise weights and offsets retain one vector
-throughout the coupled fit, with channel-specific matrices used when
-required.</p>
+derivatives once and pools them over the sparse profiles in one pass
+parallelized across channels. On a beer chromatogram with 14,949 scans,
+518 channels and 325 profiles, the pooled score took <strong>0.16
+s</strong> versus <strong>4.53 s</strong> for the profile-wise
+calculation. Both used eight threads and agreed to numerical precision.
+The <strong>28.3-fold speedup</strong> is for this kernel pass. Cached
+peak geometry also avoids rescanning every profile after each algebraic
+merge. Shared row-wise weights and offsets retain one vector throughout
+the coupled fit, with channel-specific matrices used when required.</p>
 <p>All seven <a href="../reference/splogconNMF.html">signal families</a>
 are supported: Gaussian, Poisson, quasipoisson, NB2, NB1, censored Gamma
 and common-scale Gamma. Dispersion parameters are resolved from the

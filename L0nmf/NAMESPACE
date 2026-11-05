@@ -28,12 +28,15 @@ export(L0glm_blind_deco)
 export(L0glm_deco_estkernel)
 export(L0glm_sparse_deco)
 export(MBIC)
+export(convkernel)
+export(convmatrix)
 export(coupledNMF)
 export(estimate_psf)
 export(estimate_psf_from_std)
 export(estimate_signal_noise)
 export(log_conc_smooth)
 export(sampleNMF)
+export(shift_kernel)
 export(simulate_GCMS)
 export(simulate_GCMS_samples)
 export(splogconNMF)
@@ -49,6 +52,7 @@ importFrom(L0glm,
 importFrom(Matrix,
   Diagonal,
   Matrix,
+  bandSparse,
   colSums,
   sparseMatrix
 )
@@ -71,6 +75,7 @@ importFrom(graphics,
   text,
   title
 )
+importFrom(gsignal,conv)
 importFrom(splines,bs)
 importFrom(stats,
   AIC,

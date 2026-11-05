@@ -71,7 +71,7 @@ L0glm_deco_estkernel(
 - perc:
 
   Passed to
-  [`shift_kernel`](https://tomwenseleers.github.io/L0glm/reference/convkernel.html) -
+  [`shift_kernel`](https://tomwenseleers.github.io/L0nmf/reference/convkernel.md) -
   use \`"mean"\` to recenter the centroid, or a value in \\\[0,1\]\\ for
   a percentile.
 
@@ -142,7 +142,7 @@ DOI: 10.1016/j.aca.2011.05.030
 ## See also
 
 [`L0glm_sparse_deco`](https://tomwenseleers.github.io/L0nmf/reference/L0glm_sparse_deco.md),
-[`shift_kernel`](https://tomwenseleers.github.io/L0glm/reference/convkernel.html),
+[`shift_kernel`](https://tomwenseleers.github.io/L0nmf/reference/convkernel.md),
 [`log_conc_smooth`](https://tomwenseleers.github.io/L0nmf/reference/log_conc_smooth.md)
 
 ## Examples

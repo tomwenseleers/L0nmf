@@ -18,8 +18,9 @@ calibration and windowed estimation of smoothly time-varying kernels.
 
 ## Deconvolve with a known, constant PSF
 
-This multichannel signal has eight impulses, a common Gaussian response and
-Poisson noise. Channels share impulse locations but have different amplitudes.
+This multichannel signal has eight impulses, an asymmetric bigaussian PSF
+with left and right widths of 1.25 and 5 scans, and Poisson noise. Channels
+share impulse locations but have different amplitudes.
 
 ```r
 library(L0glm)
@@ -27,8 +28,8 @@ library(L0nmf)
 set.seed(611)
 n <- 600L; m <- 6L
 time <- seq_len(n) / 50
-lag <- -20:20
-g <- dnorm(lag, sd=4); g <- g/sum(g)
+g <- convkernel("bigaussian", 51L, list(sigma1=1.25, sigma2=5),
+  perc="mean")
 X <- convmatrix(g, n)
 A <- matrix(0, n, m)
 A[c(65,125,190,255,335,405,475,540),] <- runif(8L*m, 1500, 3500)
@@ -45,14 +46,16 @@ develops this regression model.
 ## Estimate an unknown kernel from overlapping signals
 
 ```r
+initial <- convkernel("gaussian", 51L, list(sigma=4))
 blind <- estimate_psf(Y, time=time, family=poisson("identity"),
   standard=NULL, method="blind", nwindows=1L, precluster=1L,
-  offset=3, control=list(L=41L, maxiter=4L))
+  offset=3, control=list(kernel_est=initial, maxiter=6L))
 blind$g_hat
 blind$width_scans
 ```
 
-`nwindows=1L` estimates one common PSF. The estimator starts with a positive
+`nwindows=1L` estimates one common PSF. The symmetric Gaussian start is
+refined into an asymmetric response. The estimator starts with a positive
 normalized kernel, alternates spike and kernel fits, and retains the completed
 fit with the best requested information criterion. Unit-sum normalization
 places scale in spike amplitudes; centroid alignment fixes the shift convention.
@@ -71,7 +74,7 @@ standard <- list(Y=rpois(n, as.numeric(X %*% standard_spikes)+5), time=time)
 
 calibrated <- estimate_psf(Y, time=time, standard=standard,
   family=poisson("identity"), method="standard", nwindows=1L,
-  control=list(L=41L, baseline_df=4L, n_peaks=3L))
+  control=list(L=51L, baseline_df=4L, n_peaks=3L))
 ```
 
 Calibration estimates a low-quantile background, identifies informative
@@ -80,14 +83,14 @@ likelihood. Normalized profiles are aligned by centroid and placed on the
 sample scan interval. `method="standard"` retains this calibration;
 `method="auto"` uses it to initialize blind refinement on the sample.
 
-![Known, blind and standard-calibrated kernels, and window-specific PSF estimates](figures/psf-estimation.png)
+![Asymmetric bigaussian ground truth, symmetric initialization, blind and calibrated PSFs, and window-specific estimates](figures/psf-estimation.png)
 
 ## Allow the PSF to vary through the signal
 
 ```r
 varying <- estimate_psf(Y, time=time, standard=standard,
   family=poisson("identity"), method="auto", nwindows=3L,
-  offset=3, control=list(L=41L, baseline_df=4L, n_peaks=3L, maxiter=4L))
+  offset=3, control=list(L=51L, baseline_df=4L, n_peaks=3L, maxiter=6L))
 varying$psf_timepoints
 varying$psf_kernels
 dim(varying$X)

@@ -62,7 +62,7 @@ L0glm_sparse_deco(
 - X:
 
   Optional. A sparse design matrix that overrides the automatic call to
-  [`convmatrix`](https://tomwenseleers.github.io/L0glm/reference/convmatrix.html).
+  [`convmatrix`](https://tomwenseleers.github.io/L0nmf/reference/convmatrix.md).
   This is useful when you need time-varying PSFs.
 
 - baseline:
@@ -277,9 +277,9 @@ several channels are deconvolved jointly.
 for the complementary "estimate-the-kernel" step,
 [`L0glm_blind_deco`](https://tomwenseleers.github.io/L0nmf/reference/L0glm_blind_deco.md)
 for the full alternating blind deconvolution,
-[`convmatrix`](https://tomwenseleers.github.io/L0glm/reference/convmatrix.html)
+[`convmatrix`](https://tomwenseleers.github.io/L0nmf/reference/convmatrix.md)
 (design matrix) and
-[`convkernel`](https://tomwenseleers.github.io/L0glm/reference/convkernel.html)
+[`convkernel`](https://tomwenseleers.github.io/L0nmf/reference/convkernel.md)
 (PSF generator).
 
 ## Examples

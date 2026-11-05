@@ -187,7 +187,7 @@ By default, a sparse `dgCMatrix` with dimensions
 for unified standard and blind estimation,
 [`L0glm_sparse_deco`](https://tomwenseleers.github.io/L0nmf/reference/L0glm_sparse_deco.md),
 [`log_conc_smooth`](https://tomwenseleers.github.io/L0nmf/reference/log_conc_smooth.md),
-[`convmatrix`](https://tomwenseleers.github.io/L0glm/reference/convmatrix.html)
+[`convmatrix`](https://tomwenseleers.github.io/L0nmf/reference/convmatrix.md)
 
 ## Examples
 

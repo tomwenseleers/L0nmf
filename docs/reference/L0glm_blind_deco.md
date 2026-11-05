@@ -91,7 +91,7 @@ L0glm_blind_deco(
 - perc:
 
   Passed to
-  [`shift_kernel`](https://tomwenseleers.github.io/L0glm/reference/convkernel.html)
+  [`shift_kernel`](https://tomwenseleers.github.io/L0nmf/reference/convkernel.md)
   when the PSF is updated. Either '"mean"' (shift the centroid, default)
   or a numeric percentile in \[0, 1\] to shift a given percentile in the
   CDF of the estimated kernel.
@@ -195,7 +195,7 @@ use the returned PSF. Time-varying fits blend local log PSFs using
 nonnegative smoothstep weights, with linear log-tail continuation when
 their supports differ. This preserves log-concavity when the local PSFs
 are log-concave. Edge columns are truncated using the same convention as
-[`convmatrix()`](https://tomwenseleers.github.io/L0glm/reference/convmatrix.html).
+[`convmatrix()`](https://tomwenseleers.github.io/L0nmf/reference/convmatrix.md).
 The best completed spike/background fit according to `IC` is retained
 across PSF updates. `best_iteration` identifies its PSF update; zero
 denotes the supplied starting kernel. `selection_trace` records the

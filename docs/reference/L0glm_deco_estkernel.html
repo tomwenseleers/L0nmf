@@ -141,7 +141,7 @@ or `Gamma(identity)`).</p></dd>
 
 
 <dt id="arg-perc">perc<a class="anchor" aria-label="anchor" href="#arg-perc"></a></dt>
-<dd><p>Passed to <code><a href="https://tomwenseleers.github.io/L0glm/reference/convkernel.html" class="external-link">shift_kernel</a></code> - use `"mean"` to recenter
+<dd><p>Passed to <code><a href="convkernel.html">shift_kernel</a></code> - use `"mean"` to recenter
 the centroid, or a value in \([0,1]\) for a percentile.</p></dd>
 
 
@@ -201,7 +201,7 @@ pulse trains with the L0 penalty</em>. <strong>Analytica Chimica Acta</strong>,
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="L0glm_sparse_deco.html">L0glm_sparse_deco</a></code>, <code><a href="https://tomwenseleers.github.io/L0glm/reference/convkernel.html" class="external-link">shift_kernel</a></code>,
+    <div class="dont-index"><p><code><a href="L0glm_sparse_deco.html">L0glm_sparse_deco</a></code>, <code><a href="convkernel.html">shift_kernel</a></code>,
 <code><a href="log_conc_smooth.html">log_conc_smooth</a></code></p></div>
     </div>
 
@@ -220,7 +220,7 @@ pulse trains with the L0 penalty</em>. <strong>Analytica Chimica Acta</strong>,
 <span><span class="va">L</span>       <span class="op">&lt;-</span> <span class="fl">51</span>                       <span class="co"># kernel length</span></span>
 <span><span class="va">sigma1</span>  <span class="op">&lt;-</span> <span class="fl">1.25</span>                     <span class="co"># left-hand sigma</span></span>
 <span><span class="va">sigma2</span>  <span class="op">&lt;-</span> <span class="fl">5</span>                        <span class="co"># right-hand sigma</span></span>
-<span><span class="va">g_true</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/convkernel.html" class="external-link">convkernel</a></span><span class="op">(</span><span class="st">"bigaussian"</span>, <span class="va">L</span>,</span>
+<span><span class="va">g_true</span>  <span class="op">&lt;-</span> <span class="fu"><a href="convkernel.html">convkernel</a></span><span class="op">(</span><span class="st">"bigaussian"</span>, <span class="va">L</span>,</span>
 <span>                      params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma1 <span class="op">=</span> <span class="va">sigma1</span>,</span>
 <span>                                    sigma2 <span class="op">=</span> <span class="va">sigma2</span><span class="op">)</span>,</span>
 <span>                      perc   <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>   <span class="co"># already centred</span></span>
@@ -245,7 +245,7 @@ pulse trains with the L0 penalty</em>. <strong>Analytica Chimica Acta</strong>,
 <span><span class="op">}</span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span> <span class="va">X_baseline</span> <span class="op">&lt;-</span> <span class="cn">NULL</span> <span class="op">}</span></span>
 <span></span>
 <span><span class="co">## --- generate blurred, noisy observations -------------------------</span></span>
-<span><span class="va">X_sim</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/convmatrix.html" class="external-link">convmatrix</a></span><span class="op">(</span><span class="va">g_true</span>, <span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">X_sim</span>  <span class="op">&lt;-</span> <span class="fu"><a href="convmatrix.html">convmatrix</a></span><span class="op">(</span><span class="va">g_true</span>, <span class="va">n</span><span class="op">)</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">X_baseline</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span> <span class="va">X_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">X_baseline</span>, <span class="va">X_sim</span><span class="op">)</span></span>
 <span><span class="va">a_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">a_baseline</span>, <span class="va">a_true</span><span class="op">)</span></span>
 <span><span class="va">y_baseline</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">X_baseline</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">a_baseline</span><span class="op">)</span> <span class="co"># noiseless baseline</span></span>
@@ -265,7 +265,7 @@ pulse trains with the L0 penalty</em>. <strong>Analytica Chimica Acta</strong>,
 <span><span class="co">## ------------------------------------------------------------------------</span></span>
 <span><span class="co">## 2  Deconvolution with an initial PSF guess</span></span>
 <span><span class="co">## ------------------------------------------------------------------------</span></span>
-<span><span class="va">g0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/convkernel.html" class="external-link">convkernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="va">L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">6</span><span class="op">)</span><span class="op">)</span>  <span class="co"># initial guess for PSF</span></span>
+<span><span class="va">g0</span> <span class="op">&lt;-</span> <span class="fu"><a href="convkernel.html">convkernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="va">L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">6</span><span class="op">)</span><span class="op">)</span>  <span class="co"># initial guess for PSF</span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="L0glm_sparse_deco.html">L0glm_sparse_deco</a></span><span class="op">(</span><span class="va">y</span>, </span>
 <span>                         kernel <span class="op">=</span> <span class="va">g0</span>,</span>
 <span>                         baseline <span class="op">=</span> <span class="va">baseline</span>,</span>

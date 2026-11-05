@@ -144,28 +144,41 @@ useful when a particular experimental PSF is already known.
 \examples{
 library(L0glm)
 set.seed(12)
-n <- 300L
+n <- 500L
 time <- seq_len(n) / 60
-kernel <- dnorm(-15:15, sd = 2.5)
-kernel <- kernel / sum(kernel)
+L <- 51L
+kernel <- convkernel("bigaussian", L,
+  list(sigma1 = 1.25, sigma2 = 5), perc = "mean")
+X <- convmatrix(kernel, n)
 A <- matrix(0, n, 3L)
-A[c(40, 120, 210, 270), ] <- 30000
-mu <- as.matrix(convmatrix(kernel, n) \%*\% A) + 10
-Y <- matrix(rpois(length(mu), mu), n, 3L)
+A[c(60, 180, 320, 440), ] <- 30000
+Y <- matrix(rpois(n * 3L, as.matrix(X \%*\% A) + 10), n, 3L)
 rownames(Y) <- time
 
-# Isolated standard peaks provide a PSF on the sample's retention-time grid.
-calibration <- estimate_psf(Y, standard = list(Y = Y, time = time),
-  method = "standard", nwindows = 3L, ncores = 2L)
+# Calibrate from isolated peaks with the same asymmetric instrumental response.
+standard_spikes <- numeric(n)
+standard_spikes[c(80, 250, 420)] <- c(90000, 120000, 100000)
+standard <- list(Y = rpois(n, as.numeric(X \%*\% standard_spikes) + 20), time = time)
+calibration <- estimate_psf(Y, time = time, family = poisson("identity"),
+  standard = standard, method = "standard", nwindows = 1L, ncores = 2L,
+  control = list(L = L, baseline_df = 4L, n_peaks = 3L))
 dim(calibration$X)
-Matrix::colSums(calibration$X)[1:5]
-matplot(calibration$psf_offsets, t(calibration$psf_kernels),
-  type = "l", lty = 1, xlab = "Relative retention time (min)", ylab = "PSF")
 
-# Blind refinement can use the original channels or their grouped sums.
-blind <- estimate_psf(Y, standard = NULL, method = "blind", precluster = 2L,
-  ncores = 2L, control = list(kernel_est = kernel, maxiter = 2L))
+# Blind estimation starts from a symmetric Gaussian, using summed channels.
+initial <- convkernel("gaussian", L, list(sigma = 4))
+blind <- estimate_psf(Y, time = time, family = poisson("identity"),
+  standard = NULL, method = "blind", precluster = 1L, offset = 10,
+  ncores = 2L, control = list(kernel_est = initial, maxiter = 6L))
 blind$width_scans
+
+lag <- (seq_len(L) - (L + 1L) / 2) / 60
+matplot(lag, cbind(kernel, initial, calibration$g_hat, blind$g_hat),
+  type = "l", lty = c(1, 2, 1, 1), lwd = 2,
+  col = c("black", "grey60", "#008b9a", "#cc3344"),
+  xlab = "Relative retention time (min)", ylab = "Unit-area PSF")
+legend("topright", c("True bigaussian", "Initial Gaussian", "Calibrated", "Blind"),
+  lty = c(1, 2, 1, 1), lwd = 2,
+  col = c("black", "grey60", "#008b9a", "#cc3344"), bty = "n")
 
 \dontrun{
 data(GCMS_data2)
@@ -176,7 +189,7 @@ B <- splines::bs(as.numeric(rownames(Y)), df = 4L, intercept = TRUE)
 fit <- splogconNMF(psf$X, Y, background = B,
   family = quasipoisson("identity"), precluster = 32L)
 
-# Calibration alone, or a single common PSF, are available through the same API.
+# Calibration alone, or a single common PSF, use the same interface.
 calibrated <- estimate_psf(Y, method = "standard", nwindows = 3L)
 constant <- estimate_psf(Y, nwindows = 1L)
 }
@@ -188,5 +201,5 @@ Deconvolution of pulse trains with the L0 penalty.
 }
 \seealso{
 \href{https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html}{GCMSdeco()}, \code{\link[=L0glm_blind_deco]{L0glm_blind_deco()}}, \code{\link[=estimate_psf_from_std]{estimate_psf_from_std()}},
-\code{\link[=splogconNMF]{splogconNMF()}}, \code{\link[L0glm:glm_cluster]{glm_cluster()}}
+\code{\link[=splogconNMF]{splogconNMF()}}, \code{\link[L0glm:glm_cluster]{glm_cluster()}}, \code{\link[L0glm:convkernel]{convkernel()}}, \code{\link[L0glm:convmatrix]{convmatrix()}}
 }

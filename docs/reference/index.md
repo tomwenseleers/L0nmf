@@ -2,6 +2,11 @@
 
 ## Estimate point spread functions and deconvolve signals
 
+- [`convkernel()`](https://tomwenseleers.github.io/L0nmf/reference/convkernel.md)
+  [`shift_kernel()`](https://tomwenseleers.github.io/L0nmf/reference/convkernel.md)
+  : Generate normalised 1-D convolution kernels (point-spread functions)
+- [`convmatrix()`](https://tomwenseleers.github.io/L0nmf/reference/convmatrix.md)
+  : Make banded or rectangular convolution design matrices
 - [`estimate_psf()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf.md)
   : Estimate constant or time-varying point spread functions
 - [`estimate_psf_from_std()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf_from_std.md)

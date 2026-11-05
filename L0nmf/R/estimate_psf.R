@@ -109,7 +109,7 @@
 #'   Deconvolution of pulse trains with the L0 penalty.
 #'   *Analytica Chimica Acta* 705, 218--226. \doi{10.1016/j.aca.2011.05.030}.
 #' @seealso [GCMSdeco()](https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html), [L0glm_blind_deco()], [estimate_psf_from_std()],
-#'   [splogconNMF()], [glm_cluster()]
+#'   [splogconNMF()], [glm_cluster()], [convkernel()], [convmatrix()]
 #' @example examples/estimate_psf.R
 #' @md
 #' @importFrom stats Gamma quasipoisson

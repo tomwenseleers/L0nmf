@@ -4,6 +4,12 @@
 
 ### PSF estimation and deconvolution
 
+- [`convkernel()`](https://tomwenseleers.github.io/L0nmf/reference/convkernel.md),
+  [`shift_kernel()`](https://tomwenseleers.github.io/L0nmf/reference/convkernel.md)
+  and
+  [`convmatrix()`](https://tomwenseleers.github.io/L0nmf/reference/convmatrix.md)
+  construct PSFs and convolution designs, including asymmetric
+  bigaussian and EMG responses.
 - [`estimate_psf()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf.md)
   estimates constant or smoothly time-varying point spread functions
   from standards or overlapping signals and returns a sparse design.

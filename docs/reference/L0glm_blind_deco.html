@@ -92,7 +92,7 @@ Set <code>perc = 0</code> to retain the estimated time origin without recenterin
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">kernel_est</span><span class="op">)</span> <span class="kw">else</span> <span class="fl">41</span>,</span>
 <span>  baseline <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  nknots <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fl">4L</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">floor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">)</span><span class="op">/</span><span class="fl">500</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  kernelfunc <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/convkernel.html" class="external-link">convkernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="va">L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">6</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  kernelfunc <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="convkernel.html">convkernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="va">L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">6</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  kernel_smoothfun <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">y</span><span class="op">)</span> <span class="fu"><a href="log_conc_smooth.html">log_conc_smooth</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span>,</span>
 <span>  perc <span class="op">=</span> <span class="st">"mean"</span>,</span>
 <span>  IC <span class="op">=</span> <span class="st">"gic"</span>,</span>
@@ -162,7 +162,7 @@ each iteration (default: <code><a href="log_conc_smooth.html">log_conc_smooth</a
 
 
 <dt id="arg-perc">perc<a class="anchor" aria-label="anchor" href="#arg-perc"></a></dt>
-<dd><p>Passed to <code><a href="https://tomwenseleers.github.io/L0glm/reference/convkernel.html" class="external-link">shift_kernel</a></code> when the PSF is
+<dd><p>Passed to <code><a href="convkernel.html">shift_kernel</a></code> when the PSF is
 updated. Either '"mean"' (shift the centroid, default) or a
 numeric percentile in [0, 1] to shift a given percentile in
 the CDF of the estimated kernel.</p></dd>
@@ -256,7 +256,7 @@ fits, <code>parallelize = FALSE</code> avoids worker-startup overhead.</p></dd>
   Time-varying fits blend local log PSFs using nonnegative smoothstep weights,
   with linear log-tail continuation when their supports differ. This preserves
   log-concavity when the local PSFs are log-concave. Edge columns are truncated
-  using the same convention as <code><a href="https://tomwenseleers.github.io/L0glm/reference/convmatrix.html" class="external-link">convmatrix()</a></code>.
+  using the same convention as <code><a href="convmatrix.html">convmatrix()</a></code>.
   The best completed spike/background fit according to <code>IC</code> is retained
   across PSF updates. <code>best_iteration</code> identifies its PSF update; zero
   denotes the supplied starting kernel. <code>selection_trace</code> records the
@@ -384,7 +384,7 @@ to exploit grouped-sparsity when several channels are deconvolved jointly.</p>
 <span><span class="va">L</span>       <span class="op">&lt;-</span> <span class="fl">51</span>                       <span class="co"># kernel length</span></span>
 <span><span class="va">sigma1</span>  <span class="op">&lt;-</span> <span class="fl">1.25</span>                     <span class="co"># left-hand sigma</span></span>
 <span><span class="va">sigma2</span>  <span class="op">&lt;-</span> <span class="fl">5</span>                        <span class="co"># right-hand sigma</span></span>
-<span><span class="va">g_true</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/convkernel.html" class="external-link">convkernel</a></span><span class="op">(</span><span class="st">"bigaussian"</span>, <span class="va">L</span>,</span>
+<span><span class="va">g_true</span>  <span class="op">&lt;-</span> <span class="fu"><a href="convkernel.html">convkernel</a></span><span class="op">(</span><span class="st">"bigaussian"</span>, <span class="va">L</span>,</span>
 <span>                      params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma1 <span class="op">=</span> <span class="va">sigma1</span>,</span>
 <span>                                    sigma2 <span class="op">=</span> <span class="va">sigma2</span><span class="op">)</span>,</span>
 <span>                      perc   <span class="op">=</span> <span class="st">"mean"</span><span class="op">)</span> <span class="co"># match the fitted PSF's centroid convention</span></span>
@@ -409,7 +409,7 @@ to exploit grouped-sparsity when several channels are deconvolved jointly.</p>
 <span><span class="op">}</span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span> <span class="va">X_baseline</span> <span class="op">&lt;-</span> <span class="cn">NULL</span> <span class="op">}</span></span>
 <span></span>
 <span><span class="co">## --- generate blurred, noisy observations -------------------------</span></span>
-<span><span class="va">X_sim</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/convmatrix.html" class="external-link">convmatrix</a></span><span class="op">(</span><span class="va">g_true</span>, <span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">X_sim</span>  <span class="op">&lt;-</span> <span class="fu"><a href="convmatrix.html">convmatrix</a></span><span class="op">(</span><span class="va">g_true</span>, <span class="va">n</span><span class="op">)</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">X_baseline</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span> <span class="va">X_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">X_baseline</span>, <span class="va">X_sim</span><span class="op">)</span></span>
 <span><span class="va">a_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">a_baseline</span>, <span class="va">a_true</span><span class="op">)</span></span>
 <span><span class="va">y_baseline</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">X_baseline</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">a_baseline</span><span class="op">)</span> <span class="co"># noiseless baseline</span></span>
@@ -429,7 +429,7 @@ to exploit grouped-sparsity when several channels are deconvolved jointly.</p>
 <span><span class="co">## ------------------------------------------------------------------------</span></span>
 <span><span class="co">## 2  Blind deconvolution starting from intial Gaussian PSF guess</span></span>
 <span><span class="co">## ------------------------------------------------------------------------</span></span>
-<span><span class="va">g0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/convkernel.html" class="external-link">convkernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="va">L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">6</span><span class="op">)</span><span class="op">)</span>  <span class="co"># initial guess for PSF</span></span>
+<span><span class="va">g0</span> <span class="op">&lt;-</span> <span class="fu"><a href="convkernel.html">convkernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="va">L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">6</span><span class="op">)</span><span class="op">)</span>  <span class="co"># initial guess for PSF</span></span>
 <span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">L0glm_blind_deco</span><span class="op">(</span><span class="va">y</span>,</span>
 <span>                        family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">poisson</a></span><span class="op">(</span><span class="va">identity</span><span class="op">)</span>,</span>

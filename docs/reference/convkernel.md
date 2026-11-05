@@ -1,0 +1,154 @@
+# Generate normalised 1-D convolution kernels (point-spread functions)
+
+Generates a numeric vector of length *L* that represents a point-spread
+function (PSF) or impulse-response kernel. The kernel is
+\\L^{1}\\-normalised (area = 1). Optionally it is shifted with
+`shift_kernel` so that a user-chosen percentile \\perc\\ of the
+cumulative distribution falls on index \\1 + perc \cdot (L - 1)\\;
+setting `perc = 0` leaves the kernel unshifted. Alternatively, using
+`perc = "mean"` will move the centroid to the middle of the kernel.
+
+The helper is useful for simulating blurred spike trains as observed in
+one-dimensional spectroscopy (GC-MS, NMR), calcium neuro-imaging, or
+epidemic curves where diagnosed cases are obtained by convolving
+infections with a delay-distribution kernel. Some of the available
+kernel families are:
+
+- **Gaussian / Bigaussian / Exponentially Modified Gaussian (Gaussian \*
+  Exp)** - common peak-shape models in gas-chromatography /
+  mass-spectrometry.
+
+- **Lorentzian** - arises in 1-D NMR as the Fourier transform of an
+  exponentially decaying free-induction decay (Cauchy-Lorentz
+  distribution).
+
+- **Exponential** - standard calcium-indicator impulse response in
+  neuro-imaging studies.
+
+- **Gamma / Gamma \* Exp** - typical infection-to-diagnosis delay
+  distributions in epidemiology and also sometimes used for
+  chromatographic peak shapes.
+
+All kernels returned by `convkernel()` integrate to 1 and are ready for
+use in convolution or deconvolution pipelines.
+
+## Usage
+
+``` r
+convkernel(
+  type = c("gaussian", "bigaussian", "emg", "lorentzian", "laplace", "exponential",
+    "gamma", "gammaexp"),
+  L,
+  params = list(),
+  perc = NULL
+)
+
+shift_kernel(kernel, perc = "mean", method = c("linear", "integer"))
+```
+
+## Arguments
+
+- type:
+
+  One of \`"gaussian"\`, \`"bigaussian"\`, \`"emg"\` (exponentially
+  modified Gaussian), \`"lorentzian"\` (Cauchy), \`"laplace"\`
+  (two-sided exponential), \`"exponential"\` (one-sided exponential),
+  \`"gamma"\`, \`"gammaexp"\` (convolution of Gamma with exponential).
+
+- L:
+
+  Integer (\>= 3). Kernel length.
+
+- params:
+
+  Named list of shape parameters (see Details).
+
+- perc:
+
+  Either \`"mean"\` (shift the centroid) or a numeric percentile in \[0,
+  1\].
+
+- kernel:
+
+  Numeric vector - the PSF to be shifted.
+
+- method:
+
+  \`"linear"\` (sub-sample interpolation) or \`"integer"\` (whole-sample
+  shift).
+
+## Value
+
+Numeric vector of length \*L\*.
+
+shifted vector of the same length as \`kernel\`
+
+## Details
+
+Default parameters for the different distributions are as follows:\
+gaussian: \`sigma=2.5\`\
+bigaussian: \`sigma1=1\`, \`sigma2=5\`\
+emg (gaussian \* exponential):\`sigma=2\`,\`tau=6 \` lorentzian:
+\`gamma=2\`\
+laplace: \`tau=3\`\
+exponential: \`tau=3\`\
+gamma: \`k=9\`, \`tau=0.5\`\
+gammaexp (gamma \* exponential): \`k=9\` , \` tau_g=0.7\` ,
+\`tau_e=0.7\`\
+
+Returned vectors are \*\*L^1-normalised\*\*. If \`align_percentile \>
+0\` the kernel is shifted (by sub-sample interpolation) so that the
+requested percentile lies at its theoretical position inside the
+length-\*L\* vector.
+
+## See also
+
+`shift_kernel`,
+[`convmatrix`](https://tomwenseleers.github.io/L0nmf/reference/convmatrix.md)
+
+## Author
+
+Tom Wenseleers <tom.wenseleers@kuleuven.be> \\ Laboratory of
+Socioecology and Social Evolution, KU Leuven \\
+<https://bio.kuleuven.be/eeb/tw/research> \\ ORCID:
+[0000-0002-1434-861X](https://orcid.org/0000-0002-1434-861X)
+
+## Examples
+
+``` r
+## available convolution kernels
+cols <- 1:8
+k1 <- convkernel("gaussian",    51, list(sigma = 4))
+k2 <- convkernel("bigaussian",  51, list(sigma1 = 2, sigma2 = 6))
+k3 <- convkernel("emg",         51, list(sigma = 2, tau = 6))
+k4 <- convkernel("lorentzian",  51, list(gamma = 3))
+k5 <- convkernel("laplace",     51, list(tau = 4))
+k6 <- convkernel("exponential", 51, list(tau = 5))
+k7 <- convkernel("gamma",       51, list(k = 9, tau = 0.5))
+k8 <- convkernel("gammaexp",    51, list(k = 9, tau_g = 0.7, tau_e = 0.7))
+matplot(cbind(k1,k2,k3,k4,k5,k6,k7,k8), type = "l", lty = 1, col = cols,
+        xlab = "kernel index", ylab = "density",
+        main = "Convolution kernels\n(point-spread functions)")
+legend("topright",
+       legend = c("Gaussian", "Bigaussian", "EMG", "Lorentzian",
+                  "Laplace", "Exponential", "Gamma", "Gammaexp"),
+       lty = 1, cex = 0.8, y.intersp = 0.8,
+       col = cols, bty = "n")
+
+## peak broadening as observed at higher concentrations in GC/MS analysis
+cols=1:3
+matplot(cbind(
+  convkernel("bigaussian", 51,
+             list(sigma1 = 2, sigma2 = 4), perc = 0.001),
+  convkernel("bigaussian", 51,
+             list(sigma1 = 2*2, sigma2 = 4*2), perc = 0.001),
+  convkernel("bigaussian", 51,
+             list(sigma1 = 2*3, sigma2 = 4*3), perc = 0.001)),
+  xlab = "kernel index", ylab = "density",
+  main = paste("Bigaussian point spread functions",
+               "(sigma1 = 2, 4, 6; sigma2 = 2 * sigma1)",
+               "perc = 0.001",
+               sep = "\n"),
+  col = cols, lty = 1,
+  type="l")
+```

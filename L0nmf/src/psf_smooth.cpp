@@ -20,7 +20,8 @@ std::vector<double> concave_majorant(const NumericVector& value) {
     const int a=knots[j-1],b=knots[j];
     for(int i=a;i<b;++i)out[i]=value[a]+(value[b]-value[a])*(i-a)/(b-a);
   }
-  if(n)out[n-1]=value[n-1];return out;
+  if(n)out[n-1]=value[n-1];
+  return out;
 }
 }
 

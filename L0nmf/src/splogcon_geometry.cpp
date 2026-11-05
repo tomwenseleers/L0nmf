@@ -12,7 +12,8 @@ double js_distance(const double* spectrum,double area,const double* p,int m) {
   double value=0;
   for(int c=0;c<m;++c) {
     const double q=spectrum[c]/area,mid=.5*(q+p[c]);
-    if(q>0)value+=.5*q*std::log(q/mid);if(p[c]>0)value+=.5*p[c]*std::log(p[c]/mid);
+    if(q>0)value+=.5*q*std::log(q/mid);
+    if(p[c]>0)value+=.5*p[c]*std::log(p[c]/mid);
   }
   return value;
 }

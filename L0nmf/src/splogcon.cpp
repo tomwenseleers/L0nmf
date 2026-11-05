@@ -165,7 +165,8 @@ List slcn_spectral(NumericMatrix y,NumericMatrix mean,S4 design,NumericMatrix sp
         if(next==old)continue;
         long double d=0;
         for(int a=0;a<len;++a) {const int i=index[ptr[j]+a];const double candidate=r[a]+next*h[a];
-          if(w[a]>0)d+=w[a]*change(yy[a],mu(i,c),candidate,family,pp[a],tt[a],censor);mu(i,c)=candidate;}
+          if(w[a]>0)d+=w[a]*change(yy[a],mu(i,c),candidate,family,pp[a],tt[a],censor);
+          mu(i,c)=candidate;}
         total+=d;pass_change+=(double)d;S(c,j)=next;biggest=std::max(biggest,std::abs(next-old)/std::max(1.,old));
       }
       if(std::abs(pass_change)<1e-8)break;

@@ -9,7 +9,7 @@ A fixed convolution model places the same local response shape at each
 candidate position. That works well when the peaks have similar shapes.
 Broad, tailed or overloaded peaks can require several adjacent spikes to
 approximate one compound.
-[`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+[`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
 begins with such a dictionary and then estimates a separate log-concave
 profile and spectrum for every retained component. This lets the model
 combine compatible fragments and refine both the peak shapes and the
@@ -44,12 +44,12 @@ other ordered multichannel measurements.
 ``` r
 
 library(L0glm)
-library(L0nmf)
+library(logconNMF)
 data(GCMS_data1)
 Y <- GCMS_data1
 X <- convmatrix(convkernel("gaussian", 65L, list(sigma=8)), nrow(Y))
 B <- matrix(1, nrow(Y), 1L)
-fit <- splogconNMF(X, Y, background=B,
+fit <- logconNMF(Y, X=X, background=B,
   family=quasipoisson("identity"), precluster=16L, correlation="auto", ncores=8L)
 fit$rank
 dim(fit$H)
@@ -58,7 +58,7 @@ GIC(fit)
 ```
 
 The constant background is supplied as a single column of ones. Use [PSF
-estimation](https://tomwenseleers.github.io/L0nmf/articles/estimate-psf.md)
+estimation](https://tomwenseleers.github.io/logconNMF/articles/estimate-psf.md)
 to build `X` when the initial response shape is unknown or varies with
 position.
 
@@ -97,7 +97,7 @@ Y2 <- GCMS_data2
 t2 <- as.numeric(rownames(Y2))
 X2 <- convmatrix(convkernel("gaussian", 65L, list(sigma=6)), nrow(Y2))
 B2 <- splines::bs(t2, df=4L, intercept=TRUE)
-fit2 <- splogconNMF(X2, Y2, background=B2,
+fit2 <- logconNMF(Y2, X=X2, background=B2,
   family=quasipoisson("identity"), precluster=32L, correlation="auto", ncores=8L)
 fit2$rank
 fit2$contained_fusion$broad
@@ -150,9 +150,10 @@ c(AIC=AIC(fit), BIC=BIC(fit), GIC=GIC(fit))
 
 Reported criteria count `m * rank` plus estimated shared noise
 parameters. Other presets are `"aic"`, `"bic"`, `"ebic"` and `"mbic"`. A
-nonnegative numeric `lambda` supplies the total component penalty before
-temporal adjustment. The [rank
-objective](https://tomwenseleers.github.io/L0nmf/articles/algorithm.html#rank-selection)
+nonnegative numeric `lambda` supplies the penalty per selection degree
+of freedom. Each retained component incurs `m * lambda` before temporal
+adjustment. The [rank
+objective](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html#rank-selection)
 gives the full convention.
 
 ## Choose a noise model
@@ -180,7 +181,7 @@ and corresponding quasi-criteria.
 Zero Gamma intensities represent left censoring at a detection limit,
 set by `control=list(censor=0.5)`; their contribution is the probability
 below that limit. See the [noise
-models](https://tomwenseleers.github.io/L0nmf/articles/algorithm.html#noise-models)
+models](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html#noise-models)
 for scores and parameterizations.
 
 ## Faster initialization and smooth backgrounds
@@ -208,8 +209,8 @@ The default `correlation="auto"` estimates a lag-one working information
 adjustment. `"none"` uses independent-observation rank charges; a
 supplied nonnegative correlation fixes the adjustment. Marginal noise
 variance stays in the likelihood. The [mathematical
-article](https://tomwenseleers.github.io/L0nmf/articles/algorithm.md)
+article](https://tomwenseleers.github.io/logconNMF/articles/algorithm.md)
 develops local solvers, hard shape constraints, aggregation and complete
 pseudocode. Continue with [coupled multisample
-NMF](https://tomwenseleers.github.io/L0nmf/articles/coupled-nmf.md) for
-shared loadings and sample-specific profiles.
+NMF](https://tomwenseleers.github.io/logconNMF/articles/coupled-nmf.md)
+for shared loadings and sample-specific profiles.

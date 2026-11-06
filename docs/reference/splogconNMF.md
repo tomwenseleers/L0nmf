@@ -99,9 +99,9 @@ print(x, ...)
 
   Nonnegative scans-by-candidates matrix, typically shifted copies of a
   point-spread function from
-  [`convmatrix()`](https://tomwenseleers.github.io/L0nmf/reference/convmatrix.md)
+  [`convmatrix()`](https://tomwenseleers.github.io/logconNMF/reference/convmatrix.md)
   or
-  [`L0glm_blind_deco()`](https://tomwenseleers.github.io/L0nmf/reference/L0glm_blind_deco.md).
+  [`L0glm_blind_deco()`](https://tomwenseleers.github.io/logconNMF/reference/L0glm_blind_deco.md).
   Columns must have contiguous log-concave positive support. Dense and
   sparse inputs are accepted and stored sparsely; columns are normalized
   to unit sum.
@@ -152,7 +152,7 @@ print(x, ...)
 - precluster:
 
   A saved
-  [`channel_groups()`](https://tomwenseleers.github.io/L0nmf/reference/channel_groups.md)
+  [`channel_groups()`](https://tomwenseleers.github.io/logconNMF/reference/channel_groups.md)
   map shares the same aggregation across analyses. `NULL` or `FALSE`
   uses every channel throughout. `TRUE` uses up to 32 groups; an integer
   supplies another maximum. Size-adjusted Poisson clustering,
@@ -258,7 +258,7 @@ nonnegative generalized matrix factorization (GMF), with a smooth
 background, log-concave profiles and automatic rank selection. See
 Kidzinski et al. (2022) and Castiglione et al. (2026). The function
 retains the NMF name; [the mathematical
-article](https://tomwenseleers.github.io/L0nmf/articles/algorithm.html#generalized-matrix-factorization)
+article](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html#generalized-matrix-factorization)
 relates its mean model to the GMF formulation.
 
 **Deviance matrix factorization.** This is a rank-penalized, nonnegative
@@ -268,7 +268,7 @@ families with fixed noise parameters, the loss is a weighted Bregman
 divergence: Gaussian gives squared error, Poisson gives generalized KL,
 and uncensored Gamma gives Itakura–Saito. See Wang and Carvalho (2023),
 and Li and Tyagi (2023). The [mathematical
-article](https://tomwenseleers.github.io/L0nmf/articles/algorithm.html#deviance-matrix-factorization-and-bregman-nmf)
+article](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html#deviance-matrix-factorization-and-bregman-nmf)
 gives the derivation and the negative-binomial case.
 
 **Model and selection criterion.** With scans in rows, write
@@ -418,9 +418,9 @@ throughout aggregation. Selection and initial fusion run in the reduced
 space. Lifting the spectra to the original channels is followed by a
 spectral/background refit and local shape refinement, with no repetition
 of the reduced-space search. Worked full-channel fits to
-[GCMS_data1](https://tomwenseleers.github.io/L0nmf/reference/GCMS_data1.md)
+[GCMS_data1](https://tomwenseleers.github.io/logconNMF/reference/GCMS_data1.md)
 and
-[GCMS_data2](https://tomwenseleers.github.io/L0nmf/reference/GCMS_data2.md),
+[GCMS_data2](https://tomwenseleers.github.io/logconNMF/reference/GCMS_data2.md),
 with traces, heatmaps, profiles and spectra, are shown in the [GC/MS
 deconvolution
 tutorial](https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html)
@@ -461,7 +461,7 @@ to single-cell RNA sequencing data. Biostatistics 27(1), kxag010.
 ## See also
 
 [GCMSdeco()](https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html),
-[`L0glm_blind_deco()`](https://tomwenseleers.github.io/L0nmf/reference/L0glm_blind_deco.md),
+[`L0glm_blind_deco()`](https://tomwenseleers.github.io/logconNMF/reference/L0glm_blind_deco.md),
 [`L0glm.fit()`](https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html),
 [`glm_cluster()`](https://tomwenseleers.github.io/L0glm/reference/glm_cluster.html)
 

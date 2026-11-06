@@ -1,16 +1,16 @@
 # Changelog
 
-## L0nmf 0.1.0
+## logconNMF 0.1.0
 
 ### PSF estimation and deconvolution
 
-- [`convkernel()`](https://tomwenseleers.github.io/L0nmf/reference/convkernel.md),
-  [`shift_kernel()`](https://tomwenseleers.github.io/L0nmf/reference/convkernel.md)
+- [`convkernel()`](https://tomwenseleers.github.io/logconNMF/reference/convkernel.md),
+  [`shift_kernel()`](https://tomwenseleers.github.io/logconNMF/reference/convkernel.md)
   and
-  [`convmatrix()`](https://tomwenseleers.github.io/L0nmf/reference/convmatrix.md)
+  [`convmatrix()`](https://tomwenseleers.github.io/logconNMF/reference/convmatrix.md)
   construct PSFs and convolution designs, including asymmetric
   bigaussian and EMG responses.
-- [`estimate_psf()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf.md)
+- [`estimate_psf()`](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf.md)
   estimates constant or smoothly time-varying point spread functions
   from standards or overlapping signals and returns a sparse design.
 - Alternating spike-train and kernel estimation supports single or
@@ -19,7 +19,7 @@
 
 ### Sparse log-concave matrix factorization
 
-- [`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+- [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
   estimates nonnegative profiles and loadings with hard log-concavity
   constraints and automatic best rank tuning.
 - Local profile, spectrum and background updates, algebraic candidate
@@ -40,9 +40,10 @@
 
 ### Coupled multisample models
 
-- [`coupledNMF()`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
-  shares spectra across samples with sample-specific profiles, areas and
-  backgrounds, allowing compounds to be absent from individual samples.
+- [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
+  with a sample list shares spectra across samples with sample-specific
+  profiles, areas and backgrounds, allowing compounds to be absent from
+  individual samples.
 
 - Monotone alignment, area-ordered profile compatibility and
   exposure-aware likelihoods retain each sample’s original irregular

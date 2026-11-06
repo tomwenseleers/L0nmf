@@ -9,17 +9,16 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/tomwenseleers/L0nmf/blob/master/L0nmf/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/tomwenseleers/logconNMF/blob/master/logconNMF/DESCRIPTION)
 
-Wenseleers T, Vanderaa C (2026). *L0nmf: Scalable Sparse Nonnegative
-Matrix Factorization with Automatic Rank Selection and Flexible Noise
-Models*. R package version 0.1.0,
-<https://tomwenseleers.github.io/L0nmf/>.
+Wenseleers T, Vanderaa C (2026). *logconNMF: Log-Concave Nonnegative
+Matrix Factorization with Automatic Rank Selection*. R package version
+0.1.0, <https://tomwenseleers.github.io/logconNMF/>.
 
     @Manual{,
-      title = {L0nmf: Scalable Sparse Nonnegative Matrix Factorization with Automatic Rank Selection and Flexible Noise Models},
+      title = {logconNMF: Log-Concave Nonnegative Matrix Factorization with Automatic Rank Selection},
       author = {Tom Wenseleers and Christophe Vanderaa},
       year = {2026},
       note = {R package version 0.1.0},
-      url = {https://tomwenseleers.github.io/L0nmf/},
+      url = {https://tomwenseleers.github.io/logconNMF/},
     }

@@ -1,6 +1,6 @@
 # Coupled multisample log-concave NMF with automatic best rank tuning
 
-[`coupledNMF()`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+[`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
 combines related multichannel samples into a common spectral library
 while fitting each sample’s own compound areas, peak shapes and smooth
 background. Samples retain their measured time grids. The model
@@ -9,7 +9,8 @@ tails, and compounds that occur in only some samples.
 
 ``` r
 
-fit <- coupledNMF(samples, family=quasipoisson("identity"), precluster=32L)
+fit <- logconNMF(samples, family=quasipoisson("identity"), precluster=32L)
+fit$rank                          # estimated number of shared compounds
 fit$areas                         # samples x consensus compounds
 coef(fit, normalize="l1")          # common spectra
 fitted(fit, sample=1L)             # original-grid fitted signal
@@ -19,7 +20,7 @@ GIC(fit)
 
 Each sample description contains `y`, `time`, and either a candidate PSF
 matrix `X` or an independent
-[`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+[`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
 fit. Matrices can be supplied through RDS paths. Observations, factors,
 weights and offsets are stored per sample. Each independent worker loads
 one sample into memory. During coupling, original observations and
@@ -47,7 +48,7 @@ samples <- lapply(sim$samples, function(s) list(
   background=splines::bs(s$time, df=4L, intercept=TRUE),
   small_width=2 * sqrt(2 * log(100)) * 1.6 * median(diff(s$time))))
 
-fit <- coupledNMF(samples, family=poisson("identity"), ncores=8L,
+fit <- logconNMF(samples, family=poisson("identity"), ncores=8L,
   control=list(initial=list(profile_cycles=4L, fusion_passes=2L)))
 fit$areas
 plot(fit, type="profiles", compounds=c(1L,12L))
@@ -140,7 +141,7 @@ plot(fit, type="areas")
 
 An absent occurrence stays `NA`; this model does not fill undetected
 compounds. The [coupled model and
-algorithm](https://tomwenseleers.github.io/L0nmf/articles/algorithm.html#coupled-model)
+algorithm](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html#coupled-model)
 give the exact likelihood, Jacobian, normalization, pooled spectral
 updates and rank charge.
 
@@ -172,7 +173,7 @@ store. Keep that store alongside saved fitted objects.
 The native kernel pools spectral scores over sparse profile supports and
 uses OpenMP over channels. On 14,949 scans, 518 channels and 325
 profiles, one pooled score pass took 0.16 s; the [implementation
-details](https://tomwenseleers.github.io/L0nmf/articles/algorithm.html#coupled-algorithm)
+details](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html#coupled-algorithm)
 describe the update and threading structure.
 
 For sample-group directories, acquisition ordering, alkane standards and

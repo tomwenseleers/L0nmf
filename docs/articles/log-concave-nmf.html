@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Sparse log-concave NMF with automatic best rank tuning • L0nmf</title>
+<title>Sparse log-concave NMF with automatic best rank tuning • logconNMF</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
@@ -20,8 +20,8 @@
 <meta property="og:title" content="Sparse log-concave NMF with automatic best rank tuning">
 <meta name="description" content="Recover nonnegative profiles and loadings with flexible noise models, hard shape constraints and automatic rank selection.">
 <meta property="og:description" content="Recover nonnegative profiles and loadings with flexible noise models, hard shape constraints and automatic rank selection.">
-<meta property="og:image" content="https://tomwenseleers.github.io/L0nmf/reference/figures/logo.png">
-<meta property="og:image:alt" content="L0nmf hex logo showing a sparse matrix factorized into profiles and spectral loadings">
+<meta property="og:image" content="https://tomwenseleers.github.io/logconNMF/reference/figures/logo.png">
+<meta property="og:image:alt" content="logconNMF hex logo with log-concave profiles and corresponding spectra">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -29,7 +29,7 @@
 
     <nav class="navbar navbar-expand-lg fixed-top bg-dark" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="../index.html">L0nmf</a>
+    <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
@@ -57,7 +57,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tomwenseleers/L0nmf"><span class="fa fab fa-github"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tomwenseleers/logconNMF"><span class="fa fab fa-github"></span></a></li>
       </ul>
 </div>
 
@@ -73,7 +73,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Sparse log-concave NMF with automatic best rank tuning</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/tomwenseleers/L0nmf/blob/master/L0nmf/vignettes/articles/log-concave-nmf.Rmd" class="external-link"><code>vignettes/articles/log-concave-nmf.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/tomwenseleers/logconNMF/blob/master/logconNMF/vignettes/articles/log-concave-nmf.Rmd" class="external-link"><code>vignettes/articles/log-concave-nmf.Rmd</code></a></small>
       <div class="d-none name"><code>log-concave-nmf.Rmd</code></div>
     </div>
 
@@ -86,9 +86,9 @@ Each measured scan contains a mixture of those contributions.</p>
 <p>A fixed convolution model places the same local response shape at
 each candidate position. That works well when the peaks have similar
 shapes. Broad, tailed or overloaded peaks can require several adjacent
-spikes to approximate one compound. <code><a href="../reference/splogconNMF.html">splogconNMF()</a></code> begins
-with such a dictionary and then estimates a separate log-concave profile
-and spectrum for every retained component. This lets the model combine
+spikes to approximate one compound. <code><a href="../reference/logconNMF.html">logconNMF()</a></code> begins with
+such a dictionary and then estimates a separate log-concave profile and
+spectrum for every retained component. This lets the model combine
 compatible fragments and refine both the peak shapes and the
 spectra.</p>
 <div class="section level2">
@@ -123,12 +123,12 @@ ordered scans; columns index mass channels. The formulation also applies
 to other ordered multichannel measurements.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tomwenseleers.github.io/L0glm/" class="external-link">L0glm</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tomwenseleers.github.io/L0nmf/">L0nmf</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tomwenseleers.github.io/logconNMF/">logconNMF</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">GCMS_data1</span><span class="op">)</span></span>
 <span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="va">GCMS_data1</span></span>
 <span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/convmatrix.html">convmatrix</a></span><span class="op">(</span><span class="fu"><a href="../reference/convkernel.html">convkernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="fl">65L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma<span class="op">=</span><span class="fl">8</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">B</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span>, <span class="fl">1L</span><span class="op">)</span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/splogconNMF.html">splogconNMF</a></span><span class="op">(</span><span class="va">X</span>, <span class="va">Y</span>, background<span class="op">=</span><span class="va">B</span>,</span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/logconNMF.html">logconNMF</a></span><span class="op">(</span><span class="va">Y</span>, X<span class="op">=</span><span class="va">X</span>, background<span class="op">=</span><span class="va">B</span>,</span>
 <span>  family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster<span class="op">=</span><span class="fl">16L</span>, correlation<span class="op">=</span><span class="st">"auto"</span>, ncores<span class="op">=</span><span class="fl">8L</span><span class="op">)</span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">rank</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">H</span><span class="op">)</span></span>
@@ -169,7 +169,7 @@ the smooth background:</p>
 <span><span class="va">t2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">Y2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">X2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/convmatrix.html">convmatrix</a></span><span class="op">(</span><span class="fu"><a href="../reference/convkernel.html">convkernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="fl">65L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma<span class="op">=</span><span class="fl">6</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">B2</span> <span class="op">&lt;-</span> <span class="fu">splines</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/splines/bs.html" class="external-link">bs</a></span><span class="op">(</span><span class="va">t2</span>, df<span class="op">=</span><span class="fl">4L</span>, intercept<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/splogconNMF.html">splogconNMF</a></span><span class="op">(</span><span class="va">X2</span>, <span class="va">Y2</span>, background<span class="op">=</span><span class="va">B2</span>,</span>
+<span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/logconNMF.html">logconNMF</a></span><span class="op">(</span><span class="va">Y2</span>, X<span class="op">=</span><span class="va">X2</span>, background<span class="op">=</span><span class="va">B2</span>,</span>
 <span>  family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster<span class="op">=</span><span class="fl">32L</span>, correlation<span class="op">=</span><span class="st">"auto"</span>, ncores<span class="op">=</span><span class="fl">8L</span><span class="op">)</span></span>
 <span><span class="va">fit2</span><span class="op">$</span><span class="va">rank</span></span>
 <span><span class="va">fit2</span><span class="op">$</span><span class="va">contained_fusion</span><span class="op">$</span><span class="va">broad</span></span></code></pre></div>
@@ -236,8 +236,9 @@ background coefficients have no extra rank penalty.</p>
 <p>Reported criteria count <code>m * rank</code> plus estimated shared
 noise parameters. Other presets are <code>"aic"</code>,
 <code>"bic"</code>, <code>"ebic"</code> and <code>"mbic"</code>. A
-nonnegative numeric <code>lambda</code> supplies the total component
-penalty before temporal adjustment. The <a href="algorithm.html#rank-selection">rank objective</a> gives the full
+nonnegative numeric <code>lambda</code> supplies the penalty per
+selection degree of freedom. Each retained component incurs
+<code>m * lambda</code> before temporal adjustment. The <a href="algorithm.html#rank-selection">rank objective</a> gives the full
 convention.</p>
 </div>
 <div class="section level2">

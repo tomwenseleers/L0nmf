@@ -86,12 +86,12 @@ L0glm_blind_deco(
 - kernel_smoothfun:
 
   Optional smoother applied to the raw PSF in each iteration (default:
-  [`log_conc_smooth`](https://tomwenseleers.github.io/L0nmf/reference/log_conc_smooth.md)).
+  [`log_conc_smooth`](https://tomwenseleers.github.io/logconNMF/reference/log_conc_smooth.md)).
 
 - perc:
 
   Passed to
-  [`shift_kernel`](https://tomwenseleers.github.io/L0nmf/reference/convkernel.md)
+  [`shift_kernel`](https://tomwenseleers.github.io/logconNMF/reference/convkernel.md)
   when the PSF is updated. Either '"mean"' (shift the centroid, default)
   or a numeric percentile in \[0, 1\] to shift a given percentile in the
   CDF of the estimated kernel.
@@ -195,7 +195,7 @@ use the returned PSF. Time-varying fits blend local log PSFs using
 nonnegative smoothstep weights, with linear log-tail continuation when
 their supports differ. This preserves log-concavity when the local PSFs
 are log-concave. Edge columns are truncated using the same convention as
-[`convmatrix()`](https://tomwenseleers.github.io/L0nmf/reference/convmatrix.md).
+[`convmatrix()`](https://tomwenseleers.github.io/logconNMF/reference/convmatrix.md).
 The best completed spike/background fit according to `IC` is retained
 across PSF updates. `best_iteration` identifies its PSF update; zero
 denotes the supplied starting kernel. `selection_trace` records the
@@ -329,8 +329,8 @@ channels are deconvolved jointly.
 
 ## See also
 
-[`L0glm_sparse_deco`](https://tomwenseleers.github.io/L0nmf/reference/L0glm_sparse_deco.md),
-[`L0glm_deco_estkernel`](https://tomwenseleers.github.io/L0nmf/reference/L0glm_deco_estkernel.md)
+[`L0glm_sparse_deco`](https://tomwenseleers.github.io/logconNMF/reference/L0glm_sparse_deco.md),
+[`L0glm_deco_estkernel`](https://tomwenseleers.github.io/logconNMF/reference/L0glm_deco_estkernel.md)
 
 ## Examples
 

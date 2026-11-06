@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Estimate PSFs • L0nmf</title>
+<title>Estimate PSFs • logconNMF</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
@@ -20,8 +20,8 @@
 <meta property="og:title" content="Estimate PSFs">
 <meta name="description" content="Known convolution, blind kernel estimation and calibrated constant or time-varying point spread functions.">
 <meta property="og:description" content="Known convolution, blind kernel estimation and calibrated constant or time-varying point spread functions.">
-<meta property="og:image" content="https://tomwenseleers.github.io/L0nmf/reference/figures/logo.png">
-<meta property="og:image:alt" content="L0nmf hex logo showing a sparse matrix factorized into profiles and spectral loadings">
+<meta property="og:image" content="https://tomwenseleers.github.io/logconNMF/reference/figures/logo.png">
+<meta property="og:image:alt" content="logconNMF hex logo with log-concave profiles and corresponding spectra">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -29,7 +29,7 @@
 
     <nav class="navbar navbar-expand-lg fixed-top bg-dark" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="../index.html">L0nmf</a>
+    <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
@@ -57,7 +57,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tomwenseleers/L0nmf"><span class="fa fab fa-github"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tomwenseleers/logconNMF"><span class="fa fab fa-github"></span></a></li>
       </ul>
 </div>
 
@@ -73,7 +73,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Estimate PSFs</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/tomwenseleers/L0nmf/blob/master/L0nmf/vignettes/articles/estimate-psf.Rmd" class="external-link"><code>vignettes/articles/estimate-psf.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/tomwenseleers/logconNMF/blob/master/logconNMF/vignettes/articles/estimate-psf.Rmd" class="external-link"><code>vignettes/articles/estimate-psf.Rmd</code></a></small>
       <div class="d-none name"><code>estimate-psf.Rmd</code></div>
     </div>
 
@@ -103,7 +103,7 @@ PSF with left and right widths of 1.25 and 5 scans, and Poisson noise.
 Channels share impulse locations but have different amplitudes.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tomwenseleers.github.io/L0glm/" class="external-link">L0glm</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tomwenseleers.github.io/L0nmf/">L0nmf</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tomwenseleers.github.io/logconNMF/">logconNMF</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">611</span><span class="op">)</span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">600L</span>; <span class="va">m</span> <span class="op">&lt;-</span> <span class="fl">6L</span></span>
 <span><span class="va">time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="op">/</span> <span class="fl">50</span></span>
@@ -139,7 +139,7 @@ centroid alignment fixes the shift convention.</p>
 channels. <code>FALSE</code> uses the original channels; an integer
 requests at most that many intensity-adjusted groups. The returned
 <code>blind$X</code> is a sparse scan-by-scan design ready for
-<code><a href="https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html" class="external-link">L0glm.fit()</a></code> or <code><a href="../reference/splogconNMF.html">splogconNMF()</a></code>.</p>
+<code><a href="https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html" class="external-link">L0glm.fit()</a></code> or <code><a href="../reference/logconNMF.html">logconNMF()</a></code>.</p>
 </div>
 <div class="section level2">
 <h2 id="calibrate-from-isolated-standard-peaks">Calibrate from isolated standard peaks<a class="anchor" aria-label="anchor" href="#calibrate-from-isolated-standard-peaks"></a>

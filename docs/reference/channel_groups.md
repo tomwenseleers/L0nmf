@@ -48,9 +48,9 @@ aggregate_channels(y, groups, channels = colnames(y))
 
 `channel_groups()` returns a compact reusable map accepted as
 `precluster` by
-[`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+[`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
 and
-[`coupledNMF()`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md).
+[`coupledNMF()`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md).
 `aggregate_channels()` returns a matrix whose columns sum the mapped
 channels. Unseen channels are collected in the map's reserved group.
 Save maps with [`saveRDS()`](https://rdrr.io/r/base/readRDS.html).

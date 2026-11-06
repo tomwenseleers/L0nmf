@@ -1,0 +1,265 @@
+# Fit a log-concave factorization with automatic rank selection
+
+Estimate ordered, nonnegative log-concave profiles and channel loadings
+from one signal or several related samples. The information criterion
+selects the number of components. Coupled fits share spectra while
+retaining the original scan grids and estimating a separate profile and
+area for each occurrence.
+
+## Usage
+
+``` r
+logconNMF(
+  y,
+  X = NULL,
+  family = poisson("identity"),
+  lambda = "gic",
+  background = NULL,
+  dispersion = NULL,
+  theta = NULL,
+  precluster = "auto",
+  weights = NULL,
+  offset = NULL,
+  correlation = NULL,
+  ncores = NULL,
+  control = list(),
+  start = NULL,
+  path = NULL,
+  align = TRUE,
+  method = c("cosine", "hellinger"),
+  verbose = FALSE
+)
+
+# S3 method for class 'logconNMF_fit'
+coef(object, sample = NULL, normalize = c("none", "l1"), ...)
+
+# S3 method for class 'logconNMF_fit'
+fitted(object, sample = 1L, ...)
+```
+
+## Arguments
+
+- y:
+
+  A numeric scans-by-channels matrix or vector for one sample, or a list
+  of at least two sample descriptions for a coupled fit. Each
+  description contains `y` and `time` and may include its own `X`,
+  `background`, `weights`, `offset`, `exposure` or existing `fit`.
+  Matrices and initial fits in a description can be supplied as RDS
+  paths. Samples must share channel names and order. List names supply
+  sample IDs when a description omits `sample_id`. See
+  [`coupledNMF()`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
+  for all descriptor fields.
+
+- X:
+
+  Candidate profile matrix for a single sample, such as the sparse
+  design from
+  [`estimate_psf()`](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf.md).
+  In a coupled fit, supply it in each sample description or let the
+  coupled initializer estimate it.
+
+- family:
+
+  Identity-link noise family: `gaussian`, `poisson`, `quasipoisson`,
+  [`mgcv::nb`](https://rdrr.io/pkg/mgcv/man/negbin.html), `Gamma`,
+  [`nb1()`](https://tomwenseleers.github.io/L0glm/reference/signal_families.html),
+  [`Gamma_scale()`](https://tomwenseleers.github.io/L0glm/reference/signal_families.html)
+  or
+  [`Gamma_censored()`](https://tomwenseleers.github.io/L0glm/reference/signal_families.html).
+  The corresponding names, including `"nb"`, `"nb1"` and
+  `"Gamma_scale"`, are also accepted. Count likelihoods require integer
+  counts; quasipoisson accepts nonnegative intensities. Gaussian
+  observations may be negative; their fitted latent signals remain
+  nonnegative.
+
+- lambda:
+
+  An information criterion (`"gic"`, `"aic"`, `"bic"`, `"ebic"` or
+  `"mbic"`) or a nonnegative numeric penalty per selection degree of
+  freedom, before any temporal information adjustment. With `m`
+  channels, a single component incurs `m * lambda`; in a coupled fit a
+  shared spectrum incurs `(m - 1) * lambda` and an occurrence incurs
+  `lambda`.
+
+- background:
+
+  Optional nonnegative scans-by-basis matrix, for example
+  `splines::bs(time, df=6, intercept=TRUE)`. Coefficients are
+  nonnegative and unpenalized. `NULL` fits without a background.
+
+- dispersion:
+
+  Known common Gaussian variance, quasipoisson scale, Gamma dispersion,
+  NB1 variance-to-mean ratio or common Gamma scale. `NULL` estimates a
+  pooled value from temporal differences and freezes it. Parameters
+  supplied in a
+  [signal_families](https://tomwenseleers.github.io/L0glm/reference/signal_families.html)
+  object are used when this argument is omitted. Poisson and NB2 use
+  unit dispersion.
+
+- theta:
+
+  NB2 shape, shared by all original channels. `NULL` estimates and
+  freezes a temporal moment estimate; a positive value fixes it; a
+  negative value initializes at its absolute value and enables pooled
+  likelihood updates. A fixed shape in the supplied NB family is
+  respected.
+
+- precluster:
+
+  Maximum channel groups or a saved
+  [`channel_groups()`](https://tomwenseleers.github.io/logconNMF/reference/channel_groups.md)
+  map. `"auto"` uses the original channels for a single sample and up to
+  32 common groups for a coupled fit. `FALSE` or `NULL` disables
+  aggregation. Final fits use every original channel.
+
+- weights:
+
+  Nonnegative likelihood weights: a scalar, row vector or matrix
+  matching `y`. `NULL` uses one. Zero weights omit observations.
+
+- offset:
+
+  Known nonnegative mean contribution, in the same supported formats as
+  `weights`. `NULL` uses zero. It is included on the response scale
+  because the link is identity.
+
+- correlation:
+
+  Lag-one working information adjustment. `NULL` uses the fitter's
+  default (`"auto"` for one sample and `"none"` for coupled fits), or
+  `control$correlation` if supplied for a coupled fit.
+
+- ncores:
+
+  Total core budget. `NULL` uses the detected physical core count.
+
+- control:
+
+  Named controls for the selected fitter. See
+  [`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
+  and
+  [`coupledNMF()`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
+  for their respective controls.
+
+- start:
+
+  Optional list `H`, `S` and `alpha`, with original dimensions. `H` has
+  scans in rows and compounds in columns; `S` has compounds in rows and
+  all original channels in columns. `alpha` contains background
+  coefficients and defaults to zero. Profiles are normalized with the
+  inverse change applied to spectra. A restart bypasses initial
+  screening and preclustering; nonnegative spectral entries can reopen
+  during refitting.
+
+- path:
+
+  New directory for the sample store and fitted factors. Keep this
+  directory with the saved R object; its paths are used by
+  [`fitted()`](https://rdrr.io/r/stats/fitted.values.html) and plots.
+
+- align:
+
+  Estimate monotone sample-level time warps.
+
+- method:
+
+  Spectral distance for anchor matching and grouping.
+
+- verbose:
+
+  Print stage timings, objective changes and compound counts.
+
+- object:
+
+  A fitted model returned by `logconNMF()`.
+
+- sample:
+
+  Sample index or ID. For a single matrix use `1L` or `"sample1"`. In
+  [`coef()`](https://rdrr.io/r/stats/coef.html), `NULL` returns the
+  common spectra for a coupled fit.
+
+- normalize:
+
+  `"none"` returns amplitude-scaled loadings. `"l1"` returns unit-sum
+  rows.
+
+- ...:
+
+  Further arguments passed to the underlying extractor.
+
+## Value
+
+A fitted object with estimated `rank`, the number of single-sample
+components or shared components. Use
+[`coef()`](https://rdrr.io/r/stats/coef.html),
+[`fitted()`](https://rdrr.io/r/stats/fitted.values.html) and
+[`GIC()`](https://tomwenseleers.github.io/L0glm/reference/model_criteria.html)
+in either mode. [`fitted()`](https://rdrr.io/r/stats/fitted.values.html)
+returns one sample on its original grid. A coupled fit also provides its
+sample-by-compound `areas` and
+[`sampleNMF()`](https://tomwenseleers.github.io/logconNMF/reference/sampleNMF.md)
+views.
+
+## Details
+
+**Rank-selection objective.** The fit approximately minimizes
+\$\$-2\sum_s \ell\_{\nu_s}(M_s;Y_s) + \kappa\lambda d.\$\$ The weighted
+log-likelihood \\\ell\_{\nu_s}\\ uses the fitted mean \\M_s\\ on the
+original channels of sample \\s\\. For quasipoisson it is the Poisson
+log score divided by the sample's estimated or supplied dispersion. The
+optional working temporal adjustment is \\\kappa\\, equal to one under
+independence. A numeric `lambda` sets the penalty per selection degree
+of freedom. The GIC preset uses \\\log(p)\log\log(n)\\, with the PSF
+dictionary width and number of scans for a single matrix. For a sample
+list the preset uses \\p=n=\sum_s n_s\\.
+
+For one matrix with \\m\\ channels and \\K\\ components, \\d=mK\\. For a
+coupled model, \\d=(m-1)G+L\\, where \\G\\ is the number of shared
+unit-sum spectra and \\L\\ counts the detected sample–component
+occurrences. Each spectrum contributes \\m-1\\ coordinates and each
+occurrence contributes one amplitude. Setting \\G=L=K\\ gives the
+single-sample count. Profiles have contiguous support and a concave
+logarithm on the positive interval. Profile shapes and smooth
+backgrounds carry no additional rank charge.
+
+The coupled `objective` and reported information criteria such as
+[`GIC()`](https://tomwenseleers.github.io/L0glm/reference/model_criteria.html)
+also count estimated noise parameters. The single-sample `objective`
+drops that constant charge for a fixed noise specification. Local
+refinement and fusion, deletion or addition of candidate components
+provide the approximate rank search.
+
+For a coupled fit, put `background`, `weights`, `offset` and any initial
+`fit` in the sample descriptions. `path = NULL` uses a new temporary
+sample store. Supply a persistent path when saving a coupled fit for
+later use, and retain the store with the fitted object.
+
+Numeric penalties in `logconNMF()` have the same scale in both modes. To
+reproduce a single-sample
+[`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
+call using a numeric compound penalty, divide that penalty by the number
+of channels.
+
+## Examples
+
+``` r
+X <- convmatrix(convkernel("gaussian", 9L), 50L)
+signal <- cbind(700 * X[, 16L] + 350 * X[, 35L],
+                150 * X[, 16L] + 500 * X[, 35L])
+set.seed(12)
+Y <- matrix(rpois(length(signal), signal), nrow(signal))
+fit <- logconNMF(Y, X = X, ncores = 1L)
+fit$rank
+coef(fit, normalize = "l1")
+
+second <- matrix(rpois(length(signal), 1.4 * signal), nrow(signal))
+samples <- list(first = list(y = Y, time = seq_len(nrow(Y)), X = X),
+  second = list(y = second, time = seq_len(nrow(Y)), X = X))
+joint <- logconNMF(samples, ncores = 1L)
+joint$rank
+joint$areas
+fitted(joint, sample = "second")[1:3, ]
+```

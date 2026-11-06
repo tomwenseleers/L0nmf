@@ -10,7 +10,7 @@ can estimate a sparse set of impulse locations and amplitudes directly.
 When the PSF is unknown, alternate two conditional fits. Estimate the
 spike train with the current kernel, then estimate the kernel with those
 spikes held fixed.
-[`estimate_psf()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf.md)
+[`estimate_psf()`](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf.md)
 can also calibrate the kernel from isolated standards and estimate how
 it changes across overlapping windows.
 
@@ -18,7 +18,7 @@ The resulting sparse matrix `X` serves two purposes. Use it directly in
 [`L0glm.fit()`](https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html)
 when a common response shape at each position is adequate. Use it to
 initialize [log-concave
-NMF](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md)
+NMF](https://tomwenseleers.github.io/logconNMF/articles/log-concave-nmf.md)
 when components at the same position may have different widths or tails.
 
 ## Deconvolve with a known, constant PSF
@@ -30,7 +30,7 @@ Channels share impulse locations but have different amplitudes.
 ``` r
 
 library(L0glm)
-library(L0nmf)
+library(logconNMF)
 set.seed(611)
 n <- 600L; m <- 6L
 time <- seq_len(n) / 50
@@ -74,7 +74,7 @@ intensity-adjusted groups. The returned `blind$X` is a sparse
 scan-by-scan design ready for
 [`L0glm.fit()`](https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html)
 or
-[`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md).
+[`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md).
 
 ## Calibrate from isolated standard peaks
 
@@ -162,9 +162,9 @@ matching used in reduced models.
 A position-dependent PSF describes a common instrumental response.
 Components whose shapes also depend on their identity or intensity can
 be modeled using [sparse log-concave
-NMF](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md).
+NMF](https://tomwenseleers.github.io/logconNMF/articles/log-concave-nmf.md).
 The [mathematical
-article](https://tomwenseleers.github.io/L0nmf/articles/algorithm.html#psf-estimation)
+article](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html#psf-estimation)
 gives the objectives, initialization and pseudocode. File-based
 calibration and automated reports are available in
 [GCMSprime](https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html).

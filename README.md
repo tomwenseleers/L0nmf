@@ -1,42 +1,66 @@
-# L0nmf: Scalable Sparse Log-Concave Nonnegative Matrix Factorization with Automatic Rank Selection and Flexible Noise Models
+# logconNMF: Log-Concave Nonnegative Matrix Factorization with Automatic Rank Selection
 
-<a href="https://tomwenseleers.github.io/L0nmf/">
+<a href="https://tomwenseleers.github.io/logconNMF/">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="L0nmf/man/figures/logo-dark.svg">
-  <source media="(prefers-color-scheme: light)" srcset="L0nmf/man/figures/logo-light.svg">
-  <img src="L0nmf/man/figures/logo.png" align="right" width="140" height="163" alt="L0nmf hex logo showing a sparse matrix factorized into profiles and spectral loadings">
+  <source media="(prefers-color-scheme: dark)" srcset="logconNMF/man/figures/logo-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="logconNMF/man/figures/logo-light.svg">
+  <img src="logconNMF/man/figures/logo.png" align="right" width="140" height="163" alt="logconNMF hex logo with log-concave profiles and corresponding spectra">
 </picture>
 </a>
 
-[Get started](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.html) · [Documentation](https://tomwenseleers.github.io/L0nmf/reference/index.html) · [Algorithm & theory](https://tomwenseleers.github.io/L0nmf/articles/algorithm.html)
+[Get started](https://tomwenseleers.github.io/logconNMF/articles/log-concave-nmf.html) · [Documentation](https://tomwenseleers.github.io/logconNMF/reference/index.html) · [Algorithm & theory](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html)
 
-In a GC–MS chromatogram, several compounds can elute at the same time.
-Each scan records the sum of their mass spectra, with contributions that
-change as the compounds pass through the instrument. L0nmf separates this
-mixture into an elution profile and a spectrum for each component, while
-estimating how many components the signal supports. The same model applies
-to ordered multichannel signals with nonnegative, single-peaked components.
+**logconNMF estimates the number of components from the data.** It separates
+overlapping signals into nonnegative channel loadings and log-concave profiles.
+Fit one matrix or share spectra across multiple samples, with a separate peak
+shape and area for each occurrence. Seven noise models cover count and
+continuous signals, including overdispersed counts.
 
-## What the model estimates
+Gas chromatography–mass spectrometry (GC–MS) is a motivating application.
+Several compounds can elute at the same time, so each scan contains a mixture
+of their mass spectra. The fit separates the elution profiles and spectra
+and estimates how many distinct components the scans support. The same model
+applies to other ordered multichannel signals with nonnegative, single-peaked
+components.
+
+## Automatic rank selection
 
 For a scan-by-channel matrix `Y`, the fitted signal is `H %*% S + B %*% A`.
-Column `k` of `H` gives the shape of component `k` across scans. Row `k`
-of `S` gives its contributions to the original channels. A low-dimensional
-basis `B` can describe a smooth baseline, with coefficients in `A`. A known
-additive signal can also be supplied as an offset.
+Each column of `H` is a profile across scans and its corresponding row of `S`
+contains the channel loadings. The optional term `B %*% A` represents a smooth
+baseline. A known additive signal can be supplied as an offset.
 
-On its positive interval, a **log-concave profile** has non-increasing slopes on
-the log scale. This admits symmetric peaks, asymmetric tails and broad
-triangular peaks. It gives the fit a way to separate overlapping components
-while allowing their shapes to differ. A rank penalty charges for each
-retained component, and local likelihood updates refine the profiles and
-spectra under the chosen noise model.
+Both modes approximately minimize **−2 × log-likelihood + κ × λ × d**.
+The weighted log-likelihood sums over the original channels and, for a
+coupled fit, over samples. Quasi-Poisson divides the Poisson log score by the
+estimated or supplied dispersion. The default `lambda = "gic"` sets the
+penalty to `log(p) × log(log(n))` per selection degree of freedom. For one
+sample, `p` is the PSF dictionary width and `n` is the number of scans. For
+a coupled fit, `p` and `n` both equal the total scan count. The optional
+temporal adjustment κ is 1 under independence.
+
+| Fit | Selection count `d` for the components |
+|:--|:--|
+| One sample | `m × K` for `K` components in `m` channels |
+| Coupled samples | `(m − 1) × G + L` for `G` shared spectra and `L` detected sample–compound occurrences |
+
+Each shared spectrum has unit sum, giving `m − 1` spectral coordinates, and
+each occurrence contributes one amplitude. In one sample, each spectrum
+has one occurrence, so `G = L = K` and the counts agree. Profile shapes and
+background coefficients carry no separate rank charge. The reported
+information criteria also count estimated noise parameters.
+
+The search refines candidate profiles and compares alternative ranks using
+the criterion. For example, overlapping components can fuse when their
+combined profile is log-concave and the criterion improves. The resulting
+`fit$rank` is the estimated number of components or shared spectra. See
+[the mathematical objective](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html#common-rank-objective).
 
 ## Installation
 
 ```r
 install.packages("remotes")
-remotes::install_github("tomwenseleers/L0nmf", subdir="L0nmf")
+remotes::install_github("tomwenseleers/logconNMF", subdir="logconNMF")
 ```
 
 ## Recover overlapping profiles and spectra
@@ -47,18 +71,18 @@ at each possible peak location. The factorization can move away from that
 shape and gives each retained component its own log-concave profile.
 
 ```r
-library(L0nmf)
+library(logconNMF)
 data(GCMS_data1)
 Y <- GCMS_data1
 g <- convkernel("gaussian", 65L, list(sigma = 8))
 X <- convmatrix(g, nrow(Y))
-fit <- splogconNMF(X, Y, background = matrix(1, nrow(Y), 1L),
+fit <- logconNMF(Y, X = X, background = matrix(1, nrow(Y), 1L),
   family = quasipoisson("identity"), precluster = 16L)
 
 fit$rank                         # estimated number of components
 profiles <- fit$H                 # scans x components
 loadings <- coef(fit)             # components x original channels
-spectra <- loadings / rowSums(loadings)
+spectra <- coef(fit, normalize = "l1")
 GIC(fit)
 ```
 
@@ -67,7 +91,7 @@ gives the component's total fitted signal across scans and channels.
 Grouping similar channels can speed up the initial search. The reported
 spectra use every original channel.
 
-![Observed signal, fitted log-concave profiles and recovered spectra for six hydrocarbons](https://tomwenseleers.github.io/L0nmf/reference/figures/gcms-data1-decomposition.png)
+![Observed signal, fitted log-concave profiles and recovered spectra for six hydrocarbons](https://tomwenseleers.github.io/logconNMF/reference/figures/gcms-data1-decomposition.png)
 
 Each spectrum is displayed on a square-root relative-intensity scale.
 
@@ -75,19 +99,19 @@ Each spectrum is displayed on a square-root relative-intensity scale.
 
 | Data and objective | Method |
 |:--|:--|
-| Estimate a common response shape from a standard or overlapping signals | [Estimate PSFs](https://tomwenseleers.github.io/L0nmf/articles/estimate-psf.html) with `estimate_psf()`. The returned sparse design can use a constant or time-varying PSF. |
-| Resolve components with individual shapes in one matrix | [Sparse log-concave NMF](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.html) with `splogconNMF()`. The tutorial covers rank selection, backgrounds and seven noise models. |
-| Share spectra across related samples | [Coupled log-concave NMF](https://tomwenseleers.github.io/L0nmf/articles/coupled-nmf.html) with `coupledNMF()`. Each sample retains its own scan grid, peak shapes and areas. Components may be absent from individual samples. |
+| Estimate a common response shape from a standard or overlapping signals | [Estimate PSFs](https://tomwenseleers.github.io/logconNMF/articles/estimate-psf.html) with `estimate_psf()`. The returned sparse design can use a constant or time-varying PSF. |
+| Resolve components with individual shapes in one matrix | [Sparse log-concave NMF](https://tomwenseleers.github.io/logconNMF/articles/log-concave-nmf.html) with `logconNMF()`. The tutorial covers rank selection, backgrounds and seven noise models. |
+| Share spectra across related samples | [Coupled log-concave NMF](https://tomwenseleers.github.io/logconNMF/articles/coupled-nmf.html) with `logconNMF()`. Each sample retains its own scan grid, peak shapes and areas. Components may be absent from individual samples. |
 
 For a known and common PSF, [L0glm](https://tomwenseleers.github.io/L0glm/articles/deconvolution.html)
 fits the sparse convolution model directly. [GCMSprime](https://tomwenseleers.github.io/GCMSprime/)
-uses L0nmf for chromatogram files, retention-index calibration and library
-search. The [algorithm and theory](https://tomwenseleers.github.io/L0nmf/articles/algorithm.html) give the
+uses logconNMF for chromatogram files, retention-index calibration and library
+search. The [algorithm and theory](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html) give the
 objectives, shape constraints and mathematical pseudocode.
 
 ## Share spectra across samples
 
-In the [16-sample benchmark](https://tomwenseleers.github.io/L0nmf/articles/coupled-nmf.html#sixteen-samples-with-parallel-fitting),
+In the [16-sample benchmark](https://tomwenseleers.github.io/logconNMF/articles/coupled-nmf.html#sixteen-samples-with-parallel-fitting),
 the coupled model recovers all 48 shared compounds and 380 occurrences,
 with no false calls. The CDF workflow took **63.91 s** with 16 workers. Each sample has 1,200 scans and 258 ion channels,
 with retention-time drift and concentration-dependent peak shapes.
@@ -95,16 +119,16 @@ The tutorial shows the recovered areas and timings by stage.
 
 ## Citation
 
-An article describing the methods implemented in L0nmf is in preparation.
+An article describing the methods implemented in logconNMF is in preparation.
 If you use the package before the article is formally published, we would
 appreciate a citation to the package:
 
 Wenseleers T, Vanderaa C (2026).
-*L0nmf: Scalable Sparse Log-Concave Nonnegative Matrix Factorization with Automatic Rank Selection and Flexible Noise Models*.
+*logconNMF: Log-Concave Nonnegative Matrix Factorization with Automatic Rank Selection*.
 R package version 0.1.0,
-<https://tomwenseleers.github.io/L0nmf/>.
+<https://tomwenseleers.github.io/logconNMF/>.
 
-The [Authors and Citation page](https://tomwenseleers.github.io/L0nmf/authors.html#citation) also provides the
+The [Authors and Citation page](https://tomwenseleers.github.io/logconNMF/authors.html#citation) also provides the
 citation in BibTeX format. Please also cite the methodological sources linked
 in the help pages where relevant.
 

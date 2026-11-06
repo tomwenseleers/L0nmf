@@ -13,13 +13,44 @@ share loadings across samples. Each stage uses the observation
 likelihood and a criterion for model size.
 
 This article follows the three tutorials: [PSF
-estimation](https://tomwenseleers.github.io/L0nmf/articles/estimate-psf.md),
+estimation](https://tomwenseleers.github.io/logconNMF/articles/estimate-psf.md),
 [single-sample
-factorization](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md)
+factorization](https://tomwenseleers.github.io/logconNMF/articles/log-concave-nmf.md)
 and [coupled multisample
-factorization](https://tomwenseleers.github.io/L0nmf/articles/coupled-nmf.md).
+factorization](https://tomwenseleers.github.io/logconNMF/articles/coupled-nmf.md).
 It specifies the actual objectives, coordinate conventions,
 initialization and acceptance rules.
+
+## Common rank-selection objective
+
+For a fitted mean M_s in each sample,
+[`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
+searches for nonnegative channel loadings and nonnegative, log-concave
+profiles that approximately minimize
+
+\begin{aligned} \mathcal J &=
+-2\sum_s\ell\_{\nu_s}(M_s;Y_s)+\kappa\lambda d\_{\mathrm{sel}},\\
+d\_{\mathrm{sel}} &= d\_\nu + \begin{cases} mK, & \text{one sample},\\
+(m-1)G+L, & \text{coupled samples}. \end{cases} \end{aligned}
+
+Here m is the original channel count, K is the single-sample rank, G
+counts shared spectra and L counts detected sample–component
+occurrences. A normalized shared spectrum has m-1 free coordinates. Its
+amplitude in each sample contributes one further coordinate, so G=L=K
+gives (m-1)K+K=mK. This is a selection penalty on components and
+occurrences. Profile shapes and smooth backgrounds have no separate
+charge. The fit can use clustered channels for initialization. The
+likelihood in the final comparison uses all original channels.
+
+The weighted likelihood and quasi-Poisson score are defined below. The
+optional working temporal adjustment multiplies the penalty by \kappa,
+which equals one under independence. The default penalty
+\lambda=\log(p)\log\log(n) uses the dictionary width and scan count for
+one sample. For coupled fits, both preset inputs equal the total scan
+count, p=n=\sum_s n_s. A numeric `lambda` uses the same units in both
+modes. The reported criteria and coupled objective count estimated noise
+parameters through d\_\nu. The single-sample `objective` omits this
+additive constant for a fixed noise specification.
 
 ## Observation model and notation
 
@@ -179,7 +210,7 @@ joint selection problem.
 1.  Set g^{(0)} to the supplied/calibrated kernel, or a normalized
     Gaussian on the requested lag grid. Resolve shared noise parameters
     once in
-    [`estimate_psf()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf.md).
+    [`estimate_psf()`](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf.md).
 2.  For t=0,\ldots,T-1:
     1.  Construct X(g^{(t)}). Fit \[X(g^{(t)}),B\] to Y, with compulsory
         background and the chosen sparse/grouped GLM preset.
@@ -254,10 +285,11 @@ J(H,S,A,K)=-2\ell\_\nu(HS+BA+O;Y)+\lambda_RK, \qquad
 Here m is the original channel count, \nu contains pooled noise
 parameters and \kappa=1 for independent observations. The GIC preset
 uses \lambda\_{\rm IC}=\log p\\\log\log n, resolved from the original
-PSF design and observation count. With a numeric `lambda` equal to c,
-[`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
-instead uses \lambda_R=\kappa c: it specifies the total compound charge
-before the optional temporal-correlation adjustment.
+PSF design and observation count. For numeric `lambda` equal to c in
+[`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md),
+the compound charge is \lambda_R=m\kappa c. The single-sample solver
+[`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
+accepts the total compound charge before temporal adjustment.
 
 Dividing by the original channel count gives the equivalent criterion
 
@@ -327,16 +359,13 @@ col}^{\top}+UV^{\top}+O.
 Our model uses the identity link, U=H, V^{\top}=S, and X\_{\rm row}=B,
 B\_{\rm row}^{\top}=A for the smooth background; the column-covariate
 term is omitted. It adds nonnegativity, unit-area log-concave profiles
-and a compound-count penalty to select the rank. Thus **sparse
-log-concave nonnegative GMF** describes the model, while the function
-retains the familiar
-[`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
-name.
+and a compound-count penalty to select the rank. This gives a sparse
+log-concave nonnegative GMF with automatic rank selection.
 
 ## Deviance matrix factorization and Bregman NMF
 
-[`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
-is a **rank-penalized, nonnegative deviance matrix factorization with
+[`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
+fits a **rank-penalized, nonnegative deviance matrix factorization with
 log-concave profiles**. It belongs to the deviance-based framework of
 [Wang & Carvalho (2023)](https://doi.org/10.1214/23-EJS2174), using an
 identity link for the additive mean \mu=HS+BA+O. The loss also connects
@@ -423,11 +452,9 @@ nonnegative continuous intensities; Gaussian observations may also be
 negative, while the modeled component signal remains nonnegative. Gamma
 observations below the detection threshold are represented by zero.
 
-[`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
-and
-[`coupledNMF()`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
-default to `poisson("identity")` for count-data factorization.
-[`estimate_psf()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf.md)
+[`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
+defaults to `poisson("identity")` for count-data factorization.
+[`estimate_psf()`](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf.md)
 defaults to `quasipoisson("identity")`. For GC/MS electron-multiplier
 intensities, GCMSprime uses the latter as its workflow default and
 reuses the estimated noise specification during PSF estimation and
@@ -847,23 +874,23 @@ therefore reduces to the single-sample reported IC. Both select compound
 count without an extra penalty on profile complexity or background
 dimension.
 
-### Penalty scales across the two interfaces
+### Penalty scale for single and coupled fits
 
 | Interface | IC-name `lambda` | Numeric `lambda=c` |
 |:---|:---|:---|
-| [`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md) | m\kappa\lambda\_{\rm IC} per compound | \kappa c per compound |
-| [`coupledNMF()`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md) | \kappa\lambda\_{\rm IC} per selection degree of freedom | \kappa c per selection degree of freedom |
+| [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md) on one matrix | m\kappa\lambda\_{\rm IC} per compound | m\kappa c per compound |
+| [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md) on a sample list | \kappa\lambda\_{\rm IC} per selection degree of freedom | \kappa c per selection degree of freedom |
 
-The coupled selection count is (m-1)G+L+d\_\nu. Thus, for a one-sample
-comparison using a numeric total compound charge c in
-[`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md),
-use c/m in
-[`coupledNMF()`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
-to obtain the same compound charge. Estimated noise parameters add the
-corresponding model-independent count when their specification is fixed.
-IC-name presets already supply the channel scaling shown in the table.
-Single-sample presets use their original n,p; coupled presets use
-n\_\*=p\_\*=\max_s n_s.
+The coupled selection count is (m-1)G+L+d\_\nu. A compound observed in
+one sample contributes m-1 spectral coordinates and one amplitude, so
+its charge matches that of a single-sample component. The single-sample
+solver
+[`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
+accepts a numeric total compound charge c; enter c/m in
+[`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
+to reproduce that charge. Estimated noise parameters add a constant
+selection count when their specification is fixed. Single-sample presets
+use their original n,p; coupled presets use n\_\*=p\_\*=\sum_s n_s.
 
 ## Alignment and local updates
 
@@ -912,7 +939,7 @@ throughout the coupled fit, with channel-specific matrices used when
 required.
 
 All seven [signal
-families](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+families](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
 are supported: Gaussian, Poisson, quasipoisson, NB2, NB1, censored Gamma
 and common-scale Gamma. Dispersion parameters are resolved from the
 original channels and frozen for group comparisons. NB2 additionally
@@ -921,7 +948,7 @@ negative `theta`.
 
 ## Coupled algorithm and normalization
 
-For coupled models use n\_\*=p\_\*=\max_s n_s in the IC preset, and the
+For coupled models use n\_\*=p\_\*=\sum_s n_s in the IC preset, and the
 largest sample information multiplier as \kappa. Noise parameters are
 shared across channels within each sample. The joint rank count is
 (m-1)G+L+d\_\nu, reducing to mK+d\_\nu when one sample has G=L=K. Common
@@ -935,7 +962,7 @@ u\_{si}h\_{sg}(u\_{si})=1.
 
 Thus an occurrence amplitude represents integrated intensity in the
 chosen time unit, before its known exposure is applied.
-[`sampleNMF()`](https://tomwenseleers.github.io/L0nmf/reference/sampleNMF.md)
+[`sampleNMF()`](https://tomwenseleers.github.io/logconNMF/reference/sampleNMF.md)
 also returns unit-sum original-grid profiles and their compatible
 discrete loadings.
 
@@ -1009,10 +1036,10 @@ supply useful spectral and channel geometries.
 
 The likelihood-based hard shape solves, complete original-channel rank
 moves, windowed kernel checkpoints and coupled normalization/acceptance
-rules above describe the L0nmf algorithms. The coupled criterion counts
-shared spectra and sample-specific amplitudes explicitly. The general
-references establish the underlying frameworks; the objectives and
-pseudocode here specify their adaptation to these constrained signal
+rules above describe the logconNMF algorithms. The coupled criterion
+counts shared spectra and sample-specific amplitudes explicitly. The
+general references establish the underlying frameworks; the objectives
+and pseudocode here specify their adaptation to these constrained signal
 models.
 
 ## References
@@ -1093,7 +1120,7 @@ A common channel map has a one-hot membership matrix
 A\in\\0,1\\^{m\times q}, giving aggregated observations \bar Y_s=Y_sA
 and spectra \bar P=PA. The map is learned once from summed time-bin
 counts or supplied as a saved
-[`channel_groups()`](https://tomwenseleers.github.io/L0nmf/reference/channel_groups.md)
+[`channel_groups()`](https://tomwenseleers.github.io/logconNMF/reference/channel_groups.md)
 object. Only this map-learning step uses a common time grid. The fitting
 grids, bin exposures and sparse PSF matrices X_s remain sample specific.
 

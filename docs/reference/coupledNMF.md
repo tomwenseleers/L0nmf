@@ -74,10 +74,10 @@ plot(
   `exposure`, `sample_id`, `group`, `small_width` and `edges`. Large
   `weights` and `offset` matrices can also be supplied as RDS paths.
   `fit` is a
-  [`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+  [`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
   initializer or its RDS path. Without a fit, `X` supplies candidate
   profiles; otherwise
-  [`estimate_psf()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf.md)
+  [`estimate_psf()`](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf.md)
   estimates them. Channel names and ordering must agree across samples.
   Times and `small_width` use the same units. Shared scan-wise weights
   and offsets remain vectors throughout coupled fitting; each mass
@@ -86,7 +86,7 @@ plot(
 - family:
 
   Identity-link signal family supported by
-  [`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md):
+  [`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md):
   Gaussian, Poisson, quasipoisson, NB2, NB1, censored Gamma or
   common-scale Gamma.
 
@@ -108,7 +108,7 @@ plot(
 
   Maximum common outcome groups, default `32L`; `NULL` or `FALSE`
   disables aggregation. A saved
-  [`channel_groups()`](https://tomwenseleers.github.io/L0nmf/reference/channel_groups.md)
+  [`channel_groups()`](https://tomwenseleers.github.io/logconNMF/reference/channel_groups.md)
   map can be reused. The default map is learned from samples summed in
   common time bins. Matching and Poisson/quasipoisson profile proposals
   use this common representation; likelihood checks and spectral
@@ -117,7 +117,7 @@ plot(
 - dispersion, theta:
 
   Shared-across-channels noise parameters, as in
-  [`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md).
+  [`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md).
   They may be supplied per sample in its description. Resolved
   dispersions are frozen; a negative NB2 theta enables bounded
   likelihood-improving shape updates in the coupled iterations.
@@ -143,7 +143,7 @@ plot(
   `q=64L`, `rt_tolerance=NULL`, `alignment_window=NULL`, `ridge=TRUE`,
   `censor=0.5`, `correlation="none"`, `workers=NULL`, `cache=TRUE`, and
   `initial=list()` for controls passed to independent
-  [`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+  [`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
   fits. Default matching windows are derived from the supplied or
   estimated narrow-peak widths. `workers` limits concurrent samples
   within `ncores`. `cache=TRUE` holds only aggregated observations in
@@ -225,7 +225,7 @@ sample-specific amplitudes; hard shape constraints control profile
 geometry. It is a rank-selection criterion with unpenalized profile and
 baseline complexity. Quasipoisson uses the scaled likelihood kernel
 described in
-[`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md).
+[`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md).
 Noise scales are held fixed when comparing groupings. Undetected
 sample-compound combinations have `NA` area and are not filled in.
 
@@ -243,9 +243,9 @@ connections are released before returning the fitted object.
 
 ## See also
 
-[`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md),
-[`estimate_psf()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf.md),
-[`simulate_GCMS_samples()`](https://tomwenseleers.github.io/L0nmf/reference/simulate_GCMS_samples.md)
+[`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md),
+[`estimate_psf()`](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf.md),
+[`simulate_GCMS_samples()`](https://tomwenseleers.github.io/logconNMF/reference/simulate_GCMS_samples.md)
 
 ## Examples
 

@@ -104,7 +104,7 @@ length-\*L\* vector.
 ## See also
 
 `shift_kernel`,
-[`convmatrix`](https://tomwenseleers.github.io/L0nmf/reference/convmatrix.md)
+[`convmatrix`](https://tomwenseleers.github.io/logconNMF/reference/convmatrix.md)
 
 ## Author
 

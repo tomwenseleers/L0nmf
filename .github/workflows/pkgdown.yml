@@ -2,12 +2,12 @@ name: Build and deploy documentation
 on:
   push:
     branches: [master]
-    paths: ['L0nmf/**', '.github/workflows/pkgdown.yml']
+    paths: ['logconNMF/**', '.github/workflows/pkgdown.yml']
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: L0nmf-pkgdown
+  group: logconNMF-pkgdown
   cancel-in-progress: true
 jobs:
   build:
@@ -24,10 +24,10 @@ jobs:
           use-public-rspm: true
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          working-directory: L0nmf
+          working-directory: logconNMF
           dependencies: '"hard"'
           extra-packages: any::pkgdown, local::.
-      - run: Rscript L0nmf/pkgdown/build.R
+      - run: Rscript logconNMF/pkgdown/build.R
       - uses: actions/upload-pages-artifact@v4
         with:
           path: docs

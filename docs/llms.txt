@@ -1,145 +1,170 @@
-# L0nmf
+# logconNMF
 
 SPARSE NONNEGATIVE MATRIX FACTORIZATION · LOG-CONCAVE PROFILES
 
-Sparse factors.\
-Interpretable signals.
-======================
+Log-concave NMF.\
+Automatic rank selection.
+=========================
 
-Scalable sparse nonnegative matrix factorization with log-concave
-profile shape constraints, flexible noise models and automatic best rank
-tuning for single or multiple samples.
+Separate overlapping signals into log-concave profiles and nonnegative
+spectra. Use the same interface for one sample or a coupled fit across
+an experiment.
 
 [Get started
-↗](https://tomwenseleers.github.io/L0nmf/articles/estimate-psf.md)[Explore
-the methods](https://tomwenseleers.github.io/L0nmf/reference/index.md)
+↗](https://tomwenseleers.github.io/logconNMF/articles/log-concave-nmf.md)[Explore
+the
+methods](https://tomwenseleers.github.io/logconNMF/reference/index.md)
 
 R · Local likelihood updates · Full spectra · Constant & varying PSFs
 
-![L0nmf hex logo showing a sparse matrix factorized into profiles and
-spectral loadings](logo-dark.svg)
+![logconNMF hex logo with log-concave profiles and corresponding
+spectra](logo-dark.svg)
 
-[**Sparse rank**Recover a parsimonious set of nonnegative
-components](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+[**Automatic rank**Estimate how many components the signal
+supports](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
 [**Peak shape constraints**Log-concave profiles and constant or
 time-varying
-PSFs](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf.md)
+PSFs](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf.md)
 [**7 noise families**Gaussian, Poisson, quasi-Poisson, NB2, NB1 and two
 Gamma
-models](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md)
+models](https://tomwenseleers.github.io/logconNMF/articles/log-concave-nmf.md)
 
-Scalable sparse nonnegative matrix factorization with log-concave
-profile shape constraints, flexible noise models and automatic best rank
-tuning for single or multiple samples.
+**logconNMF estimates the number of components from the data.** It
+separates overlapping signals into nonnegative channel loadings and
+log-concave profiles. Fit one matrix or share spectra across multiple
+samples, with a separate peak shape and area for each occurrence. Seven
+noise models cover count and continuous signals, including overdispersed
+counts.
 
-Start with a calibrated or estimated point spread function, then let
-each component acquire its own log-concave profile. Coupled models share
-spectra across samples while retaining sample-specific shapes, areas and
-observation grids.
+Gas chromatography–mass spectrometry (GC–MS) is a motivating
+application. Several compounds can elute at the same time, so each scan
+contains a mixture of their mass spectra. The fit separates the elution
+profiles and spectra and estimates how many distinct components the
+scans support. The same model applies to other ordered multichannel
+signals with nonnegative, single-peaked components.
+
+## Automatic rank selection
+
+For a scan-by-channel matrix `Y`, the fitted signal is
+`H %*% S + B %*% A`. Each column of `H` is a profile across scans and
+its corresponding row of `S` contains the channel loadings. The optional
+term `B %*% A` represents a smooth baseline. A known additive signal can
+be supplied as an offset.
+
+Both modes approximately minimize **−2 × log-likelihood + κ × λ × d**.
+The weighted log-likelihood sums over the original channels and, for a
+coupled fit, over samples. Quasi-Poisson divides the Poisson log score
+by the estimated or supplied dispersion. The default `lambda = "gic"`
+sets the penalty to `log(p) × log(log(n))` per selection degree of
+freedom. For one sample, `p` is the PSF dictionary width and `n` is the
+number of scans. For a coupled fit, `p` and `n` both equal the total
+scan count. The optional temporal adjustment κ is 1 under independence.
+
+| Fit | Selection count `d` for the components |
+|:---|:---|
+| One sample | `m × K` for `K` components in `m` channels |
+| Coupled samples | `(m − 1) × G + L` for `G` shared spectra and `L` detected sample–compound occurrences |
+
+Each shared spectrum has unit sum, giving `m − 1` spectral coordinates,
+and each occurrence contributes one amplitude. In one sample, each
+spectrum has one occurrence, so `G = L = K` and the counts agree.
+Profile shapes and background coefficients carry no separate rank
+charge. The reported information criteria also count estimated noise
+parameters.
+
+The search refines candidate profiles and compares alternative ranks
+using the criterion. For example, overlapping components can fuse when
+their combined profile is log-concave and the criterion improves. The
+resulting `fit$rank` is the estimated number of components or shared
+spectra. See [the mathematical
+objective](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html#common-rank-objective).
 
 ## Installation
 
 ``` r
 
 install.packages("remotes")
-remotes::install_github("tomwenseleers/L0nmf/L0nmf")
+remotes::install_github("tomwenseleers/logconNMF", subdir="logconNMF")
 ```
 
-## Recover profiles and spectra
+## Recover overlapping profiles and spectra
+
+This short experimental window contains six co-eluting hydrocarbons. The
+initial dictionary `X` places a narrow Gaussian point spread function
+(PSF) at each possible peak location. The factorization can move away
+from that shape and gives each retained component its own log-concave
+profile.
 
 ``` r
 
-library(L0glm)
-library(L0nmf)
+library(logconNMF)
 data(GCMS_data1)
-X <- convmatrix(convkernel("gaussian", 65L, list(sigma=8)), nrow(GCMS_data1))
-fit <- splogconNMF(X, GCMS_data1, background=matrix(1,nrow(X),1),
-                  family=quasipoisson("identity"), precluster=16L,
-                  correlation="auto")
-fit
+Y <- GCMS_data1
+g <- convkernel("gaussian", 65L, list(sigma = 8))
+X <- convmatrix(g, nrow(Y))
+fit <- logconNMF(Y, X = X, background = matrix(1, nrow(Y), 1L),
+  family = quasipoisson("identity"), precluster = 16L)
+
+fit$rank                         # estimated number of components
+profiles <- fit$H                 # scans x components
+loadings <- coef(fit)             # components x original channels
+spectra <- coef(fit, normalize = "l1")
 GIC(fit)
-matplot(as.matrix(fit$H), type="l", lty=1, xlab="Scan", ylab="Elution profile")
 ```
 
-The factors retain every original outcome channel. Profiles have unit
-area, nonnegative spectra carry their intensities, and a smooth
-unpenalized background captures baseline variation. Selection and fusion
-use a parsimonious rank criterion with local likelihood updates.
+The columns of `profiles` sum to one, so each row sum in `loadings`
+gives the component’s total fitted signal across scans and channels.
+Grouping similar channels can speed up the initial search. The reported
+spectra use every original channel.
 
-![Recovered log-concave profiles and
-spectra](reference/figures/gcms-data1-profiles-spectra.png)
+![Observed signal, fitted log-concave profiles and recovered spectra for
+six hydrocarbons](reference/figures/gcms-data1-decomposition.png)
 
-Recovered log-concave profiles and spectra
+Observed signal, fitted log-concave profiles and recovered spectra for
+six hydrocarbons
 
-The [worked
-example](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md)
-shows fitting and diagnostics. The [algorithm and
-theory](https://tomwenseleers.github.io/L0nmf/articles/algorithm.md)
-give the likelihood, constraints and mathematical pseudocode.
+Each spectrum is displayed on a square-root relative-intensity scale.
 
-The final original-channel pass checks component deletions, local
-fusions and missed residual peaks, accepting each change only when the
-complete likelihood-and-compound criterion improves. Native log-concave
-profile updates and joint spectral fits start from the current factors.
-Small fragments contained in broad profiles are compared with equally
-refined unmerged local models.
+## Choose a workflow
 
-## Learn the methods
+| Data and objective | Method |
+|:---|:---|
+| Estimate a common response shape from a standard or overlapping signals | [Estimate PSFs](https://tomwenseleers.github.io/logconNMF/articles/estimate-psf.md) with [`estimate_psf()`](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf.md). The returned sparse design can use a constant or time-varying PSF. |
+| Resolve components with individual shapes in one matrix | [Sparse log-concave NMF](https://tomwenseleers.github.io/logconNMF/articles/log-concave-nmf.md) with [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md). The tutorial covers rank selection, backgrounds and seven noise models. |
+| Share spectra across related samples | [Coupled log-concave NMF](https://tomwenseleers.github.io/logconNMF/articles/coupled-nmf.md) with [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md). Each sample retains its own scan grid, peak shapes and areas. Components may be absent from individual samples. |
 
-1.  [Estimate
-    PSFs](https://tomwenseleers.github.io/L0nmf/articles/estimate-psf.md):
-    known convolution, calibration and blind kernel estimation.
-2.  [Sparse log-concave NMF with automatic best rank
-    tuning](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md).
-3.  [Coupled multisample log-concave NMF with automatic best rank
-    tuning](https://tomwenseleers.github.io/L0nmf/articles/coupled-nmf.md).
-
-The [mathematical
-article](https://tomwenseleers.github.io/L0nmf/articles/algorithm.md)
-develops the objectives and algorithms.
-[L0glm](https://tomwenseleers.github.io/L0glm/) supplies sparse GLM
-selection; [GCMSprime](https://tomwenseleers.github.io/GCMSprime/)
-applies these models to chromatogram files, quantification and spectral
-identification.
+For a known and common PSF,
+[L0glm](https://tomwenseleers.github.io/L0glm/articles/deconvolution.html)
+fits the sparse convolution model directly.
+[GCMSprime](https://tomwenseleers.github.io/GCMSprime/) uses logconNMF
+for chromatogram files, retention-index calibration and library search.
+The [algorithm and
+theory](https://tomwenseleers.github.io/logconNMF/articles/algorithm.md)
+give the objectives, shape constraints and mathematical pseudocode.
 
 ## Share spectra across samples
 
-[`coupledNMF()`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
-aligns related samples and estimates common spectra with sample-specific
-log-concave profiles, integrated areas and smooth backgrounds. It
-supports all seven signal families, irregular scan grids and disk-backed
-observations. In a three-sample simulation with all 258 channels, it
-recovers all 78 compound occurrences in 29.69 seconds. With compounds
-absent from half the samples, all 37 present occurrences are recovered
-in 21.92 seconds.
-
-``` r
-
-fit <- coupledNMF(samples, family=quasipoisson("identity"), precluster=32L)
-fit$areas
-coef(fit, normalize="l1")
-```
-
-See [Coupled multisample log-concave
-NMF](https://tomwenseleers.github.io/L0nmf/articles/coupled-nmf.md) for
-simulations, plots and mathematical details, and
-[GCMSprime](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html)
-for the directory-based chromatogram workflow.
+In the [16-sample
+benchmark](https://tomwenseleers.github.io/logconNMF/articles/coupled-nmf.html#sixteen-samples-with-parallel-fitting),
+the coupled model recovers all 48 shared compounds and 380 occurrences,
+with no false calls. The CDF workflow took **63.91 s** with 16 workers.
+Each sample has 1,200 scans and 258 ion channels, with retention-time
+drift and concentration-dependent peak shapes. The tutorial shows the
+recovered areas and timings by stage.
 
 ## Citation
 
-An article describing the methods implemented in L0nmf is in
+An article describing the methods implemented in logconNMF is in
 preparation. If you use the package before the article is formally
 published, we would appreciate a citation to the package:
 
-Wenseleers T, Vanderaa C (2026). *L0nmf: Scalable Sparse Nonnegative
-Matrix Factorization with Automatic Rank Selection and Flexible Noise
-Models*. R package version 0.1.0,
-<https://tomwenseleers.github.io/L0nmf/>.
+Wenseleers T, Vanderaa C (2026). *logconNMF: Log-Concave Nonnegative
+Matrix Factorization with Automatic Rank Selection*. R package version
+0.1.0, <https://tomwenseleers.github.io/logconNMF/>.
 
 The [Authors and Citation
-page](https://tomwenseleers.github.io/L0nmf/authors.html#citation) also
-provides the citation in BibTeX format. Please also cite the
+page](https://tomwenseleers.github.io/logconNMF/authors.html#citation)
+also provides the citation in BibTeX format. Please also cite the
 methodological sources linked in the help pages where relevant.
 
 ## Acknowledgements
@@ -153,107 +178,110 @@ responsibility for the work presented here.
 
 ## Estimate point spread functions and deconvolve signals
 
-- [`convkernel()`](https://tomwenseleers.github.io/L0nmf/reference/convkernel.md)
-  [`shift_kernel()`](https://tomwenseleers.github.io/L0nmf/reference/convkernel.md)
+- [`convkernel()`](https://tomwenseleers.github.io/logconNMF/reference/convkernel.md)
+  [`shift_kernel()`](https://tomwenseleers.github.io/logconNMF/reference/convkernel.md)
   : Generate normalised 1-D convolution kernels (point-spread functions)
-- [`convmatrix()`](https://tomwenseleers.github.io/L0nmf/reference/convmatrix.md)
+- [`convmatrix()`](https://tomwenseleers.github.io/logconNMF/reference/convmatrix.md)
   : Make banded or rectangular convolution design matrices
-- [`estimate_psf()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf.md)
+- [`estimate_psf()`](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf.md)
   : Estimate constant or time-varying point spread functions
-- [`estimate_psf_from_std()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf_from_std.md)
+- [`estimate_psf_from_std()`](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf_from_std.md)
   : Estimate a time-varying PSF matrix from an alkane ladder TIC
-- [`L0glm_blind_deco()`](https://tomwenseleers.github.io/L0nmf/reference/L0glm_blind_deco.md)
+- [`L0glm_blind_deco()`](https://tomwenseleers.github.io/logconNMF/reference/L0glm_blind_deco.md)
   : Alternating sparse L0 glm powered blind deconvolution
-- [`L0glm_sparse_deco()`](https://tomwenseleers.github.io/L0nmf/reference/L0glm_sparse_deco.md)
+- [`L0glm_sparse_deco()`](https://tomwenseleers.github.io/logconNMF/reference/L0glm_sparse_deco.md)
   : Sparse deconvolution with a fixed PSF via L0-penalised GLMs
-- [`L0glm_deco_estkernel()`](https://tomwenseleers.github.io/L0nmf/reference/L0glm_deco_estkernel.md)
+- [`L0glm_deco_estkernel()`](https://tomwenseleers.github.io/logconNMF/reference/L0glm_deco_estkernel.md)
   : Estimate the PSF given a spike train estimate via L0-penalised GLMs
 
 ## Sparse and coupled factorization
 
-- [`residuals(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
-  [`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
-  [`fitted(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
-  [`nobs(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
-  [`coef(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
-  [`logLik(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
-  [`AIC(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
-  [`BIC(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
-  [`GIC(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
-  [`EBIC(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
-  [`MBIC(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
-  [`print(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+- [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
+  [`coef(`*`<logconNMF_fit>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
+  [`fitted(`*`<logconNMF_fit>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
+  : Fit a log-concave factorization with automatic rank selection
+- [`residuals(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
+  [`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
+  [`fitted(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
+  [`nobs(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
+  [`coef(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
+  [`logLik(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
+  [`AIC(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
+  [`BIC(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
+  [`GIC(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
+  [`EBIC(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
+  [`MBIC(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
+  [`print(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
   : Sparse log-concave nonnegative matrix factorization
-- [`coupledNMF()`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
-  [`fitted(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
-  [`coef(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
-  [`logLik(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
-  [`nobs(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
-  [`AIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
-  [`BIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
-  [`GIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
-  [`EBIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
-  [`MBIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
-  [`print(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
-  [`plot(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md)
+- [`coupledNMF()`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
+  [`fitted(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
+  [`coef(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
+  [`logLik(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
+  [`nobs(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
+  [`AIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
+  [`BIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
+  [`GIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
+  [`EBIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
+  [`MBIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
+  [`print(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
+  [`plot(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
   : Coupled sparse log-concave factorization of multiple samples
-- [`sampleNMF()`](https://tomwenseleers.github.io/L0nmf/reference/sampleNMF.md)
+- [`sampleNMF()`](https://tomwenseleers.github.io/logconNMF/reference/sampleNMF.md)
   : Extract one sample's factorization from a coupled fit
-- [`channel_groups()`](https://tomwenseleers.github.io/L0nmf/reference/channel_groups.md)
-  [`aggregate_channels()`](https://tomwenseleers.github.io/L0nmf/reference/channel_groups.md)
+- [`channel_groups()`](https://tomwenseleers.github.io/logconNMF/reference/channel_groups.md)
+  [`aggregate_channels()`](https://tomwenseleers.github.io/logconNMF/reference/channel_groups.md)
   : Learn and reuse a common channel aggregation
 
 ## Noise calibration and profile constraints
 
-- [`estimate_signal_noise()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_signal_noise.md)
+- [`estimate_signal_noise()`](https://tomwenseleers.github.io/logconNMF/reference/estimate_signal_noise.md)
   : Estimate a shared noise model for ordered multichannel signals
-- [`log_conc_smooth()`](https://tomwenseleers.github.io/L0nmf/reference/log_conc_smooth.md)
+- [`log_conc_smooth()`](https://tomwenseleers.github.io/logconNMF/reference/log_conc_smooth.md)
   : Log-concave spline smoothing of a discrete convolution kernel
   estimate
 
 ## Simulations and experimental data
 
-- [`simulate_GCMS()`](https://tomwenseleers.github.io/L0nmf/reference/simulate_GCMS.md)
+- [`simulate_GCMS()`](https://tomwenseleers.github.io/logconNMF/reference/simulate_GCMS.md)
   : Simulate synthetic GC-MS chromatograms with ground-truth signal +
   background
-- [`simulate_GCMS_samples()`](https://tomwenseleers.github.io/L0nmf/reference/simulate_GCMS_samples.md)
+- [`simulate_GCMS_samples()`](https://tomwenseleers.github.io/logconNMF/reference/simulate_GCMS_samples.md)
   : Simulate related chromatograms with shared compound spectra
-- [`GCMS_data1`](https://tomwenseleers.github.io/L0nmf/reference/GCMS_data1.md)
+- [`GCMS_data1`](https://tomwenseleers.github.io/logconNMF/reference/GCMS_data1.md)
   : GC/MS Chromatogram Section - Cuticular Hydrocarbon Profile of a
   Cataglyphis iberica Ant Queen
-- [`GCMS_data2`](https://tomwenseleers.github.io/L0nmf/reference/GCMS_data2.md)
+- [`GCMS_data2`](https://tomwenseleers.github.io/logconNMF/reference/GCMS_data2.md)
   : GC/MS Chromatogram Section - Beer Headspace Volatiles
 
 ## Shared tools and package overview
 
-- [`reexports`](https://tomwenseleers.github.io/L0nmf/reference/reexports.md)
-  [`GIC`](https://tomwenseleers.github.io/L0nmf/reference/reexports.md)
-  [`EBIC`](https://tomwenseleers.github.io/L0nmf/reference/reexports.md)
-  [`MBIC`](https://tomwenseleers.github.io/L0nmf/reference/reexports.md)
+- [`reexports`](https://tomwenseleers.github.io/logconNMF/reference/reexports.md)
+  [`GIC`](https://tomwenseleers.github.io/logconNMF/reference/reexports.md)
+  [`EBIC`](https://tomwenseleers.github.io/logconNMF/reference/reexports.md)
+  [`MBIC`](https://tomwenseleers.github.io/logconNMF/reference/reexports.md)
   : Objects exported from other packages
-- [`L0nmf`](https://tomwenseleers.github.io/L0nmf/reference/L0nmf-package.md)
-  [`L0nmf-package`](https://tomwenseleers.github.io/L0nmf/reference/L0nmf-package.md)
-  : Scalable Sparse Nonnegative Matrix Factorization with Automatic Rank
-  Selection and Flexible Noise Models
+- [`logconNMF-package`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF-package.md)
+  : Log-Concave Nonnegative Matrix Factorization with Automatic Rank
+  Selection
 
 # Articles
 
 ### Tutorials
 
 - [Estimate
-  PSFs](https://tomwenseleers.github.io/L0nmf/articles/estimate-psf.md):
+  PSFs](https://tomwenseleers.github.io/logconNMF/articles/estimate-psf.md):
 
   Known convolution, blind kernel estimation and calibrated constant or
   time-varying point spread functions.
 
 - [Sparse log-concave NMF with automatic best rank
-  tuning](https://tomwenseleers.github.io/L0nmf/articles/log-concave-nmf.md):
+  tuning](https://tomwenseleers.github.io/logconNMF/articles/log-concave-nmf.md):
 
   Recover nonnegative profiles and loadings with flexible noise models,
   hard shape constraints and automatic rank selection.
 
 - [Coupled multisample log-concave NMF with automatic best rank
-  tuning](https://tomwenseleers.github.io/L0nmf/articles/coupled-nmf.md):
+  tuning](https://tomwenseleers.github.io/logconNMF/articles/coupled-nmf.md):
 
   Share spectra across aligned samples with log-concave profiles,
   missing compounds and flexible noise models.
@@ -261,7 +289,7 @@ responsibility for the work presented here.
 ### Algorithm and theory
 
 - [Algorithms and theory for PSFs and sparse log-concave
-  factorization](https://tomwenseleers.github.io/L0nmf/articles/algorithm.md):
+  factorization](https://tomwenseleers.github.io/logconNMF/articles/algorithm.md):
 
   Likelihoods, initialization, shape constraints, rank objectives and
   mathematical pseudocode for single- and multisample models.

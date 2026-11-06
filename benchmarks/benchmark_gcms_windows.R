@@ -1,9 +1,9 @@
-# Run from the L0nmf repository root.
-library(L0nmf)
+# Run from the logconNMF repository root.
+library(logconNMF)
 RhpcBLASctl::blas_set_num_threads(1L)
 results <- list()
 for (name in c("GCMS_data1","GCMS_data2")) {
-  data(list=name, package="L0nmf")
+  data(list=name, package="logconNMF")
   Y <- get(name)
   time <- as.numeric(rownames(Y))
   X <- convmatrix(convkernel("gaussian",65L,

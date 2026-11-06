@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Algorithms and theory for PSFs and sparse log-concave factorization • L0nmf</title>
+<title>Algorithms and theory for PSFs and sparse log-concave factorization • logconNMF</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
@@ -20,8 +20,8 @@
 <meta property="og:title" content="Algorithms and theory for PSFs and sparse log-concave factorization">
 <meta name="description" content="Likelihoods, initialization, shape constraints, rank objectives and mathematical pseudocode for single- and multisample models.">
 <meta property="og:description" content="Likelihoods, initialization, shape constraints, rank objectives and mathematical pseudocode for single- and multisample models.">
-<meta property="og:image" content="https://tomwenseleers.github.io/L0nmf/reference/figures/logo.png">
-<meta property="og:image:alt" content="L0nmf hex logo showing a sparse matrix factorized into profiles and spectral loadings">
+<meta property="og:image" content="https://tomwenseleers.github.io/logconNMF/reference/figures/logo.png">
+<meta property="og:image:alt" content="logconNMF hex logo with log-concave profiles and corresponding spectra">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -29,7 +29,7 @@
 
     <nav class="navbar navbar-expand-lg fixed-top bg-dark" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="../index.html">L0nmf</a>
+    <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
@@ -57,7 +57,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tomwenseleers/L0nmf"><span class="fa fab fa-github"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tomwenseleers/logconNMF"><span class="fa fab fa-github"></span></a></li>
       </ul>
 </div>
 
@@ -73,7 +73,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Algorithms and theory for PSFs and sparse log-concave factorization</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/tomwenseleers/L0nmf/blob/master/L0nmf/vignettes/articles/algorithm.Rmd" class="external-link"><code>vignettes/articles/algorithm.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/tomwenseleers/logconNMF/blob/master/logconNMF/vignettes/articles/algorithm.Rmd" class="external-link"><code>vignettes/articles/algorithm.Rmd</code></a></small>
       <div class="d-none name"><code>algorithm.Rmd</code></div>
     </div>
 
@@ -92,6 +92,44 @@ likelihood and a criterion for model size.</p>
 <p>This article follows the three tutorials: <a href="estimate-psf.html">PSF estimation</a>, <a href="log-concave-nmf.html">single-sample factorization</a> and <a href="coupled-nmf.html">coupled multisample factorization</a>. It
 specifies the actual objectives, coordinate conventions, initialization
 and acceptance rules.</p>
+<div class="section level2">
+<h2 id="common-rank-objective">Common rank-selection objective<a class="anchor" aria-label="anchor" href="#common-rank-objective"></a>
+</h2>
+<p>For a fitted mean <span class="math inline">M_s</span> in each
+sample, <code><a href="../reference/logconNMF.html">logconNMF()</a></code> searches for nonnegative channel
+loadings and nonnegative, log-concave profiles that approximately
+minimize</p>
+<p><span class="math display">
+\begin{aligned}
+\mathcal J
+&amp;= -2\sum_s\ell_{\nu_s}(M_s;Y_s)+\kappa\lambda d_{\mathrm{sel}},\\
+d_{\mathrm{sel}}
+&amp;= d_\nu +
+\begin{cases}
+mK, &amp; \text{one sample},\\
+(m-1)G+L, &amp; \text{coupled samples}.
+\end{cases}
+\end{aligned}
+</span></p>
+<p>Here <span class="math inline">m</span> is the original channel
+count, <span class="math inline">K</span> is the single-sample rank,
+<span class="math inline">G</span> counts shared spectra and <span class="math inline">L</span> counts detected sample–component
+occurrences. A normalized shared spectrum has <span class="math inline">m-1</span> free coordinates. Its amplitude in each
+sample contributes one further coordinate, so <span class="math inline">G=L=K</span> gives <span class="math inline">(m-1)K+K=mK</span>. This is a selection penalty on
+components and occurrences. Profile shapes and smooth backgrounds have
+no separate charge. The fit can use clustered channels for
+initialization. The likelihood in the final comparison uses all original
+channels.</p>
+<p>The weighted likelihood and quasi-Poisson score are defined below.
+The optional working temporal adjustment multiplies the penalty by <span class="math inline">\kappa</span>, which equals one under independence.
+The default penalty <span class="math inline">\lambda=\log(p)\log\log(n)</span> uses the
+dictionary width and scan count for one sample. For coupled fits, both
+preset inputs equal the total scan count, <span class="math inline">p=n=\sum_s n_s</span>. A numeric <code>lambda</code>
+uses the same units in both modes. The reported criteria and coupled
+objective count estimated noise parameters through <span class="math inline">d_\nu</span>. The single-sample
+<code>objective</code> omits this additive constant for a fixed noise
+specification.</p>
+</div>
 <div class="section level2">
 <h2 id="observation-model">Observation model and notation<a class="anchor" aria-label="anchor" href="#observation-model"></a>
 </h2>
@@ -340,10 +378,10 @@ count, <span class="math inline">\nu</span> contains pooled noise
 parameters and <span class="math inline">\kappa=1</span> for independent
 observations. The GIC preset uses <span class="math inline">\lambda_{\rm
 IC}=\log p\,\log\log n</span>, resolved from the original PSF design and
-observation count. With a numeric <code>lambda</code> equal to <span class="math inline">c</span>, <code><a href="../reference/splogconNMF.html">splogconNMF()</a></code> instead uses
-<span class="math inline">\lambda_R=\kappa c</span>: it specifies the
-total compound charge before the optional temporal-correlation
-adjustment.</p>
+observation count. For numeric <code>lambda</code> equal to <span class="math inline">c</span> in <code><a href="../reference/logconNMF.html">logconNMF()</a></code>, the compound
+charge is <span class="math inline">\lambda_R=m\kappa c</span>. The
+single-sample solver <code><a href="../reference/splogconNMF.html">splogconNMF()</a></code> accepts the total
+compound charge before temporal adjustment.</p>
 <p>Dividing by the original channel count gives the equivalent
 criterion</p>
 <p><span class="math display">
@@ -409,14 +447,13 @@ g(\mu)=X_{\rm row}B_{\rm row}^{\top}
 <p>Our model uses the identity link, <span class="math inline">U=H</span>, <span class="math inline">V^{\top}=S</span>, and <span class="math inline">X_{\rm row}=B</span>, <span class="math inline">B_{\rm row}^{\top}=A</span> for the smooth
 background; the column-covariate term is omitted. It adds nonnegativity,
 unit-area log-concave profiles and a compound-count penalty to select
-the rank. Thus <strong>sparse log-concave nonnegative GMF</strong>
-describes the model, while the function retains the familiar
-<code><a href="../reference/splogconNMF.html">splogconNMF()</a></code> name.</p>
+the rank. This gives a sparse log-concave nonnegative GMF with automatic
+rank selection.</p>
 </div>
 <div class="section level2">
 <h2 id="deviance-matrix-factorization-and-bregman-nmf">Deviance matrix factorization and Bregman NMF<a class="anchor" aria-label="anchor" href="#deviance-matrix-factorization-and-bregman-nmf"></a>
 </h2>
-<p><code><a href="../reference/splogconNMF.html">splogconNMF()</a></code> is a <strong>rank-penalized, nonnegative
+<p><code><a href="../reference/logconNMF.html">logconNMF()</a></code> fits a <strong>rank-penalized, nonnegative
 deviance matrix factorization with log-concave profiles</strong>. It
 belongs to the deviance-based framework of <a href="https://doi.org/10.1214/23-EJS2174" class="external-link">Wang &amp; Carvalho
 (2023)</a>, using an identity link for the additive mean <span class="math inline">\mu=HS+BA+O</span>. The loss also connects directly
@@ -582,9 +619,8 @@ uses <span class="math inline">b_0</span> for its shared scale.</p>
 nonnegative continuous intensities; Gaussian observations may also be
 negative, while the modeled component signal remains nonnegative. Gamma
 observations below the detection threshold are represented by zero.</p>
-<p><code><a href="../reference/splogconNMF.html">splogconNMF()</a></code> and <code><a href="../reference/coupledNMF.html">coupledNMF()</a></code> default to
-<code>poisson("identity")</code> for count-data factorization.
-<code><a href="../reference/estimate_psf.html">estimate_psf()</a></code> defaults to
+<p><code><a href="../reference/logconNMF.html">logconNMF()</a></code> defaults to <code>poisson("identity")</code>
+for count-data factorization. <code><a href="../reference/estimate_psf.html">estimate_psf()</a></code> defaults to
 <code>quasipoisson("identity")</code>. For GC/MS electron-multiplier
 intensities, GCMSprime uses the latter as its workflow default and
 reuses the estimated noise specification during PSF estimation and
@@ -1020,7 +1056,7 @@ therefore reduces to the single-sample reported IC. Both select compound
 count without an extra penalty on profile complexity or background
 dimension.</p>
 <div class="section level3">
-<h3 id="penalty-scales">Penalty scales across the two interfaces<a class="anchor" aria-label="anchor" href="#penalty-scales"></a>
+<h3 id="penalty-scales">Penalty scale for single and coupled fits<a class="anchor" aria-label="anchor" href="#penalty-scales"></a>
 </h3>
 <table class="table">
 <colgroup>
@@ -1037,16 +1073,18 @@ dimension.</p>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left"><code><a href="../reference/splogconNMF.html">splogconNMF()</a></code></td>
+<td align="left">
+<code><a href="../reference/logconNMF.html">logconNMF()</a></code> on one matrix</td>
 <td align="left">
 <span class="math inline">m\kappa\lambda_{\rm
 IC}</span> per compound</td>
 <td align="left">
-<span class="math inline">\kappa c</span> per
+<span class="math inline">m\kappa c</span> per
 compound</td>
 </tr>
 <tr class="even">
-<td align="left"><code><a href="../reference/coupledNMF.html">coupledNMF()</a></code></td>
+<td align="left">
+<code><a href="../reference/logconNMF.html">logconNMF()</a></code> on a sample list</td>
 <td align="left">
 <span class="math inline">\kappa\lambda_{\rm IC}</span>
 per selection degree of freedom</td>
@@ -1056,12 +1094,14 @@ degree of freedom</td>
 </tr>
 </tbody>
 </table>
-<p>The coupled selection count is <span class="math inline">(m-1)G+L+d_\nu</span>. Thus, for a one-sample
-comparison using a numeric total compound charge <span class="math inline">c</span> in <code><a href="../reference/splogconNMF.html">splogconNMF()</a></code>, use <span class="math inline">c/m</span> in <code><a href="../reference/coupledNMF.html">coupledNMF()</a></code> to obtain
-the same compound charge. Estimated noise parameters add the
-corresponding model-independent count when their specification is fixed.
-IC-name presets already supply the channel scaling shown in the table.
-Single-sample presets use their original <span class="math inline">n,p</span>; coupled presets use <span class="math inline">n_*=p_*=\max_s n_s</span>.</p>
+<p>The coupled selection count is <span class="math inline">(m-1)G+L+d_\nu</span>. A compound observed in one
+sample contributes <span class="math inline">m-1</span> spectral
+coordinates and one amplitude, so its charge matches that of a
+single-sample component. The single-sample solver
+<code><a href="../reference/splogconNMF.html">splogconNMF()</a></code> accepts a numeric total compound charge <span class="math inline">c</span>; enter <span class="math inline">c/m</span>
+in <code><a href="../reference/logconNMF.html">logconNMF()</a></code> to reproduce that charge. Estimated noise
+parameters add a constant selection count when their specification is
+fixed. Single-sample presets use their original <span class="math inline">n,p</span>; coupled presets use <span class="math inline">n_*=p_*=\sum_s n_s</span>.</p>
 </div>
 </div>
 <div class="section level2">
@@ -1119,7 +1159,7 @@ negative <code>theta</code>.</p>
 <div class="section level2">
 <h2 id="coupled-algorithm">Coupled algorithm and normalization<a class="anchor" aria-label="anchor" href="#coupled-algorithm"></a>
 </h2>
-<p>For coupled models use <span class="math inline">n_*=p_*=\max_s
+<p>For coupled models use <span class="math inline">n_*=p_*=\sum_s
 n_s</span> in the IC preset, and the largest sample information
 multiplier as <span class="math inline">\kappa</span>. Noise parameters
 are shared across channels within each sample. The joint rank count is
@@ -1212,11 +1252,11 @@ likelihood framework. Bregman and size-adjusted Poisson clustering
 supply useful spectral and channel geometries.</p>
 <p>The likelihood-based hard shape solves, complete original-channel
 rank moves, windowed kernel checkpoints and coupled
-normalization/acceptance rules above describe the L0nmf algorithms. The
-coupled criterion counts shared spectra and sample-specific amplitudes
-explicitly. The general references establish the underlying frameworks;
-the objectives and pseudocode here specify their adaptation to these
-constrained signal models.</p>
+normalization/acceptance rules above describe the logconNMF algorithms.
+The coupled criterion counts shared spectra and sample-specific
+amplitudes explicitly. The general references establish the underlying
+frameworks; the objectives and pseudocode here specify their adaptation
+to these constrained signal models.</p>
 </div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

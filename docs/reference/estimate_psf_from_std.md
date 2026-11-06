@@ -16,7 +16,7 @@ The returned sparse matrix `X` has one column per requested output
 retention time. Column `j` contains the PSF centred at
 `output_timepoints[j]` and is normalised to sum to one. It can be passed
 as the `X` argument to
-[`L0glm_sparse_deco`](https://tomwenseleers.github.io/L0nmf/reference/L0glm_sparse_deco.md)
+[`L0glm_sparse_deco`](https://tomwenseleers.github.io/logconNMF/reference/L0glm_sparse_deco.md)
 for deconvolution with a time-varying PSF.
 
 ## Usage
@@ -183,11 +183,11 @@ By default, a sparse `dgCMatrix` with dimensions
 
 ## See also
 
-[`estimate_psf`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf.md)
+[`estimate_psf`](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf.md)
 for unified standard and blind estimation,
-[`L0glm_sparse_deco`](https://tomwenseleers.github.io/L0nmf/reference/L0glm_sparse_deco.md),
-[`log_conc_smooth`](https://tomwenseleers.github.io/L0nmf/reference/log_conc_smooth.md),
-[`convmatrix`](https://tomwenseleers.github.io/L0nmf/reference/convmatrix.md)
+[`L0glm_sparse_deco`](https://tomwenseleers.github.io/logconNMF/reference/L0glm_sparse_deco.md),
+[`log_conc_smooth`](https://tomwenseleers.github.io/logconNMF/reference/log_conc_smooth.md),
+[`convmatrix`](https://tomwenseleers.github.io/logconNMF/reference/convmatrix.md)
 
 ## Examples
 
@@ -250,7 +250,6 @@ system.time(fit.mc <- L0nnpois(
   parallelize = TRUE,
   ncores = round(parallel::detectCores(logical = FALSE))
 ))
-# TODO: replace with L0glm.fit with quasipoisson or also allow L0nnpois to estimate the dispersion
 
 plotmat(GCMS_data1, 
         xlab = "Elution time (min)",
@@ -261,7 +260,8 @@ rows = Matrix::rowSums(fit.mc$coefficients)[which(Matrix::rowSums(fit.mc$coeffic
 nrows = rows/max(rows)
 abline(v = which(Matrix::rowSums(fit.mc$coefficients)!=0),
        col = sapply(nrows, function (alpha) adjustcolor("cyan", alpha = alpha)))
-
+# TODO: cluster together compounds with similar mass spectra when joined elution profiles
+# are log concave
 
 hist(Matrix::rowSums(fit.mc$coefficients)[which(Matrix::rowSums(fit.mc$coefficients)!=0)])
 

@@ -36,7 +36,7 @@ estimate_psf(
 - family:
 
   Identity-link family supported by
-  [`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md),
+  [`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md),
   including Gaussian, Poisson, quasipoisson, negative binomial,
   [`nb1()`](https://tomwenseleers.github.io/L0glm/reference/signal_families.html),
   ordinary
@@ -57,9 +57,9 @@ estimate_psf(
   Optional nonoverlapping calibration signal, with its own
   retention-time names or `list(Y=..., time=...)`. Defaults to
   `attr(y, "alkanes_TIC")`, supplied with
-  [GCMS_data1](https://tomwenseleers.github.io/L0nmf/reference/GCMS_data1.md)
+  [GCMS_data1](https://tomwenseleers.github.io/logconNMF/reference/GCMS_data1.md)
   and
-  [GCMS_data2](https://tomwenseleers.github.io/L0nmf/reference/GCMS_data2.md).
+  [GCMS_data2](https://tomwenseleers.github.io/logconNMF/reference/GCMS_data2.md).
   A result from `estimate_psf(method="standard")` reuses its fitted
   calibration directly, constructing a sparse design on the requested
   sample grid.
@@ -90,7 +90,7 @@ estimate_psf(
 - dispersion, theta:
 
   Shared noise parameters, as in
-  [`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md).
+  [`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md).
   Omitted parameters are estimated from temporal differences and held
   fixed during PSF estimation. For NB2, `theta` is the shape parameter.
 
@@ -113,7 +113,7 @@ estimate_psf(
   `maxiter=8L` and `tol=1e-3` control blind iterations; `maxiter=0L`
   returns the supplied kernel design directly. `fit` is a named list of
   additional
-  [`L0glm_blind_deco()`](https://tomwenseleers.github.io/L0nmf/reference/L0glm_blind_deco.md)
+  [`L0glm_blind_deco()`](https://tomwenseleers.github.io/logconNMF/reference/L0glm_blind_deco.md)
   fitting options, such as `IC` or `relaxed`. Standard controls include
   `n_peaks=NULL`, `baseline_df=NULL`, `baseline_tau=0.05`, `peak_snr=5`,
   `peak_height=NULL`, `peak_min_distance=NULL`,
@@ -135,7 +135,7 @@ retention times `psf_timepoints`, sample `time`, fitted `width_scans`,
 diagnostics, optional `calibration`, blind `windows`, `iterations`,
 `converged` and elapsed `seconds`. The result can be passed directly as
 `X=psf$X` to
-[`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md)
+[`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
 or
 [`L0glm.fit()`](https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html).
 No observed matrix is retained.
@@ -159,10 +159,10 @@ or quasi-likelihood is evaluated on the original observation scale.
 Unit-area kernels are aligned by their centroid and resampled to the
 sample scan interval. Isolated-peak fitting, automatic support and
 interpolation share helpers with
-[`estimate_psf_from_std()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf_from_std.md).
+[`estimate_psf_from_std()`](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf_from_std.md).
 
 **Blind refinement.**
-[`L0glm_blind_deco()`](https://tomwenseleers.github.io/L0nmf/reference/L0glm_blind_deco.md)
+[`L0glm_blind_deco()`](https://tomwenseleers.github.io/logconNMF/reference/L0glm_blind_deco.md)
 alternates sparse nonnegative spike fitting with PSF estimation.
 Completed candidates are compared using the requested information
 criterion and the best checkpoint is retained. The unpenalized
@@ -209,12 +209,12 @@ trains with the L0 penalty. *Analytica Chimica Acta* 705, 218–226.
 ## See also
 
 [GCMSdeco()](https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html),
-[`L0glm_blind_deco()`](https://tomwenseleers.github.io/L0nmf/reference/L0glm_blind_deco.md),
-[`estimate_psf_from_std()`](https://tomwenseleers.github.io/L0nmf/reference/estimate_psf_from_std.md),
-[`splogconNMF()`](https://tomwenseleers.github.io/L0nmf/reference/splogconNMF.md),
+[`L0glm_blind_deco()`](https://tomwenseleers.github.io/logconNMF/reference/L0glm_blind_deco.md),
+[`estimate_psf_from_std()`](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf_from_std.md),
+[`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md),
 [`glm_cluster()`](https://tomwenseleers.github.io/L0glm/reference/glm_cluster.html),
-[`convkernel()`](https://tomwenseleers.github.io/L0nmf/reference/convkernel.md),
-[`convmatrix()`](https://tomwenseleers.github.io/L0nmf/reference/convmatrix.md)
+[`convkernel()`](https://tomwenseleers.github.io/logconNMF/reference/convkernel.md),
+[`convmatrix()`](https://tomwenseleers.github.io/logconNMF/reference/convmatrix.md)
 
 ## Examples
 

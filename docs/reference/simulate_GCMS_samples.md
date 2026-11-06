@@ -91,7 +91,7 @@ simulate_GCMS_samples(
 - family:
 
   Signal distribution name supported by
-  [`coupledNMF()`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md).
+  [`coupledNMF()`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md).
 
 - dispersion, theta:
 
@@ -104,13 +104,13 @@ edges and times (minutes), integrated-count means, true spectra,
 profiles, areas, presence indicators and acquisition dates. A simulated
 observation is integrated over its bin; `raw_exposure` is the original
 bin duration in seconds. For
-[`coupledNMF()`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md),
+[`coupledNMF()`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md),
 supply it as exposure.
 
 ## See also
 
-[`coupledNMF()`](https://tomwenseleers.github.io/L0nmf/reference/coupledNMF.md),
-[`simulate_GCMS()`](https://tomwenseleers.github.io/L0nmf/reference/simulate_GCMS.md)
+[`coupledNMF()`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md),
+[`simulate_GCMS()`](https://tomwenseleers.github.io/logconNMF/reference/simulate_GCMS.md)
 
 ## Examples
 

@@ -1,4 +1,4 @@
-# L0nmf 0.1.0
+# logconNMF 0.1.0
 
 ## PSF estimation and deconvolution
 
@@ -9,7 +9,7 @@
 
 ## Sparse log-concave matrix factorization
 
-* `splogconNMF()` estimates nonnegative profiles and loadings with hard
+* `logconNMF()` estimates nonnegative profiles and loadings with hard
   log-concavity constraints and automatic best rank tuning.
 * Local profile, spectrum and background updates, algebraic candidate fusion,
   conditional deletion and residual additions use original-channel criteria.
@@ -25,7 +25,7 @@
 
 ## Coupled multisample models
 
-* `coupledNMF()` shares spectra across samples with sample-specific profiles,
+* `logconNMF()` with a sample list shares spectra across samples with sample-specific profiles,
   areas and backgrounds, allowing compounds to be absent from individual samples.
 * Monotone alignment, area-ordered profile compatibility and exposure-aware
   likelihoods retain each sample's original irregular scan grid.

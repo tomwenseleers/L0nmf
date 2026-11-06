@@ -1,0 +1,28 @@
+Package: logconNMF
+Type: Package
+Title: Log-Concave Nonnegative Matrix Factorization with Automatic Rank Selection
+Version: 0.1.0
+Date: 2026-11-01
+Authors@R: c(
+    person("Tom", "Wenseleers", role = c("aut", "cre"),
+           email = "tom.wenseleers@kuleuven.be"),
+    person("Christophe", "Vanderaa", role = "aut",
+           email = "christophe.vanderaa@kuleuven.be"))
+Description: Separates overlapping ordered signals into nonnegative
+    log-concave profiles and channel loadings, with automatic rank selection,
+    optional smooth backgrounds and flexible noise models. Estimates constant
+    or time-varying point spread functions and fits coupled models that share
+    loadings across samples on their original observation grids.
+License: GPL (>= 2)
+Encoding: UTF-8
+Depends: R (>= 4.1.0)
+Imports: parallel, RhpcBLASctl, L0glm (>= 0.2.0), Matrix, Rcpp, cobs, gsignal, methods, stats, graphics, grDevices, utils
+Suggests: ALS, testthat (>= 3.0.0), knitr, rmarkdown, pkgdown, mgcv
+LinkingTo: L0glm, Rcpp, RcppEigen
+SystemRequirements: C++17, OpenMP
+URL: https://tomwenseleers.github.io/logconNMF/, https://github.com/tomwenseleers/logconNMF
+BugReports: https://github.com/tomwenseleers/logconNMF/issues
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+Config/roxygen2/version: 8.1.1
+Remotes: tomwenseleers/L0glm/L0glm

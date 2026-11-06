@@ -59,7 +59,7 @@ rows, and \`n_cols\` columns.
 
 ## See also
 
-[`convkernel`](https://tomwenseleers.github.io/L0nmf/reference/convkernel.md)
+[`convkernel`](https://tomwenseleers.github.io/logconNMF/reference/convkernel.md)
 to generate the 1-D PSF vectors used here.
 
 ## Author

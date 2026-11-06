@@ -1,6 +1,6 @@
 {
-  "name": "L0nmf",
-  "short_name": "L0nmf",
+  "name": "logconNMF",
+  "short_name": "logconNMF",
   "icons": [
     {
       "src": "web-app-manifest-192x192.png",

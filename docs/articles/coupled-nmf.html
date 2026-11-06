@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Coupled multisample log-concave NMF with automatic best rank tuning • L0nmf</title>
+<title>Coupled multisample log-concave NMF with automatic best rank tuning • logconNMF</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
@@ -20,8 +20,8 @@
 <meta property="og:title" content="Coupled multisample log-concave NMF with automatic best rank tuning">
 <meta name="description" content="Share spectra across aligned samples with log-concave profiles, missing compounds and flexible noise models.">
 <meta property="og:description" content="Share spectra across aligned samples with log-concave profiles, missing compounds and flexible noise models.">
-<meta property="og:image" content="https://tomwenseleers.github.io/L0nmf/reference/figures/logo.png">
-<meta property="og:image:alt" content="L0nmf hex logo showing a sparse matrix factorized into profiles and spectral loadings">
+<meta property="og:image" content="https://tomwenseleers.github.io/logconNMF/reference/figures/logo.png">
+<meta property="og:image:alt" content="logconNMF hex logo with log-concave profiles and corresponding spectra">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -29,7 +29,7 @@
 
     <nav class="navbar navbar-expand-lg fixed-top bg-dark" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="../index.html">L0nmf</a>
+    <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
@@ -57,7 +57,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tomwenseleers/L0nmf"><span class="fa fab fa-github"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tomwenseleers/logconNMF"><span class="fa fab fa-github"></span></a></li>
       </ul>
 </div>
 
@@ -73,20 +73,21 @@
       <img src="../logo.png" class="logo" alt=""><h1>Coupled multisample log-concave NMF with automatic best rank tuning</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/tomwenseleers/L0nmf/blob/master/L0nmf/vignettes/articles/coupled-nmf.Rmd" class="external-link"><code>vignettes/articles/coupled-nmf.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/tomwenseleers/logconNMF/blob/master/logconNMF/vignettes/articles/coupled-nmf.Rmd" class="external-link"><code>vignettes/articles/coupled-nmf.Rmd</code></a></small>
       <div class="d-none name"><code>coupled-nmf.Rmd</code></div>
     </div>
 
     
     
-<p><code><a href="../reference/coupledNMF.html">coupledNMF()</a></code> combines related multichannel samples into
-a common spectral library while fitting each sample’s own compound
-areas, peak shapes and smooth background. Samples retain their measured
-time grids. The model accommodates retention-time drift,
+<p><code><a href="../reference/logconNMF.html">logconNMF()</a></code> combines related multichannel samples into a
+common spectral library while fitting each sample’s own compound areas,
+peak shapes and smooth background. Samples retain their measured time
+grids. The model accommodates retention-time drift,
 concentration-dependent widths and tails, and compounds that occur in
 only some samples.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/coupledNMF.html">coupledNMF</a></span><span class="op">(</span><span class="va">samples</span>, family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster<span class="op">=</span><span class="fl">32L</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/logconNMF.html">logconNMF</a></span><span class="op">(</span><span class="va">samples</span>, family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster<span class="op">=</span><span class="fl">32L</span><span class="op">)</span></span>
+<span><span class="va">fit</span><span class="op">$</span><span class="va">rank</span>                          <span class="co"># estimated number of shared compounds</span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">areas</span>                         <span class="co"># samples x consensus compounds</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span>, normalize<span class="op">=</span><span class="st">"l1"</span><span class="op">)</span>          <span class="co"># common spectra</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="va">fit</span>, sample<span class="op">=</span><span class="fl">1L</span><span class="op">)</span>             <span class="co"># original-grid fitted signal</span></span>
@@ -94,7 +95,7 @@ only some samples.</p>
 <span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/model_criteria.html" class="external-link">GIC</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
 <p>Each sample description contains <code>y</code>, <code>time</code>,
 and either a candidate PSF matrix <code>X</code> or an independent
-<code><a href="../reference/splogconNMF.html">splogconNMF()</a></code> fit. Matrices can be supplied through RDS
+<code><a href="../reference/logconNMF.html">logconNMF()</a></code> fit. Matrices can be supplied through RDS
 paths. Observations, factors, weights and offsets are stored per sample.
 Each independent worker loads one sample into memory. During coupling,
 original observations and factor checkpoints remain in per-sample files,
@@ -120,7 +121,7 @@ of the samples on average.</p>
 <span>  background<span class="op">=</span><span class="fu">splines</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/splines/bs.html" class="external-link">bs</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">time</span>, df<span class="op">=</span><span class="fl">4L</span>, intercept<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>,</span>
 <span>  small_width<span class="op">=</span><span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span> <span class="op">*</span> <span class="fl">1.6</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">time</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/coupledNMF.html">coupledNMF</a></span><span class="op">(</span><span class="va">samples</span>, family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">poisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, ncores<span class="op">=</span><span class="fl">8L</span>,</span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/logconNMF.html">logconNMF</a></span><span class="op">(</span><span class="va">samples</span>, family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">poisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, ncores<span class="op">=</span><span class="fl">8L</span>,</span>
 <span>  control<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>initial<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>profile_cycles<span class="op">=</span><span class="fl">4L</span>, fusion_passes<span class="op">=</span><span class="fl">2L</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">areas</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, type<span class="op">=</span><span class="st">"profiles"</span>, compounds<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>,<span class="fl">12L</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>

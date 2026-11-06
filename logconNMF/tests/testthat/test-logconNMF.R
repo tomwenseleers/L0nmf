@@ -1,6 +1,6 @@
 test_that("one matrix uses the single-sample penalty and extractors", {
   set.seed(86)
-  X <- convmatrix(dnorm(-5:5, sd = 1.3), 60L)
+  X <- convMatrix(dnorm(-5:5, sd = 1.3), 60L)
   S <- matrix(c(2600, 900, 1100, 2200, 480, 1700), 2L, 3L)
   mu <- as.matrix(X[, c(18L, 43L)] %*% S) + 1
   Y <- matrix(rpois(length(mu), mu), nrow(mu), dimnames = list(NULL, c("43", "57", "71")))
@@ -22,7 +22,7 @@ test_that("one matrix uses the single-sample penalty and extractors", {
 
 test_that("coupled calls retain sample names, file-backed inputs and joint scores", {
   set.seed(87)
-  X <- convmatrix(dnorm(-5:5, sd = 1.3), 60L)
+  X <- convMatrix(dnorm(-5:5, sd = 1.3), 60L)
   S <- matrix(c(2300, 800, 1100, 2100, 480, 1600), 2L, 3L)
   mu <- as.matrix(X[, c(18L, 43L)] %*% S) + 1
   y <- matrix(rpois(length(mu), mu), nrow(mu))

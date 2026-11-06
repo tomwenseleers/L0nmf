@@ -155,11 +155,11 @@ cpl_stream_operation <- function(task,f,meta,tiny,old_threads,gid) {
 # Sum-Poisson proposals are inexpensive; acceptance uses all original ions.
 cpl_aggregate_profile <- function(task,f,meta,tiny,old_threads,gid) {
   Y<-task$aggregate;groups<-task$groups
-  P<-aggregate_channels(task$P,groups,meta$mass)
-  alpha<-aggregate_channels(f$alpha,groups,meta$mass)
+  P<-aggregateChannels(task$P,groups,meta$mass)
+  alpha<-aggregateChannels(f$alpha,groups,meta$mass)
   sizes<-tabulate(cpl_channel_index(groups,meta$mass),nbins=groups$k)
   O<-if(is.null(dim(f$offset)))outer(rep_len(f$offset,meta$n),sizes)else
-    aggregate_channels(f$offset,groups,meta$mass)
+    aggregateChannels(f$offset,groups,meta$mass)
   mu<-as.matrix(f$H%*%(P*(f$area*task$scale)))*f$exposure+
     f$background%*%alpha*f$raw_exposure+O
   block<-task$selected

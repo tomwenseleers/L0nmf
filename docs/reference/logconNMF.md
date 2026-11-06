@@ -9,6 +9,17 @@ area for each occurrence.
 ## Usage
 
 ``` r
+# S3 method for class 'coupledNMF'
+plot(
+  x,
+  type = c("areas", "spectra", "profiles"),
+  sample = NULL,
+  compounds = seq_len(min(6L, nrow(x$P))),
+  ...
+)
+
+sampleNMF(object, sample = 1L)
+
 logconNMF(
   y,
   X = NULL,
@@ -39,23 +50,51 @@ fitted(object, sample = 1L, ...)
 
 ## Arguments
 
+- x:
+
+  A fitted coupled model for plotting.
+
+- type:
+
+  Plot sample areas, common spectra or aligned compound profiles.
+
+- sample:
+
+  Sample index or ID. For a single matrix use `1L` or `"sample1"`. In
+  [`coef()`](https://rdrr.io/r/stats/coef.html), `NULL` returns the
+  common spectra for a coupled fit. In
+  [`plot()`](https://rdrr.io/r/graphics/plot.default.html), `NULL`
+  displays all samples.
+
+- compounds:
+
+  Compound indices to display in a coupled plot.
+
+- ...:
+
+  Further arguments passed to the underlying extractor.
+
+- object:
+
+  A fitted model returned by `logconNMF()`. `sampleNMF()` takes a
+  coupled model.
+
 - y:
 
   A numeric scans-by-channels matrix or vector for one sample, or a list
   of at least two sample descriptions for a coupled fit. Each
-  description contains `y` and `time` and may include its own `X`,
-  `background`, `weights`, `offset`, `exposure` or existing `fit`.
-  Matrices and initial fits in a description can be supplied as RDS
-  paths. Samples must share channel names and order. List names supply
-  sample IDs when a description omits `sample_id`. See
-  [`coupledNMF()`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
-  for all descriptor fields.
+  description contains `y` and increasing `time`, with optional `X`,
+  `background`, `fit`, `weights`, `offset`, `exposure`, `dispersion`,
+  `theta`, `sample_id`, `group`, `small_width` and `edges`. Supply
+  observations, weights, offsets or initial fits as RDS paths to read
+  them from disk. Samples share channel names and order. List names
+  supply sample IDs when the descriptions omit `sample_id`.
 
 - X:
 
   Candidate profile matrix for a single sample, such as the sparse
   design from
-  [`estimate_psf()`](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf.md).
+  [`estimatePSF()`](https://tomwenseleers.github.io/logconNMF/reference/estimatePSF.md).
   In a coupled fit, supply it in each sample description or let the
   coupled initializer estimate it.
 
@@ -64,9 +103,9 @@ fitted(object, sample = 1L, ...)
   Identity-link noise family: `gaussian`, `poisson`, `quasipoisson`,
   [`mgcv::nb`](https://rdrr.io/pkg/mgcv/man/negbin.html), `Gamma`,
   [`nb1()`](https://tomwenseleers.github.io/L0glm/reference/signal_families.html),
-  [`Gamma_scale()`](https://tomwenseleers.github.io/L0glm/reference/signal_families.html)
+  [`gammaScale()`](https://tomwenseleers.github.io/L0glm/reference/signal_families.html)
   or
-  [`Gamma_censored()`](https://tomwenseleers.github.io/L0glm/reference/signal_families.html).
+  [`gammaCensored()`](https://tomwenseleers.github.io/L0glm/reference/signal_families.html).
   The corresponding names, including `"nb"`, `"nb1"` and
   `"Gamma_scale"`, are also accepted. Count likelihoods require integer
   counts; quasipoisson accepts nonnegative intensities. Gaussian
@@ -109,7 +148,7 @@ fitted(object, sample = 1L, ...)
 - precluster:
 
   Maximum channel groups or a saved
-  [`channel_groups()`](https://tomwenseleers.github.io/logconNMF/reference/channel_groups.md)
+  [`channelGroups()`](https://tomwenseleers.github.io/logconNMF/reference/channelGroups.md)
   map. `"auto"` uses the original channels for a single sample and up to
   32 common groups for a coupled fit. `FALSE` or `NULL` disables
   aggregation. Final fits use every original channel.
@@ -134,14 +173,23 @@ fitted(object, sample = 1L, ...)
 - ncores:
 
   Total core budget. `NULL` uses the detected physical core count.
+  Coupled fits divide that budget between sample workers and their
+  native threads, with one BLAS thread per worker.
 
 - control:
 
-  Named controls for the selected fitter. See
+  Named controls. See
   [`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
-  and
-  [`coupledNMF()`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
-  for their respective controls.
+  for one matrix. For a coupled fit, `cycles=10L` and
+  `initial_cycles=5L` set refinement limits, `rounds=3L` sets the number
+  of grouping rounds, and `q=64L` sets the local profile update
+  resolution. The default `rt_tolerance=NULL` and
+  `alignment_window=NULL` derive matching windows from the narrow-peak
+  widths. `ridge=TRUE` checks the profile ridge across samples. The
+  remaining defaults are `censor=0.5`, `correlation="none"`,
+  `workers=NULL` and `cache=TRUE`. `initial=list()` passes controls to
+  the independent initial fits. `workers` limits concurrent samples
+  within `ncores`. The cache stores aggregated observations in memory.
 
 - start:
 
@@ -155,40 +203,26 @@ fitted(object, sample = 1L, ...)
 
 - path:
 
-  New directory for the sample store and fitted factors. Keep this
-  directory with the saved R object; its paths are used by
-  [`fitted()`](https://rdrr.io/r/stats/fitted.values.html) and plots.
+  New directory for the sample store and fitted factors in a coupled
+  fit. `NULL` uses a temporary directory.
 
 - align:
 
-  Estimate monotone sample-level time warps.
+  Estimate monotone time warps for a coupled fit.
 
 - method:
 
-  Spectral distance for anchor matching and grouping.
+  Spectral distance for matching coupled samples, either `"cosine"` or
+  `"hellinger"`.
 
 - verbose:
 
   Print stage timings, objective changes and compound counts.
 
-- object:
-
-  A fitted model returned by `logconNMF()`.
-
-- sample:
-
-  Sample index or ID. For a single matrix use `1L` or `"sample1"`. In
-  [`coef()`](https://rdrr.io/r/stats/coef.html), `NULL` returns the
-  common spectra for a coupled fit.
-
 - normalize:
 
   `"none"` returns amplitude-scaled loadings. `"l1"` returns unit-sum
   rows.
-
-- ...:
-
-  Further arguments passed to the underlying extractor.
 
 ## Value
 
@@ -198,10 +232,10 @@ components or shared components. Use
 [`fitted()`](https://rdrr.io/r/stats/fitted.values.html) and
 [`GIC()`](https://tomwenseleers.github.io/L0glm/reference/model_criteria.html)
 in either mode. [`fitted()`](https://rdrr.io/r/stats/fitted.values.html)
-returns one sample on its original grid. A coupled fit also provides its
-sample-by-compound `areas` and
-[`sampleNMF()`](https://tomwenseleers.github.io/logconNMF/reference/sampleNMF.md)
-views.
+returns one sample on its original grid. A coupled fit includes
+consensus spectra `P`, sample-by-compound `areas`, `compounds`,
+`alignment`, `paths`, `store`, `channel_groups` and `parallel` thread
+allocation.
 
 ## Details
 
@@ -243,10 +277,47 @@ reproduce a single-sample
 call using a numeric compound penalty, divide that penalty by the number
 of channels.
 
+## Coupled models
+
+Samples can supply separate background bases, known exposures and noise
+parameters. With a time warp \\u=w_s(t)\\, binwise Jacobian \\J\\, and
+exposure \\e\\, the fitted mean on the original grid is
+\$\$\mu\_{sij}=e\_{si}\\J\_{si}\sum_g a\_{sg}h\_{sg}(u\_{si})p\_{gj}
++(B_sA_s)\_{ij}\\+o\_{sij}.\$\$ Spectra sum to one and the profiles
+integrate to one on the aligned grid. Unit exposure models the supplied
+intensities. Use known integration durations as exposures for integrated
+counts. Scan spacing and `small_width` use the same time units.
+
+Reciprocal spectral matches provide leading-edge alignment anchors.
+Compatible occurrences share spectra after checking overlap and profile
+shape in area order. At most one occurrence of a compound enters each
+sample. Local profile, spectral and background updates compare the full
+original-channel likelihood. Undetected occurrences have `NA` areas.
+Noise scales are held fixed when comparing groupings. A negative NB2
+`theta` allows bounded, likelihood-improving shape updates.
+
+The common channel map is learned from samples aggregated on common time
+bins. The fitter retains only the aggregated observations in its shared
+cache and reads the original channels in blocks from each sample store.
+Keep the store with the saved fitted object for reconstruction and
+plots.
+
+## Extract one sample
+
+`sampleNMF(object, sample)` returns a single-sample factorization view.
+The view contains unit-sum original-grid profiles in `H`, matching
+amplitude-scaled spectra in `S`, its fitted background, integrated areas
+in `integrated_area`, and consensus IDs in `compound_id`. Alignment and
+exposure are included in the profiles and spectra. Use
+[`coef()`](https://rdrr.io/r/stats/coef.html),
+[`fitted()`](https://rdrr.io/r/stats/fitted.values.html) and
+[`GIC()`](https://tomwenseleers.github.io/L0glm/reference/model_criteria.html)
+on the returned view. The view carries no observed matrix.
+
 ## Examples
 
 ``` r
-X <- convmatrix(convkernel("gaussian", 9L), 50L)
+X <- convMatrix(convKernel("gaussian", 9L), 50L)
 signal <- cbind(700 * X[, 16L] + 350 * X[, 35L],
                 150 * X[, 16L] + 500 * X[, 35L])
 set.seed(12)
@@ -262,4 +333,7 @@ joint <- logconNMF(samples, ncores = 1L)
 joint$rank
 joint$areas
 fitted(joint, sample = "second")[1:3, ]
+second_fit <- sampleNMF(joint, sample = "second")
+second_fit$compound_id
+coef(second_fit)
 ```

@@ -24,7 +24,7 @@ spectra](logo-dark.svg)
 supports](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
 [**Peak shape constraints**Log-concave profiles and constant or
 time-varying
-PSFs](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf.md)
+PSFs](https://tomwenseleers.github.io/logconNMF/reference/estimatePSF.md)
 [**7 noise families**Gaussian, Poisson, quasi-Poisson, NB2, NB1 and two
 Gamma
 models](https://tomwenseleers.github.io/logconNMF/articles/log-concave-nmf.md)
@@ -98,10 +98,10 @@ profile.
 ``` r
 
 library(logconNMF)
-data(GCMS_data1)
-Y <- GCMS_data1
-g <- convkernel("gaussian", 65L, list(sigma = 8))
-X <- convmatrix(g, nrow(Y))
+data(gcmsData1)
+Y <- gcmsData1
+g <- convKernel("gaussian", 65L, list(sigma = 8))
+X <- convMatrix(g, nrow(Y))
 fit <- logconNMF(Y, X = X, background = matrix(1, nrow(Y), 1L),
   family = quasipoisson("identity"), precluster = 16L)
 
@@ -129,7 +129,7 @@ Each spectrum is displayed on a square-root relative-intensity scale.
 
 | Data and objective | Method |
 |:---|:---|
-| Estimate a common response shape from a standard or overlapping signals | [Estimate PSFs](https://tomwenseleers.github.io/logconNMF/articles/estimate-psf.md) with [`estimate_psf()`](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf.md). The returned sparse design can use a constant or time-varying PSF. |
+| Estimate a common response shape from a standard or overlapping signals | [Estimate PSFs](https://tomwenseleers.github.io/logconNMF/articles/estimate-psf.md) with [`estimatePSF()`](https://tomwenseleers.github.io/logconNMF/reference/estimatePSF.md). The returned sparse design can use a constant or time-varying PSF. |
 | Resolve components with individual shapes in one matrix | [Sparse log-concave NMF](https://tomwenseleers.github.io/logconNMF/articles/log-concave-nmf.md) with [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md). The tutorial covers rank selection, backgrounds and seven noise models. |
 | Share spectra across related samples | [Coupled log-concave NMF](https://tomwenseleers.github.io/logconNMF/articles/coupled-nmf.md) with [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md). Each sample retains its own scan grid, peak shapes and areas. Components may be absent from individual samples. |
 
@@ -160,7 +160,7 @@ published, we would appreciate a citation to the package:
 
 Wenseleers T, Vanderaa C (2026). *logconNMF: Log-Concave Nonnegative
 Matrix Factorization with Automatic Rank Selection*. R package version
-0.1.0, <https://tomwenseleers.github.io/logconNMF/>.
+0.1.0.9000, <https://tomwenseleers.github.io/logconNMF/>.
 
 The [Authors and Citation
 page](https://tomwenseleers.github.io/logconNMF/authors.html#citation)

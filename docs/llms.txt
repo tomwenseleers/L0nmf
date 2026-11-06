@@ -24,7 +24,7 @@ spectra](logo-dark.svg)
 supports](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
 [**Peak shape constraints**Log-concave profiles and constant or
 time-varying
-PSFs](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf.md)
+PSFs](https://tomwenseleers.github.io/logconNMF/reference/estimatePSF.md)
 [**7 noise families**Gaussian, Poisson, quasi-Poisson, NB2, NB1 and two
 Gamma
 models](https://tomwenseleers.github.io/logconNMF/articles/log-concave-nmf.md)
@@ -98,10 +98,10 @@ profile.
 ``` r
 
 library(logconNMF)
-data(GCMS_data1)
-Y <- GCMS_data1
-g <- convkernel("gaussian", 65L, list(sigma = 8))
-X <- convmatrix(g, nrow(Y))
+data(gcmsData1)
+Y <- gcmsData1
+g <- convKernel("gaussian", 65L, list(sigma = 8))
+X <- convMatrix(g, nrow(Y))
 fit <- logconNMF(Y, X = X, background = matrix(1, nrow(Y), 1L),
   family = quasipoisson("identity"), precluster = 16L)
 
@@ -129,7 +129,7 @@ Each spectrum is displayed on a square-root relative-intensity scale.
 
 | Data and objective | Method |
 |:---|:---|
-| Estimate a common response shape from a standard or overlapping signals | [Estimate PSFs](https://tomwenseleers.github.io/logconNMF/articles/estimate-psf.md) with [`estimate_psf()`](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf.md). The returned sparse design can use a constant or time-varying PSF. |
+| Estimate a common response shape from a standard or overlapping signals | [Estimate PSFs](https://tomwenseleers.github.io/logconNMF/articles/estimate-psf.md) with [`estimatePSF()`](https://tomwenseleers.github.io/logconNMF/reference/estimatePSF.md). The returned sparse design can use a constant or time-varying PSF. |
 | Resolve components with individual shapes in one matrix | [Sparse log-concave NMF](https://tomwenseleers.github.io/logconNMF/articles/log-concave-nmf.md) with [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md). The tutorial covers rank selection, backgrounds and seven noise models. |
 | Share spectra across related samples | [Coupled log-concave NMF](https://tomwenseleers.github.io/logconNMF/articles/coupled-nmf.md) with [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md). Each sample retains its own scan grid, peak shapes and areas. Components may be absent from individual samples. |
 
@@ -160,7 +160,7 @@ published, we would appreciate a citation to the package:
 
 Wenseleers T, Vanderaa C (2026). *logconNMF: Log-Concave Nonnegative
 Matrix Factorization with Automatic Rank Selection*. R package version
-0.1.0, <https://tomwenseleers.github.io/logconNMF/>.
+0.1.0.9000, <https://tomwenseleers.github.io/logconNMF/>.
 
 The [Authors and Citation
 page](https://tomwenseleers.github.io/logconNMF/authors.html#citation)
@@ -178,25 +178,27 @@ responsibility for the work presented here.
 
 ## Estimate point spread functions and deconvolve signals
 
-- [`convkernel()`](https://tomwenseleers.github.io/logconNMF/reference/convkernel.md)
-  [`shift_kernel()`](https://tomwenseleers.github.io/logconNMF/reference/convkernel.md)
+- [`convKernel()`](https://tomwenseleers.github.io/logconNMF/reference/convKernel.md)
+  [`shiftKernel()`](https://tomwenseleers.github.io/logconNMF/reference/convKernel.md)
   : Generate normalised 1-D convolution kernels (point-spread functions)
-- [`convmatrix()`](https://tomwenseleers.github.io/logconNMF/reference/convmatrix.md)
+- [`convMatrix()`](https://tomwenseleers.github.io/logconNMF/reference/convMatrix.md)
   : Make banded or rectangular convolution design matrices
-- [`estimate_psf()`](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf.md)
+- [`estimatePSF()`](https://tomwenseleers.github.io/logconNMF/reference/estimatePSF.md)
   : Estimate constant or time-varying point spread functions
-- [`estimate_psf_from_std()`](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf_from_std.md)
+- [`estimatePSFFromStd()`](https://tomwenseleers.github.io/logconNMF/reference/estimatePSFFromStd.md)
   : Estimate a time-varying PSF matrix from an alkane ladder TIC
-- [`L0glm_blind_deco()`](https://tomwenseleers.github.io/logconNMF/reference/L0glm_blind_deco.md)
+- [`l0glmBlindDeco()`](https://tomwenseleers.github.io/logconNMF/reference/l0glmBlindDeco.md)
   : Alternating sparse L0 glm powered blind deconvolution
-- [`L0glm_sparse_deco()`](https://tomwenseleers.github.io/logconNMF/reference/L0glm_sparse_deco.md)
+- [`l0glmSparseDeco()`](https://tomwenseleers.github.io/logconNMF/reference/l0glmSparseDeco.md)
   : Sparse deconvolution with a fixed PSF via L0-penalised GLMs
-- [`L0glm_deco_estkernel()`](https://tomwenseleers.github.io/logconNMF/reference/L0glm_deco_estkernel.md)
+- [`l0glmDecoEstKernel()`](https://tomwenseleers.github.io/logconNMF/reference/l0glmDecoEstKernel.md)
   : Estimate the PSF given a spike train estimate via L0-penalised GLMs
 
 ## Sparse and coupled factorization
 
-- [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
+- [`plot(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
+  [`sampleNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
+  [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
   [`coef(`*`<logconNMF_fit>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
   [`fitted(`*`<logconNMF_fit>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
   : Fit a log-concave factorization with automatic rank selection
@@ -213,44 +215,29 @@ responsibility for the work presented here.
   [`MBIC(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
   [`print(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
   : Sparse log-concave nonnegative matrix factorization
-- [`coupledNMF()`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
-  [`fitted(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
-  [`coef(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
-  [`logLik(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
-  [`nobs(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
-  [`AIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
-  [`BIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
-  [`GIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
-  [`EBIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
-  [`MBIC(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
-  [`print(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
-  [`plot(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/coupledNMF.md)
-  : Coupled sparse log-concave factorization of multiple samples
-- [`sampleNMF()`](https://tomwenseleers.github.io/logconNMF/reference/sampleNMF.md)
-  : Extract one sample's factorization from a coupled fit
-- [`channel_groups()`](https://tomwenseleers.github.io/logconNMF/reference/channel_groups.md)
-  [`aggregate_channels()`](https://tomwenseleers.github.io/logconNMF/reference/channel_groups.md)
+- [`channelGroups()`](https://tomwenseleers.github.io/logconNMF/reference/channelGroups.md)
+  [`aggregateChannels()`](https://tomwenseleers.github.io/logconNMF/reference/channelGroups.md)
   : Learn and reuse a common channel aggregation
 
 ## Noise calibration and profile constraints
 
-- [`estimate_signal_noise()`](https://tomwenseleers.github.io/logconNMF/reference/estimate_signal_noise.md)
+- [`estimateSignalNoise()`](https://tomwenseleers.github.io/logconNMF/reference/estimateSignalNoise.md)
   : Estimate a shared noise model for ordered multichannel signals
-- [`log_conc_smooth()`](https://tomwenseleers.github.io/logconNMF/reference/log_conc_smooth.md)
+- [`logConcSmooth()`](https://tomwenseleers.github.io/logconNMF/reference/logConcSmooth.md)
   : Log-concave spline smoothing of a discrete convolution kernel
   estimate
 
 ## Simulations and experimental data
 
-- [`simulate_GCMS()`](https://tomwenseleers.github.io/logconNMF/reference/simulate_GCMS.md)
+- [`simulateGCMS()`](https://tomwenseleers.github.io/logconNMF/reference/simulateGCMS.md)
   : Simulate synthetic GC-MS chromatograms with ground-truth signal +
   background
-- [`simulate_GCMS_samples()`](https://tomwenseleers.github.io/logconNMF/reference/simulate_GCMS_samples.md)
+- [`simulateGCMSSamples()`](https://tomwenseleers.github.io/logconNMF/reference/simulateGCMSSamples.md)
   : Simulate related chromatograms with shared compound spectra
-- [`GCMS_data1`](https://tomwenseleers.github.io/logconNMF/reference/GCMS_data1.md)
+- [`gcmsData1`](https://tomwenseleers.github.io/logconNMF/reference/gcmsData1.md)
   : GC/MS Chromatogram Section - Cuticular Hydrocarbon Profile of a
   Cataglyphis iberica Ant Queen
-- [`GCMS_data2`](https://tomwenseleers.github.io/logconNMF/reference/GCMS_data2.md)
+- [`gcmsData2`](https://tomwenseleers.github.io/logconNMF/reference/gcmsData2.md)
   : GC/MS Chromatogram Section - Beer Headspace Volatiles
 
 ## Shared tools and package overview

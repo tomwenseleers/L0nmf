@@ -6,14 +6,15 @@
 #' scan grids and estimating a separate profile and area for each occurrence.
 #'
 #' @param y A numeric scans-by-channels matrix or vector for one sample, or a
-#'   list of at least two sample descriptions for a coupled fit. Each description
-#'   contains `y` and `time` and may include its own `X`, `background`,
-#'   `weights`, `offset`, `exposure` or existing `fit`. Matrices and initial
-#'   fits in a description can be supplied as RDS paths. Samples must share
-#'   channel names and order. List names supply sample IDs when a description
-#'   omits `sample_id`. See [coupledNMF()] for all descriptor fields.
+#'   list of at least two sample descriptions for a coupled fit. Each
+#'   description contains `y` and increasing `time`, with optional `X`,
+#'   `background`, `fit`, `weights`, `offset`, `exposure`, `dispersion`,
+#'   `theta`, `sample_id`, `group`, `small_width` and `edges`. Supply
+#'   observations, weights, offsets or initial fits as RDS paths to
+#'   read them from disk. Samples share channel names and order. List names
+#'   supply sample IDs when the descriptions omit `sample_id`.
 #' @param X Candidate profile matrix for a single sample, such as the sparse
-#'   design from [estimate_psf()]. In a coupled fit, supply it in each sample
+#'   design from [estimatePSF()]. In a coupled fit, supply it in each sample
 #'   description or let the coupled initializer estimate it.
 #' @param lambda An information criterion (`"gic"`, `"aic"`, `"bic"`,
 #'   `"ebic"` or `"mbic"`) or a nonnegative numeric penalty per selection
@@ -21,25 +22,44 @@
 #'   `m` channels, a single component incurs `m * lambda`; in a coupled fit
 #'   a shared spectrum incurs `(m - 1) * lambda` and an occurrence incurs
 #'   `lambda`.
-#' @param precluster Maximum channel groups or a saved [channel_groups()] map.
+#' @param precluster Maximum channel groups or a saved [channelGroups()] map.
 #'   `"auto"` uses the original channels for a single sample and up to 32
 #'   common groups for a coupled fit. `FALSE` or `NULL` disables aggregation.
 #'   Final fits use every original channel.
 #' @param correlation Lag-one working information adjustment. `NULL` uses the
 #'   fitter's default (`"auto"` for one sample and `"none"` for coupled fits),
 #'   or `control$correlation` if supplied for a coupled fit.
-#' @param control Named controls for the selected fitter. See [splogconNMF()]
-#'   and [coupledNMF()] for their respective controls.
+#' @param control Named controls. See [splogconNMF()] for one matrix. For a
+#'   coupled fit, `cycles=10L` and `initial_cycles=5L` set refinement limits,
+#'   `rounds=3L` sets the number of grouping rounds, and `q=64L` sets the
+#'   local profile update resolution. The default `rt_tolerance=NULL` and
+#'   `alignment_window=NULL` derive matching windows from the narrow-peak
+#'   widths. `ridge=TRUE` checks the profile ridge across samples. The
+#'   remaining defaults are `censor=0.5`, `correlation="none"`,
+#'   `workers=NULL` and `cache=TRUE`. `initial=list()` passes controls to
+#'   the independent initial fits. `workers` limits concurrent samples
+#'   within `ncores`. The cache stores aggregated observations in memory.
 #' @param ncores Total core budget. `NULL` uses the detected physical core count.
+#'   Coupled fits divide that budget between sample workers and their native
+#'   threads, with one BLAS thread per worker.
+#' @param path New directory for the sample store and fitted factors in a
+#'   coupled fit. `NULL` uses a temporary directory.
+#' @param align Estimate monotone time warps for a coupled fit.
+#' @param method Spectral distance for matching coupled samples, either
+#'   `"cosine"` or `"hellinger"`.
 #' @param object A fitted model returned by `logconNMF()`.
+#'   `sampleNMF()` takes a coupled model.
+#' @param x A fitted coupled model for plotting.
 #' @param sample Sample index or ID. For a single matrix use `1L` or
 #'   `"sample1"`. In `coef()`, `NULL` returns the common spectra for a
-#'   coupled fit.
+#'   coupled fit. In `plot()`, `NULL` displays all samples.
 #' @param normalize `"none"` returns amplitude-scaled loadings. `"l1"`
 #'   returns unit-sum rows.
+#' @param type Plot sample areas, common spectra or aligned compound profiles.
+#' @param compounds Compound indices to display in a coupled plot.
 #' @param ... Further arguments passed to the underlying extractor.
 #' @inheritParams splogconNMF
-#' @inheritParams coupledNMF
+#' @aliases coupledNMF
 #' @details
 #' **Rank-selection objective.** The fit approximately minimizes
 #' \deqn{-2\sum_s \ell_{\nu_s}(M_s;Y_s) + \kappa\lambda d.}
@@ -75,12 +95,48 @@
 #' Numeric penalties in `logconNMF()` have the same scale in both modes.
 #' To reproduce a single-sample [splogconNMF()] call using a numeric compound
 #' penalty, divide that penalty by the number of channels.
+#'
+#' @section Coupled models:
+#' Samples can supply separate background bases, known exposures and noise
+#' parameters. With a time warp \eqn{u=w_s(t)}, binwise Jacobian \eqn{J},
+#' and exposure \eqn{e}, the fitted mean on the original grid is
+#' \deqn{\mu_{sij}=e_{si}\{J_{si}\sum_g a_{sg}h_{sg}(u_{si})p_{gj}
+#' +(B_sA_s)_{ij}\}+o_{sij}.}
+#' Spectra sum to one and the profiles integrate to one on the aligned grid.
+#' Unit exposure models the supplied intensities. Use known integration
+#' durations as exposures for integrated counts. Scan spacing and
+#' `small_width` use the same time units.
+#'
+#' Reciprocal spectral matches provide leading-edge alignment anchors.
+#' Compatible occurrences share spectra after checking overlap and profile
+#' shape in area order. At most one occurrence of a compound enters each
+#' sample. Local profile, spectral and background updates compare the
+#' full original-channel likelihood. Undetected occurrences have `NA`
+#' areas. Noise scales are held fixed when comparing groupings. A negative
+#' NB2 `theta` allows bounded, likelihood-improving shape updates.
+#'
+#' The common channel map is learned from samples aggregated on common time
+#' bins. The fitter retains only the aggregated observations in its shared
+#' cache and reads the original channels in blocks from each sample store.
+#' Keep the store with the saved fitted object for reconstruction and plots.
+#'
+#' @section Extract one sample:
+#' `sampleNMF(object, sample)` returns a single-sample factorization view.
+#' The view contains unit-sum original-grid profiles in `H`, matching
+#' amplitude-scaled spectra in `S`, its fitted background, integrated areas
+#' in `integrated_area`, and consensus IDs in `compound_id`. Alignment and
+#' exposure are included in the profiles and spectra. Use `coef()`,
+#' `fitted()` and `GIC()` on the returned view. The view carries no observed
+#' matrix.
+#'
 #' @return A fitted object with estimated `rank`, the number of single-sample
 #'   components or shared components. Use [coef()], [fitted()] and [GIC()] in
 #'   either mode. `fitted()` returns one sample on its original grid. A coupled
-#'   fit also provides its sample-by-compound `areas` and [sampleNMF()] views.
+#'   fit includes consensus spectra `P`, sample-by-compound `areas`,
+#'   `compounds`, `alignment`, `paths`, `store`, `channel_groups` and
+#'   `parallel` thread allocation.
 #' @examples
-#' X <- convmatrix(convkernel("gaussian", 9L), 50L)
+#' X <- convMatrix(convKernel("gaussian", 9L), 50L)
 #' signal <- cbind(700 * X[, 16L] + 350 * X[, 35L],
 #'                 150 * X[, 16L] + 500 * X[, 35L])
 #' set.seed(12)
@@ -96,6 +152,9 @@
 #' joint$rank
 #' joint$areas
 #' fitted(joint, sample = "second")[1:3, ]
+#' second_fit <- sampleNMF(joint, sample = "second")
+#' second_fit$compound_id
+#' coef(second_fit)
 #' @md
 #' @export
 logconNMF <- function(y, X = NULL, family = poisson("identity"), lambda = "gic",

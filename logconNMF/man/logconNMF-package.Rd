@@ -16,7 +16,7 @@ The positive part of the profile has a concave logarithm, which accommodates
 asymmetric peaks and tails. Chromatographic elution profiles and mass
 spectra are a motivating example.
 
-Use \code{\link{estimate_psf}} to build a sparse design from a standard
+Use \code{\link{estimatePSF}} to build a sparse design from a standard
 or overlapping signals. \code{\link{logconNMF}} estimates the number of
 components, their profiles and their loadings. It fits one matrix or shares
 spectra across multiple samples with their own profiles, areas and

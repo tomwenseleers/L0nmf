@@ -13,7 +13,7 @@ and shark-fin peaks while retaining all original outcome channels."><meta proper
 
     <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -145,15 +145,15 @@ and shark-fin peaks while retaining all original outcome channels.</p>
 
 <dt id="arg-x">X<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
 <dd><p>Nonnegative scans-by-candidates matrix, typically shifted copies of
-a point-spread function from <code><a href="convmatrix.html">convmatrix()</a></code> or <code><a href="L0glm_blind_deco.html">L0glm_blind_deco()</a></code>. Columns
+a point-spread function from <code><a href="convMatrix.html">convMatrix()</a></code> or <code><a href="l0glmBlindDeco.html">l0glmBlindDeco()</a></code>. Columns
 must have contiguous log-concave positive support. Dense and sparse inputs
 are accepted and stored sparsely; columns are normalized to unit sum.</p></dd>
 
 
 <dt id="arg-family">family<a class="anchor" aria-label="anchor" href="#arg-family"></a></dt>
 <dd><p>Identity-link noise family: <code>gaussian</code>, <code>poisson</code>,
-<code>quasipoisson</code>, <code><a href="https://rdrr.io/pkg/mgcv/man/negbin.html" class="external-link">mgcv::nb</a></code>, <code>Gamma</code>, <code><a href="https://tomwenseleers.github.io/L0glm/reference/signal_families.html" class="external-link">nb1()</a></code>, <code><a href="https://tomwenseleers.github.io/L0glm/reference/signal_families.html" class="external-link">Gamma_scale()</a></code> or
-<code><a href="https://tomwenseleers.github.io/L0glm/reference/signal_families.html" class="external-link">Gamma_censored()</a></code>. The corresponding names, including <code>"nb"</code>, <code>"nb1"</code>
+<code>quasipoisson</code>, <code><a href="https://rdrr.io/pkg/mgcv/man/negbin.html" class="external-link">mgcv::nb</a></code>, <code>Gamma</code>, <code><a href="https://tomwenseleers.github.io/L0glm/reference/signal_families.html" class="external-link">nb1()</a></code>, <code><a href="https://tomwenseleers.github.io/L0glm/reference/signal_families.html" class="external-link">gammaScale()</a></code> or
+<code><a href="https://tomwenseleers.github.io/L0glm/reference/signal_families.html" class="external-link">gammaCensored()</a></code>. The corresponding names, including <code>"nb"</code>, <code>"nb1"</code>
 and <code>"Gamma_scale"</code>, are also accepted. Count likelihoods require integer
 counts; quasipoisson accepts nonnegative intensities. Gaussian observations
 may be negative; their fitted latent signals remain nonnegative.</p></dd>
@@ -186,7 +186,7 @@ updates. A fixed shape in the supplied NB family is respected.</p></dd>
 
 
 <dt id="arg-precluster">precluster<a class="anchor" aria-label="anchor" href="#arg-precluster"></a></dt>
-<dd><p>A saved <code><a href="channel_groups.html">channel_groups()</a></code> map shares the same aggregation
+<dd><p>A saved <code><a href="channelGroups.html">channelGroups()</a></code> map shares the same aggregation
 across analyses. <code>NULL</code> or <code>FALSE</code> uses every channel throughout. <code>TRUE</code>
 uses up to 32 groups; an integer supplies another maximum. Size-adjusted
 Poisson clustering, aggregation, selection and fusion operate in that
@@ -306,7 +306,7 @@ This is a compound-count model-selection convention. The IC methods use
 \(mK\) plus the number of estimated shared noise parameters as their
 complexity count; it is distinct from counting every free profile ordinate.</p>
 <p><strong>Initialization and local updates.</strong> A variance-matched grouped Poisson
-working fit supplies candidate components, using <code><a href="https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html" class="external-link">L0glm.fit()</a></code> with relaxed
+working fit supplies candidate components, using <code><a href="https://tomwenseleers.github.io/L0glm/reference/l0glmFit.html" class="external-link">l0glmFit()</a></code> with relaxed
 refitting and compulsory background columns. The subsequent updates use
 the specified family's exact score and likelihood. For a spectral
 coefficient or profile ordinate, the conditional mean is
@@ -399,14 +399,14 @@ $$U_\theta=\sum_{ij}w_{ij}\left\{\psi(y_{ij}+\theta)-\psi(\theta)
 -\frac{y_{ij}+\theta}{\theta+\mu_{ij}}\right\}.$$
 Bounded Newton proposals in \(\log\theta\) are backtracked against the
 pooled likelihood. One common shape is retained across original channels.</p>
-<p><strong>Temporal calibration and aggregation.</strong> <code><a href="https://tomwenseleers.github.io/L0glm/reference/temporal_dispersion.html" class="external-link">temporal_dispersion()</a></code> uses
+<p><strong>Temporal calibration and aggregation.</strong> <code><a href="https://tomwenseleers.github.io/L0glm/reference/temporalDispersion.html" class="external-link">temporalDispersion()</a></code> uses
 fourth and eighth differences in quieter parts of a smoothed pilot signal.
 This estimates the marginal noise scale; an optional lag-one working
 correction multiplies the rank penalty by
 \(\kappa=1+2\widehat\rho_1\). It leaves the fitted variance parameter on
 its marginal scale. This local covariance approximation is recorded in
 <code>spec</code>; use <code>correlation="none"</code> for independent simulated data.</p>
-<p>Preclustering uses <code><a href="https://tomwenseleers.github.io/L0glm/reference/glm_cluster.html" class="external-link">glm_cluster()</a></code> with <code>size_fac=colSums(pmax(y,0))</code>,
+<p>Preclustering uses <code><a href="https://tomwenseleers.github.io/L0glm/reference/glmCluster.html" class="external-link">glmCluster()</a></code> with <code>size_fac=colSums(pmax(y,0))</code>,
 removing differences in total ion intensity when comparing channel shapes.
 Poisson and common-parameter NB1 latent signals add exactly; independent
 common-scale Gamma latent signals also add. Standard NB2 and Gamma use
@@ -418,10 +418,10 @@ The compound penalty uses the original channel count throughout aggregation.
 Selection and initial fusion run in the reduced space. Lifting the spectra
 to the original channels is followed by a spectral/background refit and
 local shape refinement, with no repetition of the reduced-space search.
-Worked full-channel fits to <a href="GCMS_data1.html">GCMS_data1</a> and <a href="GCMS_data2.html">GCMS_data2</a>, with traces,
+Worked full-channel fits to <a href="gcmsData1.html">gcmsData1</a> and <a href="gcmsData2.html">gcmsData2</a>, with traces,
 heatmaps, profiles and spectra, are shown in the
 <a href="https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html" class="external-link">GC/MS deconvolution tutorial</a> and
-the <a href="https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html" class="external-link">GCMSdeco()</a> help page. <a href="https://tomwenseleers.github.io/GCMSprime/reference/write_GCMS_cdf.html" class="external-link">write_GCMS_cdf()</a> exports these matrices for
+the <a href="https://tomwenseleers.github.io/GCMSprime/reference/gcmsDeco.html" class="external-link">gcmsDeco()</a> help page. <a href="https://tomwenseleers.github.io/GCMSprime/reference/writeGCMSCDF.html" class="external-link">writeGCMSCDF()</a> exports these matrices for
 the complete file-based workflow.</p>
 <p><strong>Smooth local profiles.</strong> Original-channel refinement fits
 \(\eta(t)=a+bt-\tfrac12\sum_j c_j\{(t-u_j)_+^2-(t-v_j)_+^2\}\),
@@ -453,7 +453,7 @@ Biostatistics 27(1), kxag010. <a href="https://doi.org/10.1093/biostatistics/kxa
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><a href="https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html" class="external-link">GCMSdeco()</a>, <code><a href="L0glm_blind_deco.html">L0glm_blind_deco()</a></code>, <code><a href="https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html" class="external-link">L0glm.fit()</a></code>, <code><a href="https://tomwenseleers.github.io/L0glm/reference/glm_cluster.html" class="external-link">glm_cluster()</a></code></p></div>
+    <div class="dont-index"><p><a href="https://tomwenseleers.github.io/GCMSprime/reference/gcmsDeco.html" class="external-link">gcmsDeco()</a>, <code><a href="l0glmBlindDeco.html">l0glmBlindDeco()</a></code>, <code><a href="https://tomwenseleers.github.io/L0glm/reference/l0glmFit.html" class="external-link">l0glmFit()</a></code>, <code><a href="https://tomwenseleers.github.io/L0glm/reference/glmCluster.html" class="external-link">glmCluster()</a></code></p></div>
     </div>
 
     <div class="section level2">
@@ -461,8 +461,8 @@ Biostatistics 27(1), kxag010. <a href="https://doi.org/10.1093/biostatistics/kxa
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tomwenseleers.github.io/L0glm/" class="external-link">L0glm</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">12</span><span class="op">)</span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">300L</span></span>
-<span><span class="va">psf</span> <span class="op">&lt;-</span> <span class="fu"><a href="convkernel.html">convkernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="fl">21L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="convmatrix.html">convmatrix</a></span><span class="op">(</span><span class="va">psf</span>, <span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">psf</span> <span class="op">&lt;-</span> <span class="fu"><a href="convKernel.html">convKernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="fl">21L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="convMatrix.html">convMatrix</a></span><span class="op">(</span><span class="va">psf</span>, <span class="va">n</span><span class="op">)</span></span>
 <span><span class="va">H</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">X</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">45</span>, <span class="fl">95</span>, <span class="fl">160</span>, <span class="fl">235</span><span class="op">)</span><span class="op">]</span>,</span>
 <span>           <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">pmax</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="op">-</span> <span class="fl">185</span><span class="op">)</span> <span class="op">/</span> <span class="fl">22</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">H</span> <span class="op">&lt;-</span> <span class="va">H</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu">Matrix</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/Diagonal.html" class="external-link">Diagonal</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span> <span class="op">/</span> <span class="fu">Matrix</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums-methods.html" class="external-link">colSums</a></span><span class="op">(</span><span class="va">H</span><span class="op">)</span><span class="op">)</span></span>
@@ -488,13 +488,13 @@ Biostatistics 27(1), kxag010. <a href="https://doi.org/10.1093/biostatistics/kxa
 <span></span>
 <span><span class="co"># Other identity-link choices include gaussian(), mgcv::nb(), Gamma(),</span></span>
 <span><span class="co"># nb1(dispersion=5, link="identity"), and</span></span>
-<span><span class="co"># Gamma_scale(scale=5, link="identity", censor=0.5).</span></span>
+<span><span class="co"># gammaScale(scale=5, link="identity", censor=0.5).</span></span>
 <span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span>
 <span><span class="co"># Six co-eluting compounds, retaining all 671 mass channels.</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">GCMS_data1</span><span class="op">)</span></span>
-<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="va">GCMS_data1</span></span>
-<span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="convmatrix.html">convmatrix</a></span><span class="op">(</span><span class="fu"><a href="convkernel.html">convkernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="fl">65L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">8</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">gcmsData1</span><span class="op">)</span></span>
+<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="va">gcmsData1</span></span>
+<span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="convMatrix.html">convMatrix</a></span><span class="op">(</span><span class="fu"><a href="convKernel.html">convKernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="fl">65L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">8</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">f1</span> <span class="op">&lt;-</span> <span class="fu">splogconNMF</span><span class="op">(</span><span class="va">X</span>, <span class="va">Y</span>, background <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span>, <span class="fl">1L</span><span class="op">)</span>,</span>
 <span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster <span class="op">=</span> <span class="fl">16L</span>,</span>
 <span>  correlation <span class="op">=</span> <span class="st">"auto"</span>, ncores <span class="op">=</span> <span class="fl">8L</span><span class="op">)</span></span>
@@ -503,18 +503,18 @@ Biostatistics 27(1), kxag010. <a href="https://doi.org/10.1093/biostatistics/kxa
 <span>  xlab <span class="op">=</span> <span class="st">"Retention time (min)"</span>, ylab <span class="op">=</span> <span class="st">"Unit-area elution profile"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Beer volatiles with a broad acid peak and a low-df spline background.</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">GCMS_data2</span><span class="op">)</span></span>
-<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="va">GCMS_data2</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">gcmsData2</span><span class="op">)</span></span>
+<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="va">gcmsData2</span></span>
 <span><span class="va">time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="convmatrix.html">convmatrix</a></span><span class="op">(</span><span class="fu"><a href="convkernel.html">convkernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="fl">65L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">6</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="convMatrix.html">convMatrix</a></span><span class="op">(</span><span class="fu"><a href="convKernel.html">convKernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="fl">65L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">6</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">B</span> <span class="op">&lt;-</span> <span class="fu">splines</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/splines/bs.html" class="external-link">bs</a></span><span class="op">(</span><span class="va">time</span>, df <span class="op">=</span> <span class="fl">4L</span>, intercept <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">f2</span> <span class="op">&lt;-</span> <span class="fu">splogconNMF</span><span class="op">(</span><span class="va">X</span>, <span class="va">Y</span>, background <span class="op">=</span> <span class="va">B</span>,</span>
 <span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster <span class="op">=</span> <span class="fl">32L</span>,</span>
 <span>  correlation <span class="op">=</span> <span class="st">"auto"</span>, ncores <span class="op">=</span> <span class="fl">8L</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>compounds <span class="op">=</span> <span class="va">f2</span><span class="op">$</span><span class="va">rank</span>, GIC <span class="op">=</span> <span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/model_criteria.html" class="external-link">GIC</a></span><span class="op">(</span><span class="va">f2</span><span class="op">)</span>, seconds <span class="op">=</span> <span class="va">f2</span><span class="op">$</span><span class="va">seconds</span><span class="op">[[</span><span class="st">"total"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/plotmat.html" class="external-link">plotmat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="va">f2</span><span class="op">)</span>, xlab <span class="op">=</span> <span class="st">"Retention time (min)"</span>, ylab <span class="op">=</span> <span class="st">"Mass (m/z)"</span>,</span>
+<span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/plotMat.html" class="external-link">plotMat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="va">f2</span><span class="op">)</span>, xlab <span class="op">=</span> <span class="st">"Retention time (min)"</span>, ylab <span class="op">=</span> <span class="st">"Mass (m/z)"</span>,</span>
 <span>  main <span class="op">=</span> <span class="st">"Fitted GC/MS chromatogram"</span><span class="op">)</span></span>
-<span><span class="co"># GCMSdeco() adds CDF input, MSP/Excel export, and traces/heatmaps/profile plots.</span></span>
+<span><span class="co"># gcmsDeco() adds CDF input, MSP/Excel export, and traces/heatmaps/profile plots.</span></span>
 <span><span class="op">}</span> <span class="co"># }</span></span></code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

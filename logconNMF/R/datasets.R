@@ -17,7 +17,7 @@
 #'                 Column names are the integer m/z values.}
 #' Additional attribute:
 #' \itemize{
-#'   \item \code{attr(GCMS_data1, "alkanes_TIC")}: named numeric vector with
+#'   \item \code{attr(gcmsData1, "alkanes_TIC")}: named numeric vector with
 #'         the total ion chromatogram of a C9 to C40 alkane ladder standard run
 #'         in the same sample batch; names give the retention time in minutes;
 #'         the total ion trace for the entire chromatogram is included.
@@ -42,8 +42,8 @@
 #' Laboratory of Socioecology and Social Evolution, KU Leuven \\
 #' \url{https://bio.kuleuven.be/eeb/tw/research} \\
 #' ORCID: \href{https://orcid.org/0000-0002-1434-861X}{0000-0002-1434-861X}
-#' @example examples/GCMS_data1.R
-"GCMS_data1"
+#' @example examples/gcmsData1.R
+"gcmsData1"
 
 
 #' GC/MS Chromatogram Section - Beer Headspace Volatiles
@@ -65,7 +65,7 @@
 #'                 Column names are the integer m/z values.}
 #' Additional attribute:
 #' \itemize{
-#'   \item \code{attr(GCMS_data2, "alkanes_TIC")}: named numeric vector with
+#'   \item \code{attr(gcmsData2, "alkanes_TIC")}: named numeric vector with
 #'         the total ion chromatogram of a C7 to C22 alkane ladder standard run
 #'         in the same sample batch; names give the retention time in minutes;
 #'         the total ion trace for the chromatogram starting from a RT of
@@ -81,5 +81,5 @@
 #' \url{https://bio.kuleuven.be/eeb/tw/research} \\
 #' ORCID: \href{https://orcid.org/0000-0002-1434-861X}{0000-0002-1434-861X}
 #'
-#' @example examples/GCMS_data2.R
-"GCMS_data2"
+#' @example examples/gcmsData2.R
+"gcmsData2"

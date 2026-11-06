@@ -15,7 +15,7 @@ which accommodates asymmetric peaks and tails. Chromatographic elution
 profiles and mass spectra are a motivating example.
 
 Use
-[`estimate_psf`](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf.md)
+[`estimatePSF`](https://tomwenseleers.github.io/logconNMF/reference/estimatePSF.md)
 to build a sparse design from a standard or overlapping signals.
 [`logconNMF`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
 estimates the number of components, their profiles and their loadings.

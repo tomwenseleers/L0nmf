@@ -210,7 +210,7 @@ joint selection problem.
 1.  Set g^{(0)} to the supplied/calibrated kernel, or a normalized
     Gaussian on the requested lag grid. Resolve shared noise parameters
     once in
-    [`estimate_psf()`](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf.md).
+    [`estimatePSF()`](https://tomwenseleers.github.io/logconNMF/reference/estimatePSF.md).
 2.  For t=0,\ldots,T-1:
     1.  Construct X(g^{(t)}). Fit \[X(g^{(t)}),B\] to Y, with compulsory
         background and the chosen sparse/grouped GLM preset.
@@ -454,7 +454,7 @@ observations below the detection threshold are represented by zero.
 
 [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
 defaults to `poisson("identity")` for count-data factorization.
-[`estimate_psf()`](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf.md)
+[`estimatePSF()`](https://tomwenseleers.github.io/logconNMF/reference/estimatePSF.md)
 defaults to `quasipoisson("identity")`. For GC/MS electron-multiplier
 intensities, GCMSprime uses the latter as its workflow default and
 reuses the estimated noise specification during PSF estimation and
@@ -723,7 +723,7 @@ w^{\rm pilot}\_{ij}=w\_{ij}\\
 \frac{\widetilde\mu\_{ij}}{\operatorname{Var}(Y\_{ij}\mid\widetilde\mu\_{ij},\nu)}.
 
 It fits grouped nonnegative
-[`L0glm.fit()`](https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html)
+[`l0glmFit()`](https://tomwenseleers.github.io/L0glm/reference/l0glmFit.html)
 on the PSF design with compulsory background, using the unadjusted
 \lambda\_{\rm IC}. The starting search and original-channel polish use
 J_0=-2\ell\_\nu+m\lambda\_{\rm IC}K. This permissive initialization
@@ -962,7 +962,7 @@ u\_{si}h\_{sg}(u\_{si})=1.
 
 Thus an occurrence amplitude represents integrated intensity in the
 chosen time unit, before its known exposure is applied.
-[`sampleNMF()`](https://tomwenseleers.github.io/logconNMF/reference/sampleNMF.md)
+[`sampleNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
 also returns unit-sum original-grid profiles and their compatible
 discrete loadings.
 
@@ -1120,7 +1120,7 @@ A common channel map has a one-hot membership matrix
 A\in\\0,1\\^{m\times q}, giving aggregated observations \bar Y_s=Y_sA
 and spectra \bar P=PA. The map is learned once from summed time-bin
 counts or supplied as a saved
-[`channel_groups()`](https://tomwenseleers.github.io/logconNMF/reference/channel_groups.md)
+[`channelGroups()`](https://tomwenseleers.github.io/logconNMF/reference/channelGroups.md)
 object. Only this map-learning step uses a common time grid. The fitting
 grids, bin exposures and sparse PSF matrices X_s remain sample specific.
 

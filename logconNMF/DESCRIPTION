@@ -1,7 +1,7 @@
 Package: logconNMF
 Type: Package
 Title: Log-Concave Nonnegative Matrix Factorization with Automatic Rank Selection
-Version: 0.1.0
+Version: 0.1.0.9000
 Date: 2026-11-01
 Authors@R: c(
     person("Tom", "Wenseleers", role = c("aut", "cre"),
@@ -16,7 +16,7 @@ Description: Separates overlapping ordered signals into nonnegative
 License: GPL (>= 2)
 Encoding: UTF-8
 Depends: R (>= 4.1.0)
-Imports: parallel, RhpcBLASctl, L0glm (>= 0.2.0), Matrix, Rcpp, cobs, gsignal, methods, stats, graphics, grDevices, utils
+Imports: parallel, RhpcBLASctl, L0glm (>= 0.2.0.9000), Matrix, Rcpp, cobs, gsignal, methods, stats, graphics, grDevices, utils
 Suggests: ALS, testthat (>= 3.0.0), knitr, rmarkdown, pkgdown, mgcv
 LinkingTo: L0glm, Rcpp, RcppEigen
 SystemRequirements: C++17, OpenMP

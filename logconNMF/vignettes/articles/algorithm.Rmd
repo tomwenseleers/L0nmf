@@ -217,7 +217,7 @@ checkpoint comparisons approximate the joint selection problem.
 
 1. Set \(g^{(0)}\) to the supplied/calibrated kernel, or a normalized Gaussian
    on the requested lag grid. Resolve shared noise parameters once in
-   `estimate_psf()`.
+   `estimatePSF()`.
 2. For \(t=0,\ldots,T-1\):
    1. Construct \(X(g^{(t)})\). Fit \([X(g^{(t)}),B]\) to \(Y\), with
       compulsory background and the chosen sparse/grouped GLM preset.
@@ -460,7 +460,7 @@ the modeled component signal remains nonnegative. Gamma observations below
 the detection threshold are represented by zero.
 
 `logconNMF()` defaults to `poisson("identity")` for
-count-data factorization. `estimate_psf()` defaults to
+count-data factorization. `estimatePSF()` defaults to
 `quasipoisson("identity")`. For GC/MS electron-multiplier intensities,
 GCMSprime uses the latter as its workflow default and reuses the estimated
 noise specification during PSF estimation and factorization.
@@ -743,7 +743,7 @@ w^{\rm pilot}_{ij}=w_{ij}\,
 \frac{\widetilde\mu_{ij}}{\operatorname{Var}(Y_{ij}\mid\widetilde\mu_{ij},\nu)}.
 \]
 
-It fits grouped nonnegative `L0glm.fit()` on the PSF design with compulsory
+It fits grouped nonnegative `l0glmFit()` on the PSF design with compulsory
 background, using the unadjusted \(\lambda_{\rm IC}\). The starting search
 and original-channel polish use
 \[
@@ -1097,7 +1097,7 @@ original-channel likelihood.
 A common channel map has a one-hot membership matrix $A\in\{0,1\}^{m\times q}$,
 giving aggregated observations $\bar Y_s=Y_sA$ and spectra $\bar P=PA$.
 The map is learned once from summed time-bin counts or supplied as a saved
-`channel_groups()` object. Only this map-learning step uses a common time grid.
+`channelGroups()` object. Only this map-learning step uses a common time grid.
 The fitting grids, bin exposures and sparse PSF matrices $X_s$ remain sample
 specific.
 

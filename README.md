@@ -72,10 +72,10 @@ shape and gives each retained component its own log-concave profile.
 
 ```r
 library(logconNMF)
-data(GCMS_data1)
-Y <- GCMS_data1
-g <- convkernel("gaussian", 65L, list(sigma = 8))
-X <- convmatrix(g, nrow(Y))
+data(gcmsData1)
+Y <- gcmsData1
+g <- convKernel("gaussian", 65L, list(sigma = 8))
+X <- convMatrix(g, nrow(Y))
 fit <- logconNMF(Y, X = X, background = matrix(1, nrow(Y), 1L),
   family = quasipoisson("identity"), precluster = 16L)
 
@@ -99,7 +99,7 @@ Each spectrum is displayed on a square-root relative-intensity scale.
 
 | Data and objective | Method |
 |:--|:--|
-| Estimate a common response shape from a standard or overlapping signals | [Estimate PSFs](https://tomwenseleers.github.io/logconNMF/articles/estimate-psf.html) with `estimate_psf()`. The returned sparse design can use a constant or time-varying PSF. |
+| Estimate a common response shape from a standard or overlapping signals | [Estimate PSFs](https://tomwenseleers.github.io/logconNMF/articles/estimate-psf.html) with `estimatePSF()`. The returned sparse design can use a constant or time-varying PSF. |
 | Resolve components with individual shapes in one matrix | [Sparse log-concave NMF](https://tomwenseleers.github.io/logconNMF/articles/log-concave-nmf.html) with `logconNMF()`. The tutorial covers rank selection, backgrounds and seven noise models. |
 | Share spectra across related samples | [Coupled log-concave NMF](https://tomwenseleers.github.io/logconNMF/articles/coupled-nmf.html) with `logconNMF()`. Each sample retains its own scan grid, peak shapes and areas. Components may be absent from individual samples. |
 
@@ -125,7 +125,7 @@ appreciate a citation to the package:
 
 Wenseleers T, Vanderaa C (2026).
 *logconNMF: Log-Concave Nonnegative Matrix Factorization with Automatic Rank Selection*.
-R package version 0.1.0,
+R package version 0.1.0.9000,
 <https://tomwenseleers.github.io/logconNMF/>.
 
 The [Authors and Citation page](https://tomwenseleers.github.io/logconNMF/authors.html#citation) also provides the

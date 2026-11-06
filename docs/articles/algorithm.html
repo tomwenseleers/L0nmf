@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -293,7 +293,7 @@ checkpoint comparisons approximate the joint selection problem.</p>
 <li>Set <span class="math inline">g^{(0)}</span> to the
 supplied/calibrated kernel, or a normalized Gaussian on the requested
 lag grid. Resolve shared noise parameters once in
-<code><a href="../reference/estimate_psf.html">estimate_psf()</a></code>.</li>
+<code><a href="../reference/estimatePSF.html">estimatePSF()</a></code>.</li>
 <li>For <span class="math inline">t=0,\ldots,T-1</span>:
 <ol style="list-style-type: decimal">
 <li>Construct <span class="math inline">X(g^{(t)})</span>. Fit <span class="math inline">[X(g^{(t)}),B]</span> to <span class="math inline">Y</span>, with compulsory background and the chosen
@@ -620,7 +620,7 @@ nonnegative continuous intensities; Gaussian observations may also be
 negative, while the modeled component signal remains nonnegative. Gamma
 observations below the detection threshold are represented by zero.</p>
 <p><code><a href="../reference/logconNMF.html">logconNMF()</a></code> defaults to <code>poisson("identity")</code>
-for count-data factorization. <code><a href="../reference/estimate_psf.html">estimate_psf()</a></code> defaults to
+for count-data factorization. <code><a href="../reference/estimatePSF.html">estimatePSF()</a></code> defaults to
 <code>quasipoisson("identity")</code>. For GC/MS electron-multiplier
 intensities, GCMSprime uses the latter as its workflow default and
 reuses the estimated noise specification during PSF estimation and
@@ -902,8 +902,8 @@ variance-matched Poisson working weights</p>
 w^{\rm pilot}_{ij}=w_{ij}\,
 \frac{\widetilde\mu_{ij}}{\operatorname{Var}(Y_{ij}\mid\widetilde\mu_{ij},\nu)}.
 </span></p>
-<p>It fits grouped nonnegative <code><a href="https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html" class="external-link">L0glm.fit()</a></code> on the PSF
-design with compulsory background, using the unadjusted <span class="math inline">\lambda_{\rm IC}</span>. The starting search and
+<p>It fits grouped nonnegative <code><a href="https://tomwenseleers.github.io/L0glm/reference/l0glmFit.html" class="external-link">l0glmFit()</a></code> on the PSF design
+with compulsory background, using the unadjusted <span class="math inline">\lambda_{\rm IC}</span>. The starting search and
 original-channel polish use <span class="math display">
 J_0=-2\ell_\nu+m\lambda_{\rm IC}K.
 </span> This permissive initialization preserves candidates while the
@@ -1174,7 +1174,7 @@ u_{si}h_{sg}(u_{si})=1</span>, then</p>
 </span></p>
 <p>Thus an occurrence amplitude represents integrated intensity in the
 chosen time unit, before its known exposure is applied.
-<code><a href="../reference/sampleNMF.html">sampleNMF()</a></code> also returns unit-sum original-grid profiles
+<code><a href="../reference/logconNMF.html">sampleNMF()</a></code> also returns unit-sum original-grid profiles
 and their compatible discrete loadings.</p>
 <p><strong>Algorithm N2 — coupled multisample log-concave
 NMF</strong></p>
@@ -1320,7 +1320,7 @@ accepted against the full original-channel likelihood.</p>
 observations <span class="math inline">\bar Y_s=Y_sA</span> and spectra
 <span class="math inline">\bar P=PA</span>. The map is learned once from
 summed time-bin counts or supplied as a saved
-<code><a href="../reference/channel_groups.html">channel_groups()</a></code> object. Only this map-learning step uses a
+<code><a href="../reference/channelGroups.html">channelGroups()</a></code> object. Only this map-learning step uses a
 common time grid. The fitting grids, bin exposures and sparse PSF
 matrices <span class="math inline">X_s</span> remain sample
 specific.</p>

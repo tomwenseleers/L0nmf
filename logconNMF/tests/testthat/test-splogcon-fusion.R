@@ -81,7 +81,7 @@ test_that("guarded tail refinement retains dimensions and every original noise m
 
 test_that("the public pass uses a representative PSF width and respects overrides", {
   d <- fusion_test_model();n <- nrow(d$Y)
-  X <- convmatrix(convkernel("gaussian", 9L, list(sigma=.5)), n)
+  X <- convMatrix(convKernel("gaussian", 9L, list(sigma=.5)), n)
   wide <- numeric(n);rows <- 40:120
   wide[rows] <- exp(-(rows-80)^2/(2*12^2));X[,80L] <- wide/sum(wide)
   start <- d$f[c("H","S","alpha")]

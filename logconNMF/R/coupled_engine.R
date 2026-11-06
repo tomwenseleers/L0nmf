@@ -78,7 +78,7 @@ cpl_coupled_occurrences <- function(state) {
 }
 cpl_coupled_proposals <- function(state,method="cosine",rt_tolerance=state$control$rt_tolerance,occ=NULL,spectra=NULL) {
   if(is.null(occ))occ<-cpl_coupled_occurrences(state)
-  if(is.null(spectra))spectra<-if(is.null(state$channel_groups))state$P else aggregate_channels(state$P,state$channel_groups,state$mass)
+  if(is.null(spectra))spectra<-if(is.null(state$channel_groups))state$P else aggregateChannels(state$P,state$channel_groups,state$mass)
   groups<-split(seq_len(nrow(occ)),occ$root);ids<-as.integer(names(groups))
   center<-vapply(groups,function(i)stats::weighted.mean(occ$anchor[i],sqrt(occ$area[i])),0)
   proposals<-list()
@@ -108,7 +108,7 @@ cpl_batch_spectral_groups <- function(state,method="cosine",ridge=TRUE) {
   state$scale[]<-1;rejected<-character();audit<-list()
   # Profiles and occurrence amplitudes stay fixed during algebraic grouping.
   occ<-cpl_coupled_occurrences(state)
-  matching<-if(is.null(state$channel_groups))state$P else aggregate_channels(state$P,state$channel_groups,state$mass)
+  matching<-if(is.null(state$channel_groups))state$P else aggregateChannels(state$P,state$channel_groups,state$mass)
   proposals<-cpl_coupled_proposals(state,method,occ=occ,spectra=matching)
   repeat {
     if(!nrow(proposals))break
@@ -332,7 +332,7 @@ cpl_sample_data <- function(store,s,channels=NULL,rows=NULL,aggregate=FALSE) {
     if(!is.null(channels))out<-out[,channels,drop=FALSE]
     return(out)
   }
-  m<-if(aggregate)meta$aggregate_channels else meta$m
+  m<-if(aggregate)meta$aggregateChannels else meta$m
   cpl_read_matrix_file(file.path(d,if(aggregate)"aggregate.bin" else "observed.bin"),meta$n,m,channels,rows)
 }
 cpl_checkpoint_sample <- function(fit,directory,tag) {

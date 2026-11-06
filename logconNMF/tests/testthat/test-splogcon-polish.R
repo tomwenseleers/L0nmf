@@ -59,13 +59,13 @@ test_that("contained fusion respects all native losses and rejects distinct ion 
 
 test_that("initialization and final correlation-adjusted ledgers use their own criteria", {
   set.seed(347);n <- 70L;m <- 6L
-  X <- convmatrix(convkernel("gaussian",11L,list(sigma=1.5)),n)
+  X <- convMatrix(convKernel("gaussian",11L,list(sigma=1.5)),n)
   H <- X[,c(20L,47L)];H <- H%*%Matrix::Diagonal(x=1/Matrix::colSums(H))
   S <- matrix(rexp(2*m,rate=1/2500),2,m)
   Y <- matrix(rpois(n*m,as.matrix(H%*%S)+2),n,m)
   z <- splogconNMF(X,Y,family=quasipoisson("identity"),background=matrix(1,n,1),
     dispersion=3,correlation=.2,precluster=2L,ncores=1L)
-  expect_equal(z$lambda,m*1.4*preset.lambda("gic",p=n,n=n))
+  expect_equal(z$lambda,m*1.4*presetLambda("gic",p=n,n=n))
   expect_equal(z$initialization$lambda,z$lambda/1.4)
   expect_true(all(z$history$delta[z$history$accepted]<=1e-6))
   expect_lt(abs(z$ledger_error),1e-5)

@@ -1,6 +1,6 @@
 test_that("aggregation keeps the original-channel rank penalty and avoids repeated selection", {
   set.seed(916);n <- 70L;m <- 8L
-  X <- convmatrix(convkernel("gaussian",11L,list(sigma=1.5)),n)
+  X <- convMatrix(convKernel("gaussian",11L,list(sigma=1.5)),n)
   H <- X[,c(20L,47L)];H <- H %*% Matrix::Diagonal(x=1/Matrix::colSums(H))
   S <- matrix(rexp(2L*m,rate=1/2500),2L,m)
   Y <- matrix(rpois(n*m,as.matrix(H%*%S)+2),n,m)
@@ -8,7 +8,7 @@ test_that("aggregation keeps the original-channel rank penalty and avoids repeat
     correlation="none",control=list(profile_cycles=0L,profile_fusion=FALSE,original_cleanup=FALSE))
   a <- f$aggregation$model
   expect_equal(a$objective,-2*a$loglik+f$lambda*ncol(a$H),tolerance=1e-10)
-  expect_equal(f$lambda,m*preset.lambda("gic",p=n,n=n))
+  expect_equal(f$lambda,m*presetLambda("gic",p=n,n=n))
   expect_identical(f$history$stage,c("initial","family_refit"))
   expect_equal(ncol(f$S),m)
   expect_lt(abs(f$ledger_error),1e-4)

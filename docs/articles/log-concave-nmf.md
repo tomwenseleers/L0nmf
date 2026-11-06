@@ -45,9 +45,9 @@ other ordered multichannel measurements.
 
 library(L0glm)
 library(logconNMF)
-data(GCMS_data1)
-Y <- GCMS_data1
-X <- convmatrix(convkernel("gaussian", 65L, list(sigma=8)), nrow(Y))
+data(gcmsData1)
+Y <- gcmsData1
+X <- convMatrix(convKernel("gaussian", 65L, list(sigma=8)), nrow(Y))
 B <- matrix(1, nrow(Y), 1L)
 fit <- logconNMF(Y, X=X, background=B,
   family=quasipoisson("identity"), precluster=16L, correlation="auto", ncores=8L)
@@ -68,7 +68,7 @@ position.
 
 matplot(as.matrix(fit$H), type="l", lty=1, xlab="Scan", ylab="Profile")
 matplot(t(coef(fit)), type="h", lty=1, xlab="Channel", ylab="Loading")
-L0glm::plotmat(t(fitted(fit)), xlab="Scan", ylab="Channel")
+L0glm::plotMat(t(fitted(fit)), xlab="Scan", ylab="Channel")
 patterns <- coef(fit) / rowSums(coef(fit))
 fitted_signal <- fitted(fit)
 fit$seconds
@@ -92,10 +92,10 @@ smooth background:
 
 ``` r
 
-data(GCMS_data2)
-Y2 <- GCMS_data2
+data(gcmsData2)
+Y2 <- gcmsData2
 t2 <- as.numeric(rownames(Y2))
-X2 <- convmatrix(convkernel("gaussian", 65L, list(sigma=6)), nrow(Y2))
+X2 <- convMatrix(convKernel("gaussian", 65L, list(sigma=6)), nrow(Y2))
 B2 <- splines::bs(t2, df=4L, intercept=TRUE)
 fit2 <- logconNMF(Y2, X=X2, background=B2,
   family=quasipoisson("identity"), precluster=32L, correlation="auto", ncores=8L)
@@ -169,8 +169,8 @@ that mean.
 | Quasipoisson | `quasipoisson("identity")` | `dispersion * mu` |
 | NB2 | `mgcv::nb(link="identity")` | `mu + mu^2/theta` |
 | NB1 | `nb1(dispersion=2, link="identity")` | `dispersion * mu` |
-| Censored Gamma | `Gamma_censored(dispersion=.2, link="identity")` | `dispersion * mu^2` before censoring |
-| Common-scale Gamma | `Gamma_scale(scale=2, link="identity")` | `scale * mu` before censoring |
+| Censored Gamma | `gammaCensored(dispersion=.2, link="identity")` | `dispersion * mu^2` before censoring |
+| Common-scale Gamma | `gammaScale(scale=2, link="identity")` | `scale * mu` before censoring |
 
 Positive `dispersion` or `theta` arguments fix the parameter. Omitted
 shared parameters are estimated from temporal differences. A negative

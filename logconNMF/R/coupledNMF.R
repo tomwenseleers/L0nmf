@@ -1,125 +1,4 @@
-#' Coupled sparse log-concave factorization of multiple samples
-#'
-#' Align related multichannel samples and estimate common spectra with
-#' sample-specific nonnegative areas, log-concave profiles and backgrounds.
-#' Observations remain on their original time grids. Samples are read from a
-#' disk-backed store in bounded blocks during fitting. Independent samples are
-#' processed concurrently within a single logical-core budget.
-#'
-#' @param samples List of sample descriptions. Each contains `y` (a numeric
-#'   scans-by-channels matrix, or an RDS file containing one), increasing `time`,
-#'   and optionally `X`, `background`, `fit`, `weights`, `offset`, `exposure`,
-#'   `sample_id`, `group`, `small_width` and `edges`. Large `weights` and `offset`
-#'   matrices can also be supplied as RDS paths. `fit` is a [splogconNMF()]
-#'   initializer or its RDS path. Without a fit, `X` supplies candidate profiles;
-#'   otherwise [estimate_psf()] estimates them. Channel names and ordering must
-#'   agree across samples. Times and `small_width` use the same units.
-#'   Shared scan-wise weights and offsets remain vectors throughout coupled
-#'   fitting; each mass channel reuses the same values.
-#' @param family Identity-link signal family supported by [splogconNMF()]:
-#'   Gaussian, Poisson, quasipoisson, NB2, NB1, censored Gamma or common-scale Gamma.
-#' @param lambda Information-criterion preset or nonnegative penalty per
-#'   selection degree of freedom. The selection count is
-#'   `(channels - 1) * shared_compounds + detected_occurrences`, plus estimated
-#'   noise parameters. Background and profile complexity are unpenalized.
-#' @param path New directory for the sample store and fitted factors. Keep this
-#'   directory with the saved R object; its paths are used by `fitted()` and plots.
-#' @param precluster Maximum common outcome groups, default `32L`; `NULL` or
-#'   `FALSE` disables aggregation. A saved [channel_groups()] map can be reused.
-#'   The default map is learned from samples summed in common time bins. Matching
-#'   and Poisson/quasipoisson profile proposals use this common representation;
-#'   likelihood checks and spectral estimation retain all original channels.
-#' @param dispersion,theta Shared-across-channels noise parameters, as in
-#'   [splogconNMF()]. They may be supplied per sample in its description.
-#'   Resolved dispersions are frozen; a negative NB2 theta enables bounded
-#'   likelihood-improving shape updates in the coupled iterations.
-#' @param method Spectral distance for anchor matching and grouping.
-#' @param align Estimate monotone sample-level time warps.
-#' @param ncores Total logical-CPU budget, defaulting to physical cores. Up to
-#'   `min(length(samples), ncores)` sample workers are used. The remaining budget
-#'   determines native threads per worker; BLAS uses one thread during fitting.
-#'   Caller BLAS settings are restored afterwards.
-#' @param control Named controls: `cycles=10L`, `initial_cycles=5L`, `rounds=3L`,
-#'   `q=64L`, `rt_tolerance=NULL`, `alignment_window=NULL`, `ridge=TRUE`,
-#'   `censor=0.5`, `correlation="none"`, `workers=NULL`, `cache=TRUE`, and
-#'   `initial=list()` for controls passed
-#'   to independent [splogconNMF()] fits. Default matching windows are derived
-#'   from the supplied or estimated narrow-peak widths. `workers` limits concurrent
-#'   samples within `ncores`. `cache=TRUE` holds only aggregated observations in
-#'   RAM during fitting; `FALSE` reloads those blocks from disk.
-#' @param verbose Print initialization and coupled objective progress.
-#' @param object,x A fitted coupled model.
-#' @param sample One sample index or name; `NULL` in `coef()` returns consensus
-#'   spectra, and in `plot()` selects all samples.
-#' @param normalize Return unit-sum spectra or amplitude-scaled spectra.
-#' @param type Plot sample areas, common spectra or aligned compound profiles.
-#' @param compounds Compound indices to display.
-#' @param ... Additional method arguments.
-#' @param k Information-criterion multiplier for `AIC()`.
-#'
-#' @details
-#' Let `u = w_s(t)` be a monotone alignment map and `J` its binwise Jacobian.
-#' With supplied exposure `e`, the original-grid mean is
-#' \deqn{\mu_{sij}=e_{si}\{J_{si}\sum_g a_{sg}h_{sg}(u_{si})p_{gj}
-#' +(B_s A_s)_{ij}\}+o_{sij}.}
-#' Spectra satisfy \eqn{\sum_j p_{gj}=1}; profiles satisfy
-#' \eqn{\sum_i\Delta u_{si}h_{sg}(u_{si})=1} and have concave logarithms in
-#' actual aligned time. Thus areas integrate the fitted rate over original time.
-#' `exposure=1` models the supplied intensities. For integrated counts, known
-#' integration durations can instead be supplied as exposure. Scan spacing,
-#' per-mass dwell time and vendor abundance units are distinct quantities.
-#' No exposure is inferred from the number of nonzero mass traces.
-#'
-#' Reciprocal spectral matches supply leading-edge anchors: the 1%-height start
-#' plus half the local narrow-peak width. A robust low-dimensional drift spline
-#' includes log area ratio as a nuisance covariate; only drift enters the warp.
-#' Positive-slope projection gives a monotone map. Grouping pools compatible
-#' spectra algebraically, with at most one occurrence per sample and an
-#' area-ordered profile-overlap check. It performs no model refits. Subsequent
-#' local profile, pooled spectral and background updates are backtracked against
-#' the full original-channel likelihood. A grouped proposal is retained only
-#' when the complete penalized objective improves.
-#'
-#' The grouping criterion counts shared spectral parameters and detected
-#' sample-specific amplitudes; hard shape constraints control profile geometry.
-#' It is a rank-selection criterion with unpenalized profile and baseline
-#' complexity. Quasipoisson uses the scaled likelihood kernel described in
-#' [splogconNMF()]. Noise scales are held fixed when comparing groupings.
-#' Undetected sample-compound combinations have `NA` area and are not filled in.
-#'
-#' Each sample retains its own sparse PSF design and original scan grid. The
-#' shared cache contains scans-by-aggregate matrices, while original-channel
-#' observations remain on disk. Shared spectral and background updates read at
-#' most 32 original channels per sample block. Poisson/quasipoisson profile
-#' proposals use sums of channels and are accepted against the original-channel
-#' likelihood in the affected time window. Other noise families use their
-#' original-channel profile objective. Parallel sample updates hold spectra
-#' fixed, and spectral contributions are reduced in acquisition order. Only the
-#' assigned sample and compact factors cross worker sockets. The cache and live
-#' worker connections are released before returning the fitted object.
-#'
-#' @return A `coupledNMF` object with consensus spectra `P`, integrated `areas`,
-#'   occurrence table `compounds`, monotone `alignment`, disk-backed factor
-#'   `paths` and sample `store`, objective history, likelihood and timings,
-#'   the reusable `channel_groups` map and `parallel` thread allocation.
-#'   `fitted(object, sample=...)` reconstructs one sample on its original grid.
-#' @seealso [splogconNMF()], [estimate_psf()], [simulate_GCMS_samples()]
-#' @examples
-#' set.seed(19)
-#' n <- 100L; m <- 6L
-#' X <- convmatrix(dnorm(-6:6, sd=1.5), n)
-#' H <- X[, c(25, 65)]; H <- H %*% Matrix::Diagonal(x=1/colSums(H))
-#' S <- matrix(rexp(2*m, 1/2000), 2, m)
-#' samples <- lapply(1:3, function(s) list(
-#'   y=matrix(rpois(n*m, as.matrix(H %*% (S*s))+1), n, m),
-#'   time=seq_len(n), X=X, background=matrix(1,n,1), small_width=9))
-#' fit <- coupledNMF(samples, ncores=1L,
-#'   control=list(cycles=2L, initial_cycles=1L, rounds=1L,
-#'     initial=list(profile_cycles=0L, original_cleanup=FALSE)))
-#' fit$areas
-#' GIC(fit)
-#' @md
-#' @export
+# Internal fitter for sample lists. Public inputs are documented in logconNMF.
 coupledNMF <- function(samples, family=poisson("identity"), lambda="gic",
                        path=tempfile("coupledNMF_"), precluster=32L,
                        dispersion=NULL, theta=NULL, method=c("cosine","hellinger"),
@@ -223,7 +102,7 @@ cpl_prepare_sample <- function(task) {
     }
     if(is.null(f)) {
       X<-x$X
-      if(is.null(X))X<-estimate_psf(pmax(Y,0),time=time,family=family,nwindows=1L,precluster=1L,ncores=ncores)$X
+      if(is.null(X))X<-estimatePSF(pmax(Y,0),time=time,family=family,nwindows=1L,precluster=1L,ncores=ncores)$X
       f<-splogconNMF(X,Y,family=family,background=B*E,
         lambda=if(is.numeric(task$lambda))task$lambda*m else task$lambda,precluster=precluster,
         dispersion=if(is.null(x$dispersion))dispersion else x$dispersion,
@@ -256,9 +135,9 @@ cpl_prepare_sample <- function(task) {
       initial=initial,weights=if(is.null(wfile))W else wfile,
       offset=if(is.null(ofile))O else ofile,censor=ctl$censor)
     saveRDS(meta,file.path(d,"metadata.rds"),compress=FALSE)
-    aggregate<-if(is.null(precluster))NULL else aggregate_channels(Y,precluster,mass)
+    aggregate<-if(is.null(precluster))NULL else aggregateChannels(Y,precluster,mass)
     if(!is.null(aggregate)) {
-      meta$aggregate_channels<-ncol(aggregate)
+      meta$aggregateChannels<-ncol(aggregate)
       cpl_write_matrix_file(aggregate,file.path(d,"aggregate.bin"))
       saveRDS(meta,file.path(d,"metadata.rds"),compress=FALSE)
     }
@@ -272,7 +151,7 @@ cpl_initialize <- function(store,method,align,ncores,lambda,ctl) {
   # Retain spectra and anchor summaries globally; load profile matrices singly.
   fits<-lapply(meta,function(m) {
     f<-readRDS(m$initial)
-    list(S=if(is.null(store$channel_groups))f$S else aggregate_channels(f$S,store$channel_groups,m$mass),spec=f$spec,geometry=cpl_profile_anchors(f$H,f$S,m$time,m$small_width))
+    list(S=if(is.null(store$channel_groups))f$S else aggregateChannels(f$S,store$channel_groups,m$mass),spec=f$spec,geometry=cpl_profile_anchors(f$H,f$S,m$time,m$small_width))
   })
   if(is.null(ctl$rt_tolerance))ctl$rt_tolerance<-max(vapply(meta,`[[`,0,"small_width"))
   if(is.null(ctl$alignment_window))ctl$alignment_window<-5*ctl$rt_tolerance
@@ -282,7 +161,7 @@ cpl_initialize <- function(store,method,align,ncores,lambda,ctl) {
     list(maps=lapply(meta,function(x)list(evaluate=identity,method="identity")),reference=1L,method="none")
   N<-sum(store$manifest$n);m<-store$manifest$m[1L]
   factor<-max(vapply(fits,function(f)if(is.null(f$spec$information_factor))1 else f$spec$information_factor,0))
-  scalar<-if(is.character(lambda))preset.lambda(lambda,p=N,n=N)else lambda
+  scalar<-if(is.character(lambda))presetLambda(lambda,p=N,n=N)else lambda
   if(length(scalar)!=1L||!is.finite(scalar)||scalar<0)stop("Invalid lambda.")
   total<-sum(vapply(fits,function(f)nrow(f$S),0L))
   state<-list(store=store,paths=character(length(meta)),P=matrix(0,total,m),map=seq_len(total),
@@ -322,13 +201,13 @@ cpl_sample_index <- function(object,sample) {
   if(length(s)!=1L||is.na(s)||s<1||s>length(object$paths)||s!=floor(s))stop("Select one sample by index or name.")
   s
 }
-#' @rdname coupledNMF
+#' @noRd
 #' @export
 fitted.coupledNMF <- function(object,sample=1L,...) {
   s<-cpl_sample_index(object,sample);f<-readRDS(object$paths[s])
   out<-cpl_coupled_mean(f,object);colnames(out)<-object$mass;out
 }
-#' @rdname coupledNMF
+#' @noRd
 #' @export
 coef.coupledNMF <- function(object,sample=NULL,normalize=c("none","l1"),...) {
   normalize<-match.arg(normalize)
@@ -338,28 +217,28 @@ coef.coupledNMF <- function(object,sample=NULL,normalize=c("none","l1"),...) {
   if(normalize=="none")out<-out*(f$area*object$scale[ids])
   out
 }
-#' @rdname coupledNMF
+#' @noRd
 #' @export
 logLik.coupledNMF <- function(object,...)structure(object$loglik,class="logLik",df=object$ic_df,nobs=object$n,quasi=object$quasi)
-#' @rdname coupledNMF
+#' @noRd
 #' @export
 nobs.coupledNMF <- function(object,...)object$n
-#' @rdname coupledNMF
+#' @noRd
 #' @export
 AIC.coupledNMF <- function(object,...,k=2)-2*object$loglik+k*object$information_factor*object$ic_df
-#' @rdname coupledNMF
+#' @noRd
 #' @export
 BIC.coupledNMF <- function(object,...)AIC(object,k=log(object$n))
-#' @rdname coupledNMF
+#' @noRd
 #' @export
-GIC.coupledNMF <- function(object,...)AIC(object,k=preset.lambda("gic",p=object$p,n=object$n))
-#' @rdname coupledNMF
+GIC.coupledNMF <- function(object,...)AIC(object,k=presetLambda("gic",p=object$p,n=object$n))
+#' @noRd
 #' @export
-EBIC.coupledNMF <- function(object,...)AIC(object,k=preset.lambda("ebic",p=object$p,n=object$n))
-#' @rdname coupledNMF
+EBIC.coupledNMF <- function(object,...)AIC(object,k=presetLambda("ebic",p=object$p,n=object$n))
+#' @noRd
 #' @export
-MBIC.coupledNMF <- function(object,...)AIC(object,k=preset.lambda("mbic",p=object$p,n=object$n))
-#' @rdname coupledNMF
+MBIC.coupledNMF <- function(object,...)AIC(object,k=presetLambda("mbic",p=object$p,n=object$n))
+#' @noRd
 #' @method print coupledNMF
 #' @export
 print.coupledNMF <- function(x,...) {
@@ -367,7 +246,7 @@ print.coupledNMF <- function(x,...) {
   cat("Objective:",format(x$objective,digits=9),"; time:",round(x$seconds[["total"]],2),"s\n")
   invisible(x)
 }
-#' @rdname coupledNMF
+#' @rdname logconNMF
 #' @export
 plot.coupledNMF <- function(x,type=c("areas","spectra","profiles"),sample=NULL,compounds=seq_len(min(6L,nrow(x$P))),...) {
   type<-match.arg(type)
@@ -399,15 +278,7 @@ cpl_noise_pass <- function(state,samples) {
   cpl_parallel_pass(state,samples,"noise")
 }
 
-#' Extract one sample's factorization from a coupled fit
-#'
-#' Reconstruct a standard [splogconNMF()] object on a sample's original grid.
-#' Its profiles include alignment and exposure, and have unit column sums;
-#' the matching spectra carry their original-grid amplitudes. `compound_id`
-#' maps its local components to the coupled consensus compounds.
-#' @param object A [coupledNMF()] fit.
-#' @param sample One sample index or name.
-#' @return A `splogconNMF` object without an attached observed or fitted matrix.
+#' @rdname logconNMF
 #' @export
 sampleNMF <- function(object,sample=1L) {
   s<-cpl_sample_index(object,sample);f<-readRDS(object$paths[s]);ids<-object$map[f$gid]

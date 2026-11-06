@@ -1,13 +1,13 @@
 test_that("channel maps conserve counts and support saved reference maps", {
   set.seed(715);Y<-matrix(rpois(80*12,3),80,12,dimnames=list(NULL,as.character(40:51)))
-  groups<-channel_groups(Y,4L,ncores=1L)
+  groups<-channelGroups(Y,4L,ncores=1L)
   f<-tempfile();saveRDS(groups,f);on.exit(unlink(f))
-  Z<-aggregate_channels(Y,readRDS(f))
+  Z<-aggregateChannels(Y,readRDS(f))
   expect_identical(unname(rowSums(Z)),unname(rowSums(Y)))
   expect_equal(ncol(Z),4L)
-  expect_identical(aggregate_channels(Y[,12:1],groups),Z)
+  expect_identical(aggregateChannels(Y[,12:1],groups),Z)
   unseen<-cbind(Y,`999`=rep(7,nrow(Y)))
-  added<-aggregate_channels(unseen,groups)-Z
+  added<-aggregateChannels(unseen,groups)-Z
   expect_identical(added[,groups$unknown_group],rep(7,nrow(Y)))
   expect_equal(sum(added),7*nrow(Y))
 })
@@ -24,7 +24,7 @@ test_that("native sample slices retain original rows and channel order", {
 
 test_that("sample scheduling preserves fits for every supported noise family", {
   for(family in c("poisson","quasipoisson","gaussian","nb","nb1","Gamma","Gamma_scale")) {
-    set.seed(422);n<-70L;m<-8L;H<-convmatrix(dnorm(-5:5,sd=1.5),n)[,c(18L,48L)]
+    set.seed(422);n<-70L;m<-8L;H<-convMatrix(dnorm(-5:5,sd=1.5),n)[,c(18L,48L)]
     H<-H%*%Matrix::Diagonal(x=1/colSums(H));S<-matrix(runif(2*m,120,800),2,m)
     phi<-if(family=="nb1")2 else if(family=="gaussian")3 else .5
     if(family=="quasipoisson")phi<-2
@@ -53,14 +53,14 @@ test_that("sample scheduling preserves fits for every supported noise family", {
     expect_null(two$runtime);expect_null(two$store$cache)
     expect_equal(two$parallel,list(ncores=2L,workers=2L,threads=1L))
     expect_true(all(two$history$delta[two$history$stage=="coupled_cycle"]<=1e-4))
-    expect_equal(cpl_sample_data(two$store,1L,aggregate=TRUE),aggregate_channels(Y,two$channel_groups),ignore_attr=TRUE)
+    expect_equal(cpl_sample_data(two$store,1L,aggregate=TRUE),aggregateChannels(Y,two$channel_groups),ignore_attr=TRUE)
   }
 })
 
 test_that("parallel initialization retains each sample's sparse PSF", {
   set.seed(234);n<-90L;m<-6L;S<-matrix(rexp(2*m,1/4000),2,m)
   desc<-lapply(c(1.4,2.2),function(sd) {
-    X<-convmatrix(dnorm(-9:9,sd=sd),n)
+    X<-convMatrix(dnorm(-9:9,sd=sd),n)
     list(y=matrix(rpois(n*m,as.matrix(X[,c(25,65)]%*%S)+2),n,m),
       X=X,time=seq_len(n),small_width=10,background=matrix(1,n,1))
   })
@@ -77,7 +77,7 @@ test_that("parallel initialization retains each sample's sparse PSF", {
 })
 
 test_that("numeric AIC weight agrees with the named criterion during initialization", {
-  set.seed(912);n<-60L;m<-4L;X<-convmatrix(dnorm(-5:5,sd=1.3),n)
+  set.seed(912);n<-60L;m<-4L;X<-convMatrix(dnorm(-5:5,sd=1.3),n)
   S<-matrix(runif(2*m,500,1500),2,m)
   desc<-lapply(1:2,function(s)list(y=matrix(rpois(n*m,as.matrix(X[,c(18,43)]%*%S)+1),n,m),
     X=X,time=seq_len(n),background=matrix(1,n,1)))

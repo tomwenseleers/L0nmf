@@ -4,18 +4,18 @@ A short impulse is often recorded as a wider response: an optical blur,
 an instrument response or a chromatographic peak. Its **point spread
 function (PSF)** describes that response. With a known time-invariant
 PSF, shifted copies form a convolution design matrix, and
-[`L0glm.fit()`](https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html)
+[`l0glmFit()`](https://tomwenseleers.github.io/L0glm/reference/l0glmFit.html)
 can estimate a sparse set of impulse locations and amplitudes directly.
 
 When the PSF is unknown, alternate two conditional fits. Estimate the
 spike train with the current kernel, then estimate the kernel with those
 spikes held fixed.
-[`estimate_psf()`](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf.md)
+[`estimatePSF()`](https://tomwenseleers.github.io/logconNMF/reference/estimatePSF.md)
 can also calibrate the kernel from isolated standards and estimate how
 it changes across overlapping windows.
 
 The resulting sparse matrix `X` serves two purposes. Use it directly in
-[`L0glm.fit()`](https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html)
+[`l0glmFit()`](https://tomwenseleers.github.io/L0glm/reference/l0glmFit.html)
 when a common response shape at each position is adequate. Use it to
 initialize [log-concave
 NMF](https://tomwenseleers.github.io/logconNMF/articles/log-concave-nmf.md)
@@ -34,14 +34,14 @@ library(logconNMF)
 set.seed(611)
 n <- 600L; m <- 6L
 time <- seq_len(n) / 50
-g <- convkernel("bigaussian", 51L, list(sigma1=1.25, sigma2=5),
+g <- convKernel("bigaussian", 51L, list(sigma1=1.25, sigma2=5),
   perc="mean")
-X <- convmatrix(g, n)
+X <- convMatrix(g, n)
 A <- matrix(0, n, m)
 A[c(65,125,190,255,335,405,475,540),] <- runif(8L*m, 1500, 3500)
 Y <- matrix(rpois(n*m, as.matrix(X %*% A)+3), n, m)
 
-known <- L0glm.fit(X, Y, family=poisson("identity"), offset=3,
+known <- l0glmFit(X, Y, family=poisson("identity"), offset=3,
   nonnegative=TRUE, grouped=TRUE, relaxed=TRUE)
 ```
 
@@ -53,8 +53,8 @@ develops this regression model.
 
 ``` r
 
-initial <- convkernel("gaussian", 51L, list(sigma=4))
-blind <- estimate_psf(Y, time=time, family=poisson("identity"),
+initial <- convKernel("gaussian", 51L, list(sigma=4))
+blind <- estimatePSF(Y, time=time, family=poisson("identity"),
   standard=NULL, method="blind", nwindows=1L, precluster=1L,
   offset=3, control=list(kernel_est=initial, maxiter=6L))
 blind$g_hat
@@ -72,7 +72,7 @@ The default `precluster=1L` uses the total across channels. `FALSE` uses
 the original channels; an integer requests at most that many
 intensity-adjusted groups. The returned `blind$X` is a sparse
 scan-by-scan design ready for
-[`L0glm.fit()`](https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html)
+[`l0glmFit()`](https://tomwenseleers.github.io/L0glm/reference/l0glmFit.html)
 or
 [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md).
 
@@ -84,7 +84,7 @@ standard_spikes <- numeric(n)
 standard_spikes[c(90,300,510)] <- c(12000,18000,15000)
 standard <- list(Y=rpois(n, as.numeric(X %*% standard_spikes)+5), time=time)
 
-calibrated <- estimate_psf(Y, time=time, standard=standard,
+calibrated <- estimatePSF(Y, time=time, standard=standard,
   family=poisson("identity"), method="standard", nwindows=1L,
   control=list(L=51L, baseline_df=4L, n_peaks=3L))
 ```
@@ -106,7 +106,7 @@ calibrated PSFs, and window-specific estimates
 
 ``` r
 
-varying <- estimate_psf(Y, time=time, standard=standard,
+varying <- estimatePSF(Y, time=time, standard=standard,
   family=poisson("identity"), method="auto", nwindows=3L,
   offset=3, control=list(L=51L, baseline_df=4L, n_peaks=3L, maxiter=6L))
 varying$psf_timepoints
@@ -126,8 +126,8 @@ recognized automatically:
 
 ``` r
 
-data(GCMS_data2)
-psf <- estimate_psf(GCMS_data2, nwindows=3L, method="standard")
+data(gcmsData2)
+psf <- estimatePSF(gcmsData2, nwindows=3L, method="standard")
 psf$method
 psf$aggregation
 ```
@@ -142,9 +142,9 @@ each sample’s scan grid:
 ``` r
 
 keep <- standard_time >= 3  # minutes; choose the end of the solvent interval
-calibration <- estimate_psf(standard_tic[keep], time=standard_time[keep],
+calibration <- estimatePSF(standard_tic[keep], time=standard_time[keep],
   method="standard", nwindows=10L)
-psf <- estimate_psf(sample_signal, time=sample_time, standard=calibration,
+psf <- estimatePSF(sample_signal, time=sample_time, standard=calibration,
   method="standard", nwindows=10L)
 X <- psf$X
 ```

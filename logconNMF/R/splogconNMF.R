@@ -48,7 +48,7 @@ slcn_initial <- function(X, Y, B, spec, W, offset, scalar, ncores, screen_factor
     Gamma = sweep(pilot^2, 2, rep_len(spec$dispersion, ncol(Y)), "*"))
   working_weights <- matrix(pmin(1e12, pmax(1e-12, pilot / pmax(variance, 1e-20))), nrow(Y), ncol(Y)) * W
   design <- if (q) cbind(X, Matrix(B, sparse = TRUE)) else X
-  fit <- L0glm.fit(design, pmax(Y, 0), family = poisson("identity"),
+  fit <- l0glmFit(design, pmax(Y, 0), family = poisson("identity"),
     weights = working_weights, offset = offset, lambda = scalar * screen_factor,
     nonnegative = TRUE, intercept = FALSE, always.include = p + seq_len(q),
     relaxed = TRUE, grouped = TRUE, group.maxit = if (spec$kind == 1L) 6L else 2L,
@@ -185,13 +185,13 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #' and shark-fin peaks while retaining all original outcome channels.
 #'
 #' @param X Nonnegative scans-by-candidates matrix, typically shifted copies of
-#'   a point-spread function from [convmatrix()] or [L0glm_blind_deco()]. Columns
+#'   a point-spread function from [convMatrix()] or [l0glmBlindDeco()]. Columns
 #'   must have contiguous log-concave positive support. Dense and sparse inputs
 #'   are accepted and stored sparsely; columns are normalized to unit sum.
 #' @param y Numeric scans-by-channels matrix or a single-channel vector.
 #' @param family Identity-link noise family: `gaussian`, `poisson`,
-#'   `quasipoisson`, `mgcv::nb`, `Gamma`, [nb1()], [Gamma_scale()] or
-#'   [Gamma_censored()]. The corresponding names, including `"nb"`, `"nb1"`
+#'   `quasipoisson`, `mgcv::nb`, `Gamma`, [nb1()], [gammaScale()] or
+#'   [gammaCensored()]. The corresponding names, including `"nb"`, `"nb1"`
 #'   and `"Gamma_scale"`, are also accepted. Count likelihoods require integer
 #'   counts; quasipoisson accepts nonnegative intensities. Gaussian observations
 #'   may be negative; their fitted latent signals remain nonnegative.
@@ -209,7 +209,7 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #'   freezes a temporal moment estimate; a positive value fixes it; a negative
 #'   value initializes at its absolute value and enables pooled likelihood
 #'   updates. A fixed shape in the supplied NB family is respected.
-#' @param precluster A saved [channel_groups()] map shares the same aggregation
+#' @param precluster A saved [channelGroups()] map shares the same aggregation
 #'   across analyses. `NULL` or `FALSE` uses every channel throughout. `TRUE`
 #'   uses up to 32 groups; an integer supplies another maximum. Size-adjusted
 #'   Poisson clustering, aggregation, selection and fusion operate in that
@@ -294,7 +294,7 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #' complexity count; it is distinct from counting every free profile ordinate.
 #'
 #' **Initialization and local updates.** A variance-matched grouped Poisson
-#' working fit supplies candidate components, using [L0glm.fit()] with relaxed
+#' working fit supplies candidate components, using [l0glmFit()] with relaxed
 #' refitting and compulsory background columns. The subsequent updates use
 #' the specified family's exact score and likelihood. For a spectral
 #' coefficient or profile ordinate, the conditional mean is
@@ -394,7 +394,7 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #' Bounded Newton proposals in \eqn{\log\theta} are backtracked against the
 #' pooled likelihood. One common shape is retained across original channels.
 #'
-#' **Temporal calibration and aggregation.** [temporal_dispersion()] uses
+#' **Temporal calibration and aggregation.** [temporalDispersion()] uses
 #' fourth and eighth differences in quieter parts of a smoothed pilot signal.
 #' This estimates the marginal noise scale; an optional lag-one working
 #' correction multiplies the rank penalty by
@@ -402,7 +402,7 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #' its marginal scale. This local covariance approximation is recorded in
 #' `spec`; use `correlation="none"` for independent simulated data.
 #'
-#' Preclustering uses [glm_cluster()] with `size_fac=colSums(pmax(y,0))`,
+#' Preclustering uses [glmCluster()] with `size_fac=colSums(pmax(y,0))`,
 #' removing differences in total ion intensity when comparing channel shapes.
 #' Poisson and common-parameter NB1 latent signals add exactly; independent
 #' common-scale Gamma latent signals also add. Standard NB2 and Gamma use
@@ -414,10 +414,10 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #' Selection and initial fusion run in the reduced space. Lifting the spectra
 #' to the original channels is followed by a spectral/background refit and
 #' local shape refinement, with no repetition of the reduced-space search.
-#' Worked full-channel fits to [GCMS_data1] and [GCMS_data2], with traces,
+#' Worked full-channel fits to [gcmsData1] and [gcmsData2], with traces,
 #' heatmaps, profiles and spectra, are shown in the
 #' [GC/MS deconvolution tutorial](https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html) and
-#' the [GCMSdeco()](https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html) help page. [write_GCMS_cdf()](https://tomwenseleers.github.io/GCMSprime/reference/write_GCMS_cdf.html) exports these matrices for
+#' the [gcmsDeco()](https://tomwenseleers.github.io/GCMSprime/reference/gcmsDeco.html) help page. [writeGCMSCDF()](https://tomwenseleers.github.io/GCMSprime/reference/writeGCMSCDF.html) exports these matrices for
 #' the complete file-based workflow.
 #'
 #' **Smooth local profiles.** Original-channel refinement fits
@@ -441,7 +441,7 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #'   `AIC()`, `BIC()`, `GIC()`, `EBIC()` and `MBIC()` score the returned model.
 #'   Columns of `H` and the matching rows of `S` are ordered by increasing apex
 #'   scan, also returned in `apex_scan`. Their labels identify the same compounds.
-#' @seealso [GCMSdeco()](https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html), [L0glm_blind_deco()], [L0glm.fit()], [glm_cluster()]
+#' @seealso [gcmsDeco()](https://tomwenseleers.github.io/GCMSprime/reference/gcmsDeco.html), [l0glmBlindDeco()], [l0glmFit()], [glmCluster()]
 #' @references Wang, L. and Carvalho, L. E. (2023). Deviance matrix factorization.
 #'   Electronic Journal of Statistics 17(2), 3762--3810. \doi{10.1214/23-EJS2174}.
 #'   Li, X. and Tyagi, A. (2023). Block-active ADMM to minimize NMF with Bregman
@@ -532,7 +532,7 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
     stop("lambda must be an IC name or one nonnegative compound penalty.")
   nuisance <- system.time(noise <- slcn_noise(Y, spec, W, ncores, correlation, control$censor))[["elapsed"]]
   spec <- noise$spec
-  scalar <- if (is.character(lambda)) preset.lambda(lambda, p = ncol(X), n = n) else lambda / m
+  scalar <- if (is.character(lambda)) presetLambda(lambda, p = ncol(X), n = n) else lambda / m
   scalar <- scalar * spec$information_factor
   if (!is.finite(scalar) || scalar < 0) stop("lambda must be an IC preset or nonnegative compound penalty.")
   # Preserve candidates during initialization; apply the requested information
@@ -545,7 +545,7 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
   if (is.null(start) && !is.null(precluster) && !identical(precluster, FALSE) && precluster < m) {
     clustering_seconds <- system.time(cl <- if(!is.null(channel_map))
       list(clusterids=cpl_channel_index(channel_map,if(is.null(colnames(Y)))as.character(seq_len(m))else colnames(Y))) else
-      glm_cluster(pmax(Y, 0), family = poisson("identity"),
+      glmCluster(pmax(Y, 0), family = poisson("identity"),
       weights = W, method = "poissondist", size_fac = colSums(pmax(Y, 0)),
       rowbins = if (all(W == 1)) 5L else 1L,
       k = as.integer(precluster), linkage = control$linkage, nthreads = ncores))[["elapsed"]]
@@ -656,15 +656,15 @@ BIC.splogconNMF <- function(object, ...) AIC(object, k = log(object$n))
 #' @rdname splogconNMF
 #' @export
 GIC.splogconNMF <- function(object, ...) AIC(object,
-  k = preset.lambda("gic", p = object$p, n = object$n))
+  k = presetLambda("gic", p = object$p, n = object$n))
 #' @rdname splogconNMF
 #' @export
 EBIC.splogconNMF <- function(object, ...) AIC(object,
-  k = preset.lambda("ebic", p = object$p, n = object$n))
+  k = presetLambda("ebic", p = object$p, n = object$n))
 #' @rdname splogconNMF
 #' @export
 MBIC.splogconNMF <- function(object, ...) AIC(object,
-  k = preset.lambda("mbic", p = object$p, n = object$n))
+  k = presetLambda("mbic", p = object$p, n = object$n))
 #' @rdname splogconNMF
 #' @method print splogconNMF
 #' @export

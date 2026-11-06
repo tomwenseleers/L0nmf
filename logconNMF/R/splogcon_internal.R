@@ -469,7 +469,7 @@ spolo_sweep <- function(model, d, cycles, ncores = 8L) {
     } else if (ctx$spec$kind == 1L) {
       W <- if (length(ctx$W)==1L) matrix(ctx$W,length(h),length(s)) else
         matrix(ctx$W,ctx$n,ctx$m)[left:right,,drop=FALSE]
-      fit <- L0glm.fit(matrix(s,ncol=1L),t(a$Y),family=poisson("identity"),
+      fit <- l0glmFit(matrix(s,ncol=1L),t(a$Y),family=poisson("identity"),
         weights=t(W),offset=t(residual),start=matrix(pmax(h,max(h)*1e-8),nrow=1L),
         prior.mean=if(prior_strength>0) matrix(h,nrow=1L) else NULL,
         lambda=prior_strength,nonnegative=TRUE,intercept=FALSE,normalize="none",

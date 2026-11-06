@@ -65,12 +65,12 @@ articles:
     contents: [articles/algorithm]
 reference:
   - title: Estimate point spread functions and deconvolve signals
-    contents: [convkernel, convmatrix, estimate_psf, estimate_psf_from_std, L0glm_blind_deco, L0glm_sparse_deco, L0glm_deco_estkernel]
+    contents: [convKernel, convMatrix, estimatePSF, estimatePSFFromStd, l0glmBlindDeco, l0glmSparseDeco, l0glmDecoEstKernel]
   - title: Sparse and coupled factorization
-    contents: [logconNMF, splogconNMF, coupledNMF, sampleNMF, channel_groups, aggregate_channels]
+    contents: [logconNMF, splogconNMF, channelGroups, aggregateChannels]
   - title: Noise calibration and profile constraints
-    contents: [estimate_signal_noise, log_conc_smooth]
+    contents: [estimateSignalNoise, logConcSmooth]
   - title: Simulations and experimental data
-    contents: [simulate_GCMS, simulate_GCMS_samples, GCMS_data1, GCMS_data2]
+    contents: [simulateGCMS, simulateGCMSSamples, gcmsData1, gcmsData2]
   - title: Shared tools and package overview
     contents: [reexports, logconNMF-package]

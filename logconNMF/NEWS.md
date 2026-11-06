@@ -1,10 +1,10 @@
-# logconNMF 0.1.0
+# logconNMF 0.1.0.9000
 
 ## PSF estimation and deconvolution
 
-* `convkernel()`, `shift_kernel()` and `convmatrix()` construct PSFs and
+* `convKernel()`, `shiftKernel()` and `convMatrix()` construct PSFs and
   convolution designs, including asymmetric bigaussian and EMG responses.
-* `estimate_psf()` estimates constant or smoothly time-varying point spread
+* `estimatePSF()` estimates constant or smoothly time-varying point spread
   functions from standards or overlapping signals and returns a sparse design.
 * Alternating spike-train and kernel estimation supports single or multiple
   channels, smooth backgrounds and information-criterion checkpoints.

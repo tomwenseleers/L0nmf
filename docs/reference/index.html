@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,49 +50,49 @@
 
       <dl><dt>
 
-          <code><a href="convkernel.html">convkernel()</a></code> <code><a href="convkernel.html">shift_kernel()</a></code>
+          <code><a href="convKernel.html">convKernel()</a></code> <code><a href="convKernel.html">shiftKernel()</a></code>
 
         </dt>
         <dd>Generate normalised 1-D convolution kernels (point-spread functions)</dd>
 
         <dt>
 
-          <code><a href="convmatrix.html">convmatrix()</a></code>
+          <code><a href="convMatrix.html">convMatrix()</a></code>
 
         </dt>
         <dd>Make banded or rectangular convolution design matrices</dd>
 
         <dt>
 
-          <code><a href="estimate_psf.html">estimate_psf()</a></code>
+          <code><a href="estimatePSF.html">estimatePSF()</a></code>
 
         </dt>
         <dd>Estimate constant or time-varying point spread functions</dd>
 
         <dt>
 
-          <code><a href="estimate_psf_from_std.html">estimate_psf_from_std()</a></code>
+          <code><a href="estimatePSFFromStd.html">estimatePSFFromStd()</a></code>
 
         </dt>
         <dd>Estimate a time-varying PSF matrix from an alkane ladder TIC</dd>
 
         <dt>
 
-          <code><a href="L0glm_blind_deco.html">L0glm_blind_deco()</a></code>
+          <code><a href="l0glmBlindDeco.html">l0glmBlindDeco()</a></code>
 
         </dt>
         <dd>Alternating sparse L0 glm powered blind deconvolution</dd>
 
         <dt>
 
-          <code><a href="L0glm_sparse_deco.html">L0glm_sparse_deco()</a></code>
+          <code><a href="l0glmSparseDeco.html">l0glmSparseDeco()</a></code>
 
         </dt>
         <dd>Sparse deconvolution with a fixed PSF via L0-penalised GLMs</dd>
 
         <dt>
 
-          <code><a href="L0glm_deco_estkernel.html">L0glm_deco_estkernel()</a></code>
+          <code><a href="l0glmDecoEstKernel.html">l0glmDecoEstKernel()</a></code>
 
         </dt>
         <dd>Estimate the PSF given a spike train estimate via L0-penalised GLMs</dd>
@@ -108,7 +108,7 @@
 
       <dl><dt>
 
-          <code><a href="logconNMF.html">logconNMF()</a></code> <code><a href="logconNMF.html">coef(<i>&lt;logconNMF_fit&gt;</i>)</a></code> <code><a href="logconNMF.html">fitted(<i>&lt;logconNMF_fit&gt;</i>)</a></code>
+          <code><a href="logconNMF.html">plot(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="logconNMF.html">sampleNMF()</a></code> <code><a href="logconNMF.html">logconNMF()</a></code> <code><a href="logconNMF.html">coef(<i>&lt;logconNMF_fit&gt;</i>)</a></code> <code><a href="logconNMF.html">fitted(<i>&lt;logconNMF_fit&gt;</i>)</a></code>
 
         </dt>
         <dd>Fit a log-concave factorization with automatic rank selection</dd>
@@ -122,21 +122,7 @@
 
         <dt>
 
-          <code><a href="coupledNMF.html">coupledNMF()</a></code> <code><a href="coupledNMF.html">fitted(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">coef(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">logLik(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">nobs(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">AIC(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">BIC(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">GIC(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">EBIC(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">MBIC(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">print(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="coupledNMF.html">plot(<i>&lt;coupledNMF&gt;</i>)</a></code>
-
-        </dt>
-        <dd>Coupled sparse log-concave factorization of multiple samples</dd>
-
-        <dt>
-
-          <code><a href="sampleNMF.html">sampleNMF()</a></code>
-
-        </dt>
-        <dd>Extract one sample's factorization from a coupled fit</dd>
-
-        <dt>
-
-          <code><a href="channel_groups.html">channel_groups()</a></code> <code><a href="channel_groups.html">aggregate_channels()</a></code>
+          <code><a href="channelGroups.html">channelGroups()</a></code> <code><a href="channelGroups.html">aggregateChannels()</a></code>
 
         </dt>
         <dd>Learn and reuse a common channel aggregation</dd>
@@ -152,14 +138,14 @@
 
       <dl><dt>
 
-          <code><a href="estimate_signal_noise.html">estimate_signal_noise()</a></code>
+          <code><a href="estimateSignalNoise.html">estimateSignalNoise()</a></code>
 
         </dt>
         <dd>Estimate a shared noise model for ordered multichannel signals</dd>
 
         <dt>
 
-          <code><a href="log_conc_smooth.html">log_conc_smooth()</a></code>
+          <code><a href="logConcSmooth.html">logConcSmooth()</a></code>
 
         </dt>
         <dd>Log-concave spline smoothing of a discrete convolution kernel estimate</dd>
@@ -175,28 +161,28 @@
 
       <dl><dt>
 
-          <code><a href="simulate_GCMS.html">simulate_GCMS()</a></code>
+          <code><a href="simulateGCMS.html">simulateGCMS()</a></code>
 
         </dt>
         <dd>Simulate synthetic GC-MS chromatograms with ground-truth signal + background</dd>
 
         <dt>
 
-          <code><a href="simulate_GCMS_samples.html">simulate_GCMS_samples()</a></code>
+          <code><a href="simulateGCMSSamples.html">simulateGCMSSamples()</a></code>
 
         </dt>
         <dd>Simulate related chromatograms with shared compound spectra</dd>
 
         <dt>
 
-          <code><a href="GCMS_data1.html">GCMS_data1</a></code>
+          <code><a href="gcmsData1.html">gcmsData1</a></code>
 
         </dt>
         <dd>GC/MS Chromatogram Section - Cuticular Hydrocarbon Profile of a Cataglyphis iberica Ant Queen</dd>
 
         <dt>
 
-          <code><a href="GCMS_data2.html">GCMS_data2</a></code>
+          <code><a href="gcmsData2.html">gcmsData2</a></code>
 
         </dt>
         <dd>GC/MS Chromatogram Section - Beer Headspace Volatiles</dd>

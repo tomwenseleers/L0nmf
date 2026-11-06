@@ -77,13 +77,13 @@ splogconNMF(
 \item{...}{Further method arguments.}
 
 \item{X}{Nonnegative scans-by-candidates matrix, typically shifted copies of
-a point-spread function from \code{\link[L0glm:convmatrix]{convmatrix()}} or \code{\link[=L0glm_blind_deco]{L0glm_blind_deco()}}. Columns
+a point-spread function from \code{\link[=convMatrix]{convMatrix()}} or \code{\link[=l0glmBlindDeco]{l0glmBlindDeco()}}. Columns
 must have contiguous log-concave positive support. Dense and sparse inputs
 are accepted and stored sparsely; columns are normalized to unit sum.}
 
 \item{family}{Identity-link noise family: \code{gaussian}, \code{poisson},
-\code{quasipoisson}, \code{mgcv::nb}, \code{Gamma}, \code{\link[L0glm:nb1]{nb1()}}, \code{\link[L0glm:Gamma_scale]{Gamma_scale()}} or
-\code{\link[L0glm:Gamma_censored]{Gamma_censored()}}. The corresponding names, including \code{"nb"}, \code{"nb1"}
+\code{quasipoisson}, \code{mgcv::nb}, \code{Gamma}, \code{\link[L0glm:nb1]{nb1()}}, \code{\link[L0glm:gammaScale]{gammaScale()}} or
+\code{\link[L0glm:gammaCensored]{gammaCensored()}}. The corresponding names, including \code{"nb"}, \code{"nb1"}
 and \code{"Gamma_scale"}, are also accepted. Count likelihoods require integer
 counts; quasipoisson accepts nonnegative intensities. Gaussian observations
 may be negative; their fitted latent signals remain nonnegative.}
@@ -106,7 +106,7 @@ freezes a temporal moment estimate; a positive value fixes it; a negative
 value initializes at its absolute value and enables pooled likelihood
 updates. A fixed shape in the supplied NB family is respected.}
 
-\item{precluster}{A saved \code{\link[=channel_groups]{channel_groups()}} map shares the same aggregation
+\item{precluster}{A saved \code{\link[=channelGroups]{channelGroups()}} map shares the same aggregation
 across analyses. \code{NULL} or \code{FALSE} uses every channel throughout. \code{TRUE}
 uses up to 32 groups; an integer supplies another maximum. Size-adjusted
 Poisson clustering, aggregation, selection and fusion operate in that
@@ -216,7 +216,7 @@ This is a compound-count model-selection convention. The IC methods use
 complexity count; it is distinct from counting every free profile ordinate.
 
 \strong{Initialization and local updates.} A variance-matched grouped Poisson
-working fit supplies candidate components, using \code{\link[L0glm:L0glm.fit]{L0glm.fit()}} with relaxed
+working fit supplies candidate components, using \code{\link[L0glm:l0glmFit]{l0glmFit()}} with relaxed
 refitting and compulsory background columns. The subsequent updates use
 the specified family's exact score and likelihood. For a spectral
 coefficient or profile ordinate, the conditional mean is
@@ -316,7 +316,7 @@ For an updated NB2 shape, the pooled score is
 Bounded Newton proposals in \eqn{\log\theta} are backtracked against the
 pooled likelihood. One common shape is retained across original channels.
 
-\strong{Temporal calibration and aggregation.} \code{\link[L0glm:temporal_dispersion]{temporal_dispersion()}} uses
+\strong{Temporal calibration and aggregation.} \code{\link[L0glm:temporalDispersion]{temporalDispersion()}} uses
 fourth and eighth differences in quieter parts of a smoothed pilot signal.
 This estimates the marginal noise scale; an optional lag-one working
 correction multiplies the rank penalty by
@@ -324,7 +324,7 @@ correction multiplies the rank penalty by
 its marginal scale. This local covariance approximation is recorded in
 \code{spec}; use \code{correlation="none"} for independent simulated data.
 
-Preclustering uses \code{\link[L0glm:glm_cluster]{glm_cluster()}} with \code{size_fac=colSums(pmax(y,0))},
+Preclustering uses \code{\link[L0glm:glmCluster]{glmCluster()}} with \code{size_fac=colSums(pmax(y,0))},
 removing differences in total ion intensity when comparing channel shapes.
 Poisson and common-parameter NB1 latent signals add exactly; independent
 common-scale Gamma latent signals also add. Standard NB2 and Gamma use
@@ -336,10 +336,10 @@ The compound penalty uses the original channel count throughout aggregation.
 Selection and initial fusion run in the reduced space. Lifting the spectra
 to the original channels is followed by a spectral/background refit and
 local shape refinement, with no repetition of the reduced-space search.
-Worked full-channel fits to \link{GCMS_data1} and \link{GCMS_data2}, with traces,
+Worked full-channel fits to \link{gcmsData1} and \link{gcmsData2}, with traces,
 heatmaps, profiles and spectra, are shown in the
 \href{https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html}{GC/MS deconvolution tutorial} and
-the \href{https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html}{GCMSdeco()} help page. \href{https://tomwenseleers.github.io/GCMSprime/reference/write_GCMS_cdf.html}{write_GCMS_cdf()} exports these matrices for
+the \href{https://tomwenseleers.github.io/GCMSprime/reference/gcmsDeco.html}{gcmsDeco()} help page. \href{https://tomwenseleers.github.io/GCMSprime/reference/writeGCMSCDF.html}{writeGCMSCDF()} exports these matrices for
 the complete file-based workflow.
 
 \strong{Smooth local profiles.} Original-channel refinement fits
@@ -356,8 +356,8 @@ original-channel likelihood and compound-count penalty.
 library(L0glm)
 set.seed(12)
 n <- 300L
-psf <- convkernel("gaussian", 21L, list(sigma = 2))
-X <- convmatrix(psf, n)
+psf <- convKernel("gaussian", 21L, list(sigma = 2))
+X <- convMatrix(psf, n)
 H <- cbind(X[, c(45, 95, 160, 235)],
            pmax(0, 1 - abs(seq_len(n) - 185) / 22))
 H <- H \%*\% Matrix::Diagonal(x = 1 / Matrix::colSums(H))
@@ -383,13 +383,13 @@ GIC(fitq)
 
 # Other identity-link choices include gaussian(), mgcv::nb(), Gamma(),
 # nb1(dispersion=5, link="identity"), and
-# Gamma_scale(scale=5, link="identity", censor=0.5).
+# gammaScale(scale=5, link="identity", censor=0.5).
 
 \dontrun{
 # Six co-eluting compounds, retaining all 671 mass channels.
-data(GCMS_data1)
-Y <- GCMS_data1
-X <- convmatrix(convkernel("gaussian", 65L, list(sigma = 8)), nrow(Y))
+data(gcmsData1)
+Y <- gcmsData1
+X <- convMatrix(convKernel("gaussian", 65L, list(sigma = 8)), nrow(Y))
 f1 <- splogconNMF(X, Y, background = matrix(1, nrow(Y), 1L),
   family = quasipoisson("identity"), precluster = 16L,
   correlation = "auto", ncores = 8L)
@@ -398,18 +398,18 @@ matplot(as.numeric(rownames(Y)), as.matrix(f1$H), type = "l", lty = 1,
   xlab = "Retention time (min)", ylab = "Unit-area elution profile")
 
 # Beer volatiles with a broad acid peak and a low-df spline background.
-data(GCMS_data2)
-Y <- GCMS_data2
+data(gcmsData2)
+Y <- gcmsData2
 time <- as.numeric(rownames(Y))
-X <- convmatrix(convkernel("gaussian", 65L, list(sigma = 6)), nrow(Y))
+X <- convMatrix(convKernel("gaussian", 65L, list(sigma = 6)), nrow(Y))
 B <- splines::bs(time, df = 4L, intercept = TRUE)
 f2 <- splogconNMF(X, Y, background = B,
   family = quasipoisson("identity"), precluster = 32L,
   correlation = "auto", ncores = 8L)
 c(compounds = f2$rank, GIC = GIC(f2), seconds = f2$seconds[["total"]])
-plotmat(fitted(f2), xlab = "Retention time (min)", ylab = "Mass (m/z)",
+plotMat(fitted(f2), xlab = "Retention time (min)", ylab = "Mass (m/z)",
   main = "Fitted GC/MS chromatogram")
-# GCMSdeco() adds CDF input, MSP/Excel export, and traces/heatmaps/profile plots.
+# gcmsDeco() adds CDF input, MSP/Excel export, and traces/heatmaps/profile plots.
 }
 }
 \references{
@@ -427,5 +427,5 @@ models with application to single-cell RNA sequencing data.
 Biostatistics 27(1), kxag010. \doi{10.1093/biostatistics/kxag010}.
 }
 \seealso{
-\href{https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html}{GCMSdeco()}, \code{\link[=L0glm_blind_deco]{L0glm_blind_deco()}}, \code{\link[L0glm:L0glm.fit]{L0glm.fit()}}, \code{\link[L0glm:glm_cluster]{glm_cluster()}}
+\href{https://tomwenseleers.github.io/GCMSprime/reference/gcmsDeco.html}{gcmsDeco()}, \code{\link[=l0glmBlindDeco]{l0glmBlindDeco()}}, \code{\link[L0glm:l0glmFit]{l0glmFit()}}, \code{\link[L0glm:glmCluster]{glmCluster()}}
 }

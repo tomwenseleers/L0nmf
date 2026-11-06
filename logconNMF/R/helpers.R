@@ -20,5 +20,5 @@ nmf_ic_name <- function(IC) {
 }
 nmf_model_criterion <- function(object,criterion,mu_floor=0) {
   ll <- stats::logLik(object,mu_floor=mu_floor)
-  -2*as.numeric(ll)+preset.lambda(criterion,p=max(1,object$p),n=attr(ll,"nobs"))*attr(ll,"df")
+  -2*as.numeric(ll)+presetLambda(criterion,p=max(1,object$p),n=attr(ll,"nobs"))*attr(ll,"df")
 }

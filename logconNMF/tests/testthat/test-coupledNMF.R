@@ -1,5 +1,5 @@
 test_that("coupled fits retain absent occurrences, dimensions and disk-backed reconstruction", {
-  set.seed(85);n<-90L;m<-5L;X<-convmatrix(dnorm(-6:6,sd=1.5),n)
+  set.seed(85);n<-90L;m<-5L;X<-convMatrix(dnorm(-6:6,sd=1.5),n)
   H<-X[,c(25,65)];H<-H%*%Matrix::Diagonal(x=1/colSums(H))
   P<-matrix(runif(2*m),2,m);P<-P/rowSums(P)
   desc<-lapply(1:3,function(s) {
@@ -24,7 +24,7 @@ test_that("coupled fits retain absent occurrences, dimensions and disk-backed re
 
 test_that("multisample simulations support absence and every signal family", {
   for(family in c("gaussian","poisson","quasipoisson","nb","Gamma","nb1","Gamma_scale")) {
-    z<-simulate_GCMS_samples(n=c(60L,65L,70L),k=3L,presence=.5,family=family,
+    z<-simulateGCMSSamples(n=c(60L,65L,70L),k=3L,presence=.5,family=family,
       dispersion=if(family=="nb1")2 else 1,seed=8)
     expect_equal(vapply(z$samples,function(x)nrow(x$Y),0L),c(60L,65L,70L))
     expect_true(all(vapply(z$samples,function(x)all(is.finite(x$Y)),FALSE)))

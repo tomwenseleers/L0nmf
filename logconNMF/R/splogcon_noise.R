@@ -90,7 +90,7 @@ slcn_noise <- function(Y, spec, W, ncores, correlation, censor) {
     eligible <- matrix(quiet, nrow(Y), ncol(Y)) & level >= cut
     if (length(W) != 1L) eligible <- eligible & W > 0
   }
-  noise <- tryCatch(temporal_dispersion(Y, family = gaussian("identity"), order = c(4L, 8L),
+  noise <- tryCatch(temporalDispersion(Y, family = gaussian("identity"), order = c(4L, 8L),
     rows = eligible, minimum_mean = 0, method = "moment", correlation = "lag1", ncores = ncores),
     error = function(e) NULL)
   rho <- if (is.null(noise)) 0 else unname(noise$pooled[["correlation"]])
@@ -101,12 +101,12 @@ slcn_noise <- function(Y, spec, W, ncores, correlation, censor) {
   if (spec$name == "gaussian" && is.null(scale)) scale <- sigma2
   if (spec$name %in% c("poisson", "nb")) scale <- 1
   if (spec$name %in% c("quasipoisson", "nb1", "Gamma_scale") && is.null(scale)) {
-    q <- temporal_dispersion(Y, family = quasipoisson("identity"), order = c(4L, 8L), rows = eligible,
+    q <- temporalDispersion(Y, family = quasipoisson("identity"), order = c(4L, 8L), rows = eligible,
       minimum_mean = cut, correlation = "lag1", method = "moment", ncores = ncores)
     scale <- unname(q$pooled[["dispersion"]])
   }
   if (spec$name == "Gamma" && is.null(scale)) {
-    q <- temporal_dispersion(Y, family = Gamma("identity"), order = c(4L, 8L), mu = level, rows = eligible,
+    q <- temporalDispersion(Y, family = Gamma("identity"), order = c(4L, 8L), mu = level, rows = eligible,
       minimum_mean = cut, correlation = "lag1", method = "moment", ncores = ncores)
     scale <- unname(q$pooled[["dispersion"]])
   }
@@ -114,7 +114,7 @@ slcn_noise <- function(Y, spec, W, ncores, correlation, censor) {
   spec$dispersion <- max(1e-8, min(1e20, scale))
   if (spec$name == "nb1") spec$dispersion <- max(1, spec$dispersion)
   if (spec$name == "nb" && is.null(spec$theta)) {
-    q <- temporal_dispersion(Y, family = quasipoisson("identity"), order = c(4L, 8L), rows = eligible,
+    q <- temporalDispersion(Y, family = quasipoisson("identity"), order = c(4L, 8L), rows = eligible,
       minimum_mean = cut, correlation = "lag1", method = "moment", ncores = ncores)
     phi <- unname(q$pooled[["dispersion"]])
     reference <- sum(level[eligible]^2) / sum(level[eligible])

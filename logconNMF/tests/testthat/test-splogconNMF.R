@@ -1,6 +1,6 @@
 slcn_test_data <- function() {
   set.seed(12);n <- 180L
-  X <- convmatrix(convkernel("gaussian",15L,list(sigma=1.5)),n)
+  X <- convMatrix(convKernel("gaussian",15L,list(sigma=1.5)),n)
   H <- cbind(X[,c(25,70,135)],pmax(0,1-abs(seq_len(n)-100)/15))
   H <- H%*%Matrix::Diagonal(x=1/Matrix::colSums(H))
   S <- matrix(rexp(24,rate=1/3000),4,6)
@@ -84,7 +84,7 @@ test_that("preclustering refits every original channel and supports both linkage
 })
 
 test_that("empty models, numeric penalties and family constructors are supported", {
-  X <- convmatrix(convkernel("gaussian",9L),25L)
+  X <- convMatrix(convKernel("gaussian",9L),25L)
   z <- splogconNMF(X,matrix(0,25,2),ncores=1L,correlation="none")
   slcn_check_model(z)
   expect_equal(dim(z$H),c(25L,0L));expect_equal(dim(z$S),c(0L,2L))
@@ -93,7 +93,7 @@ test_that("empty models, numeric penalties and family constructors are supported
   a <- splogconNMF(d$X,d$Y,background=d$B,correlation="none",ncores=1L)
   b <- splogconNMF(as.matrix(d$X),d$Y,background=d$B,lambda=a$lambda,correlation="none",ncores=1L)
   expect_identical(a$S,b$S);expect_identical(a$mu,b$mu)
-  for(family in list(nb1(4,link="identity"),Gamma_scale(3,link="identity",censor=.5))) {
+  for(family in list(nb1(4,link="identity"),gammaScale(3,link="identity",censor=.5))) {
     fit <- splogconNMF(d$X,d$Y,background=d$B,family=family,correlation="none",ncores=1L,
       control=list(broad_repeats=0L,full_sweeps=0L,final_polishes=0L))
     expect_equal(fit$spec$dispersion,family$scalar$parameter)
@@ -107,8 +107,8 @@ test_that("empty models, numeric penalties and family constructors are supported
 
 test_that("temporal noise calibration is parallel and recovers marginal variance", {
   set.seed(943);Y <- matrix(rnorm(18000,sd=3),3000,6)
-  a <- temporal_dispersion(Y,gaussian(),method="moment",ncores=1L)
-  b <- temporal_dispersion(Y,gaussian(),method="moment",ncores=2L)
+  a <- temporalDispersion(Y,gaussian(),method="moment",ncores=1L)
+  b <- temporalDispersion(Y,gaussian(),method="moment",ncores=2L)
   expect_identical(a,b)
   expect_equal(unname(a$pooled[["dispersion"]]),9,tolerance=.05)
 })

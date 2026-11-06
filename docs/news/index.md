@@ -1,16 +1,16 @@
 # Changelog
 
-## logconNMF 0.1.0
+## logconNMF 0.1.0.9000
 
 ### PSF estimation and deconvolution
 
-- [`convkernel()`](https://tomwenseleers.github.io/logconNMF/reference/convkernel.md),
-  [`shift_kernel()`](https://tomwenseleers.github.io/logconNMF/reference/convkernel.md)
+- [`convKernel()`](https://tomwenseleers.github.io/logconNMF/reference/convKernel.md),
+  [`shiftKernel()`](https://tomwenseleers.github.io/logconNMF/reference/convKernel.md)
   and
-  [`convmatrix()`](https://tomwenseleers.github.io/logconNMF/reference/convmatrix.md)
+  [`convMatrix()`](https://tomwenseleers.github.io/logconNMF/reference/convMatrix.md)
   construct PSFs and convolution designs, including asymmetric
   bigaussian and EMG responses.
-- [`estimate_psf()`](https://tomwenseleers.github.io/logconNMF/reference/estimate_psf.md)
+- [`estimatePSF()`](https://tomwenseleers.github.io/logconNMF/reference/estimatePSF.md)
   estimates constant or smoothly time-varying point spread functions
   from standards or overlapping signals and returns a sparse design.
 - Alternating spike-train and kernel estimation supports single or

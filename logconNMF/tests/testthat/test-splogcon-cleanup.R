@@ -1,6 +1,6 @@
 test_that("original-channel cleanup deletes, adds and records complete model moves", {
   set.seed(812);n <- 100L;m <- 5L
-  X <- convmatrix(dnorm(-6:6, 0, 1.5), n)
+  X <- convMatrix(dnorm(-6:6, 0, 1.5), n)
   H <- X[, c(25L, 72L)];H <- H %*% Matrix::Diagonal(x = 1/Matrix::colSums(H))
   S <- matrix(runif(2*m, 1500, 3000), 2L, m)
   Y <- matrix(rpois(n*m, as.matrix(H %*% S) + 2), n, m)
@@ -23,7 +23,7 @@ test_that("original-channel cleanup deletes, adds and records complete model mov
 
 test_that("cached deletion scores equal complete rescoring with matrix weights", {
   set.seed(813);n <- 75L;m <- 4L
-  X <- convmatrix(dnorm(-5:5, 0, 1.2), n)
+  X <- convMatrix(dnorm(-5:5, 0, 1.2), n)
   W <- matrix(runif(n*m, .2, 1.2), n, m);W[1:4, ] <- 0
   f <- splogconNMF(X, matrix(0, n, m), weights = W, offset = 1,
     correlation = "none", ncores = 1L, control = list(original_cleanup = FALSE))

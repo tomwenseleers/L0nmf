@@ -99,9 +99,9 @@ print(x, ...)
 
   Nonnegative scans-by-candidates matrix, typically shifted copies of a
   point-spread function from
-  [`convmatrix()`](https://tomwenseleers.github.io/logconNMF/reference/convmatrix.md)
+  [`convMatrix()`](https://tomwenseleers.github.io/logconNMF/reference/convMatrix.md)
   or
-  [`L0glm_blind_deco()`](https://tomwenseleers.github.io/logconNMF/reference/L0glm_blind_deco.md).
+  [`l0glmBlindDeco()`](https://tomwenseleers.github.io/logconNMF/reference/l0glmBlindDeco.md).
   Columns must have contiguous log-concave positive support. Dense and
   sparse inputs are accepted and stored sparsely; columns are normalized
   to unit sum.
@@ -111,9 +111,9 @@ print(x, ...)
   Identity-link noise family: `gaussian`, `poisson`, `quasipoisson`,
   [`mgcv::nb`](https://rdrr.io/pkg/mgcv/man/negbin.html), `Gamma`,
   [`nb1()`](https://tomwenseleers.github.io/L0glm/reference/signal_families.html),
-  [`Gamma_scale()`](https://tomwenseleers.github.io/L0glm/reference/signal_families.html)
+  [`gammaScale()`](https://tomwenseleers.github.io/L0glm/reference/signal_families.html)
   or
-  [`Gamma_censored()`](https://tomwenseleers.github.io/L0glm/reference/signal_families.html).
+  [`gammaCensored()`](https://tomwenseleers.github.io/L0glm/reference/signal_families.html).
   The corresponding names, including `"nb"`, `"nb1"` and
   `"Gamma_scale"`, are also accepted. Count likelihoods require integer
   counts; quasipoisson accepts nonnegative intensities. Gaussian
@@ -152,7 +152,7 @@ print(x, ...)
 - precluster:
 
   A saved
-  [`channel_groups()`](https://tomwenseleers.github.io/logconNMF/reference/channel_groups.md)
+  [`channelGroups()`](https://tomwenseleers.github.io/logconNMF/reference/channelGroups.md)
   map shares the same aggregation across analyses. `NULL` or `FALSE`
   uses every channel throughout. `TRUE` uses up to 32 groups; an integer
   supplies another maximum. Size-adjusted Poisson clustering,
@@ -290,7 +290,7 @@ distinct from counting every free profile ordinate.
 
 **Initialization and local updates.** A variance-matched grouped Poisson
 working fit supplies candidate components, using
-[`L0glm.fit()`](https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html)
+[`l0glmFit()`](https://tomwenseleers.github.io/L0glm/reference/l0glmFit.html)
 with relaxed refitting and compulsory background columns. The subsequent
 updates use the specified family's exact score and likelihood. For a
 spectral coefficient or profile ordinate, the conditional mean is
@@ -396,7 +396,7 @@ proposals in \\\log\theta\\ are backtracked against the pooled
 likelihood. One common shape is retained across original channels.
 
 **Temporal calibration and aggregation.**
-[`temporal_dispersion()`](https://tomwenseleers.github.io/L0glm/reference/temporal_dispersion.html)
+[`temporalDispersion()`](https://tomwenseleers.github.io/L0glm/reference/temporalDispersion.html)
 uses fourth and eighth differences in quieter parts of a smoothed pilot
 signal. This estimates the marginal noise scale; an optional lag-one
 working correction multiplies the rank penalty by
@@ -405,7 +405,7 @@ its marginal scale. This local covariance approximation is recorded in
 `spec`; use `correlation="none"` for independent simulated data.
 
 Preclustering uses
-[`glm_cluster()`](https://tomwenseleers.github.io/L0glm/reference/glm_cluster.html)
+[`glmCluster()`](https://tomwenseleers.github.io/L0glm/reference/glmCluster.html)
 with `size_fac=colSums(pmax(y,0))`, removing differences in total ion
 intensity when comparing channel shapes. Poisson and common-parameter
 NB1 latent signals add exactly; independent common-scale Gamma latent
@@ -418,16 +418,16 @@ throughout aggregation. Selection and initial fusion run in the reduced
 space. Lifting the spectra to the original channels is followed by a
 spectral/background refit and local shape refinement, with no repetition
 of the reduced-space search. Worked full-channel fits to
-[GCMS_data1](https://tomwenseleers.github.io/logconNMF/reference/GCMS_data1.md)
+[gcmsData1](https://tomwenseleers.github.io/logconNMF/reference/gcmsData1.md)
 and
-[GCMS_data2](https://tomwenseleers.github.io/logconNMF/reference/GCMS_data2.md),
+[gcmsData2](https://tomwenseleers.github.io/logconNMF/reference/gcmsData2.md),
 with traces, heatmaps, profiles and spectra, are shown in the [GC/MS
 deconvolution
 tutorial](https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html)
 and the
-[GCMSdeco()](https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html)
+[gcmsDeco()](https://tomwenseleers.github.io/GCMSprime/reference/gcmsDeco.html)
 help page.
-[write_GCMS_cdf()](https://tomwenseleers.github.io/GCMSprime/reference/write_GCMS_cdf.html)
+[writeGCMSCDF()](https://tomwenseleers.github.io/GCMSprime/reference/writeGCMSCDF.html)
 exports these matrices for the complete file-based workflow.
 
 **Smooth local profiles.** Original-channel refinement fits
@@ -460,10 +460,10 @@ to single-cell RNA sequencing data. Biostatistics 27(1), kxag010.
 
 ## See also
 
-[GCMSdeco()](https://tomwenseleers.github.io/GCMSprime/reference/GCMSdeco.html),
-[`L0glm_blind_deco()`](https://tomwenseleers.github.io/logconNMF/reference/L0glm_blind_deco.md),
-[`L0glm.fit()`](https://tomwenseleers.github.io/L0glm/reference/L0glm.fit.html),
-[`glm_cluster()`](https://tomwenseleers.github.io/L0glm/reference/glm_cluster.html)
+[gcmsDeco()](https://tomwenseleers.github.io/GCMSprime/reference/gcmsDeco.html),
+[`l0glmBlindDeco()`](https://tomwenseleers.github.io/logconNMF/reference/l0glmBlindDeco.md),
+[`l0glmFit()`](https://tomwenseleers.github.io/L0glm/reference/l0glmFit.html),
+[`glmCluster()`](https://tomwenseleers.github.io/L0glm/reference/glmCluster.html)
 
 ## Examples
 
@@ -471,8 +471,8 @@ to single-cell RNA sequencing data. Biostatistics 27(1), kxag010.
 library(L0glm)
 set.seed(12)
 n <- 300L
-psf <- convkernel("gaussian", 21L, list(sigma = 2))
-X <- convmatrix(psf, n)
+psf <- convKernel("gaussian", 21L, list(sigma = 2))
+X <- convMatrix(psf, n)
 H <- cbind(X[, c(45, 95, 160, 235)],
            pmax(0, 1 - abs(seq_len(n) - 185) / 22))
 H <- H %*% Matrix::Diagonal(x = 1 / Matrix::colSums(H))
@@ -498,13 +498,13 @@ GIC(fitq)
 
 # Other identity-link choices include gaussian(), mgcv::nb(), Gamma(),
 # nb1(dispersion=5, link="identity"), and
-# Gamma_scale(scale=5, link="identity", censor=0.5).
+# gammaScale(scale=5, link="identity", censor=0.5).
 
 if (FALSE) { # \dontrun{
 # Six co-eluting compounds, retaining all 671 mass channels.
-data(GCMS_data1)
-Y <- GCMS_data1
-X <- convmatrix(convkernel("gaussian", 65L, list(sigma = 8)), nrow(Y))
+data(gcmsData1)
+Y <- gcmsData1
+X <- convMatrix(convKernel("gaussian", 65L, list(sigma = 8)), nrow(Y))
 f1 <- splogconNMF(X, Y, background = matrix(1, nrow(Y), 1L),
   family = quasipoisson("identity"), precluster = 16L,
   correlation = "auto", ncores = 8L)
@@ -513,17 +513,17 @@ matplot(as.numeric(rownames(Y)), as.matrix(f1$H), type = "l", lty = 1,
   xlab = "Retention time (min)", ylab = "Unit-area elution profile")
 
 # Beer volatiles with a broad acid peak and a low-df spline background.
-data(GCMS_data2)
-Y <- GCMS_data2
+data(gcmsData2)
+Y <- gcmsData2
 time <- as.numeric(rownames(Y))
-X <- convmatrix(convkernel("gaussian", 65L, list(sigma = 6)), nrow(Y))
+X <- convMatrix(convKernel("gaussian", 65L, list(sigma = 6)), nrow(Y))
 B <- splines::bs(time, df = 4L, intercept = TRUE)
 f2 <- splogconNMF(X, Y, background = B,
   family = quasipoisson("identity"), precluster = 32L,
   correlation = "auto", ncores = 8L)
 c(compounds = f2$rank, GIC = GIC(f2), seconds = f2$seconds[["total"]])
-plotmat(fitted(f2), xlab = "Retention time (min)", ylab = "Mass (m/z)",
+plotMat(fitted(f2), xlab = "Retention time (min)", ylab = "Mass (m/z)",
   main = "Fitted GC/MS chromatogram")
-# GCMSdeco() adds CDF input, MSP/Excel export, and traces/heatmaps/profile plots.
+# gcmsDeco() adds CDF input, MSP/Excel export, and traces/heatmaps/profile plots.
 } # }
 ```

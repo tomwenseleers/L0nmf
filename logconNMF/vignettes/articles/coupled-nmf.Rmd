@@ -37,13 +37,13 @@ chromatogram. `presence=0.5` makes compounds absent independently in half of the
 samples on average.
 
 ```r
-sim <- simulate_GCMS_samples(samples=3L, n=c(580L,600L,620L), k=26L,
+sim <- simulateGCMSSamples(samples=3L, n=c(580L,600L,620L), k=26L,
   preset="time_area_acid", presence=0.5, seed=811)
 
 samples <- lapply(sim$samples, function(s) list(
   y=s$Y, time=s$time, edges=s$edges, exposure=s$raw_exposure,
   sample_id=s$sample_id,
-  X=convmatrix(dnorm(-8:8, sd=1.6), nrow(s$Y)),
+  X=convMatrix(dnorm(-8:8, sd=1.6), nrow(s$Y)),
   background=splines::bs(s$time, df=4L, intercept=TRUE),
   small_width=2 * sqrt(2 * log(100)) * 1.6 * median(diff(s$time))))
 

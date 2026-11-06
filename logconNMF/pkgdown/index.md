@@ -4,7 +4,7 @@
 <div class="l0-hero-copy">
 <p class="l0-eyebrow">SPARSE NONNEGATIVE MATRIX FACTORIZATION · LOG-CONCAVE PROFILES</p>
 <h1>Log-concave NMF.<br><span>Automatic rank selection.</span></h1>
-<p class="l0-lead">Separate overlapping signals into log-concave profiles and nonnegative spectra. Use the same interface for one sample or a coupled fit across an experiment.</p>
+<p class="l0-lead">Separate overlapping signals with log-concave nonnegative matrix factorization. Fit a single sample or couple an entire experiment, with automatic rank selection and flexible noise models.</p>
 <div class="l0-actions"><a class="btn btn-primary" href="articles/log-concave-nmf.html">Get started <span aria-hidden="true">↗</span></a><a class="btn btn-outline-light" href="reference/index.html">Explore the methods</a></div>
 <p class="l0-hero-note">R · Local likelihood updates · Full spectra · Constant &amp; varying PSFs</p>
 </div>
@@ -17,18 +17,21 @@
 <a href="articles/log-concave-nmf.html"><strong>7 noise families</strong><span>Gaussian, Poisson, quasi-Poisson, NB2, NB1 and two Gamma models</span></a>
 </div>
 
-**logconNMF estimates the number of components from the data.** It separates
-overlapping signals into nonnegative channel loadings and log-concave profiles.
-Fit one matrix or share spectra across multiple samples, with a separate peak
-shape and area for each occurrence. Seven noise models cover count and
-continuous signals, including overdispersed counts.
+**logconNMF estimates the number of components from the data.** Each
+component has a log-concave profile and a nonnegative spectrum. In a
+coupled fit the spectrum is shared across samples, while peak shapes,
+locations and amplitudes can differ on the original sample grids.
+A penalized likelihood selects the rank under Gaussian, Poisson,
+quasi-Poisson, negative binomial or Gamma noise. Parallel sample fits and
+blockwise refinement support experiments stored on disk.
 
-Gas chromatography–mass spectrometry (GC–MS) is a motivating application.
-Several compounds can elute at the same time, so each scan contains a mixture
-of their mass spectra. The fit separates the elution profiles and spectra
-and estimates how many distinct components the scans support. The same model
-applies to other ordered multichannel signals with nonnegative, single-peaked
-components.
+Hyphenated chromatography, such as gas chromatography–mass spectrometry
+(GC–MS), motivates the model. Several compounds can elute at the same time,
+so each scan contains a mixture of their mass spectra. Estimate a
+constant or time-varying point spread function (PSF) for initialization,
+then recover compound-specific elution profiles and spectra. The same
+formulation applies to other ordered multichannel signals with
+nonnegative, single-peaked components.
 
 ## Automatic rank selection
 

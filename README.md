@@ -10,18 +10,21 @@
 
 [Get started](https://tomwenseleers.github.io/logconNMF/articles/log-concave-nmf.html) · [Documentation](https://tomwenseleers.github.io/logconNMF/reference/index.html) · [Algorithm & theory](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html)
 
-**logconNMF estimates the number of components from the data.** It separates
-overlapping signals into nonnegative channel loadings and log-concave profiles.
-Fit one matrix or share spectra across multiple samples, with a separate peak
-shape and area for each occurrence. Seven noise models cover count and
-continuous signals, including overdispersed counts.
+**logconNMF estimates the number of components from the data.** Each
+component has a log-concave profile and a nonnegative spectrum. In a
+coupled fit the spectrum is shared across samples, while peak shapes,
+locations and amplitudes can differ on the original sample grids.
+A penalized likelihood selects the rank under Gaussian, Poisson,
+quasi-Poisson, negative binomial or Gamma noise. Parallel sample fits and
+blockwise refinement support experiments stored on disk.
 
-Gas chromatography–mass spectrometry (GC–MS) is a motivating application.
-Several compounds can elute at the same time, so each scan contains a mixture
-of their mass spectra. The fit separates the elution profiles and spectra
-and estimates how many distinct components the scans support. The same model
-applies to other ordered multichannel signals with nonnegative, single-peaked
-components.
+Hyphenated chromatography, such as gas chromatography–mass spectrometry
+(GC–MS), motivates the model. Several compounds can elute at the same time,
+so each scan contains a mixture of their mass spectra. Estimate a
+constant or time-varying point spread function (PSF) for initialization,
+then recover compound-specific elution profiles and spectra. The same
+formulation applies to other ordered multichannel signals with
+nonnegative, single-peaked components.
 
 ## Automatic rank selection
 

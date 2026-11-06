@@ -161,6 +161,7 @@ coupledNMF <- function(samples, family=poisson("identity"), lambda="gic",
   if(accepted)state<-candidate
   state$batch_delta<-candidate$batch_delta;state$batch_accepted<-accepted
   state<-cpl_compact_coupled(state)
+  state$rank<-nrow(state$P)
   state$loglik<- -cpl_coupled_score(state,penalty=FALSE)/2
   state$ic_df<-(ncol(state$P)-1L)*nrow(state$P)+state$L+state$nuisance_df
   state$objective<- -2*state$loglik+state$lambda*state$ic_df

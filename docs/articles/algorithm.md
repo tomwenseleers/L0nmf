@@ -586,6 +586,24 @@ residual checks trigger a rank-revealing QR fallback when needed. The
 quadratic objective and shape constraints are unchanged by this
 numerical choice.
 
+For a piecewise-linear log profile, each row of the interpolation matrix
+has at most two nonzero entries. Its weighted Gram matrix is
+tridiagonal, so natural-order sparse Cholesky and sparse
+slope-constraint products avoid dense arithmetic on structural zeros.
+Successive scoring steps initialize the inequality solver at its
+preceding feasible solution and retain the same KKT tolerance.
+
+For a fixed component spectrum, a zero loading makes that channel’s
+contribution constant in the profile update. Native workspaces therefore
+retain its positive-loading channels in their original order. Spectral
+updates and complete model comparisons still use every original channel.
+
+Small joint conditional Poisson spectral and background refits retain
+the observed-curvature Newton step. Successive steps continue the
+constrained active set, reuse fixed gradient scales and exploit sparse
+weighted products for localized profiles. The conditional likelihood
+backtracking, boundary checks and convergence tolerance remain the same.
+
 The spectra act as covariates in each local profile update: Y\_{\mathcal
 W}^{T}=S\_{\mathcal B}^{T}H\_{\mathcal W,\mathcal B}^{T} +R\_{\mathcal
 W}^{T}. The current profiles and spectra provide the starts. Fine

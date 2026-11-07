@@ -21,6 +21,8 @@
   successive scoring steps while retaining the original likelihood checks.
 * Cached native inputs and compact positive-ion workspaces reduce allocation
   and repeated access during profile scoring and likelihood checks.
+* Conditional Poisson spectral and background refits use continued
+  constrained Newton solves and sparse local products from L0glm.
 * Gaussian, Poisson, quasipoisson, NB2, NB1, censored Gamma and common-scale
   Gamma models, with pooled noise calibration and optional temporal adjustment.
 * Optional channel aggregation accelerates initialization; final refinement

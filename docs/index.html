@@ -76,7 +76,7 @@ SPARSE NONNEGATIVE MATRIX FACTORIZATION · LOG-CONCAVE PROFILES
 Log-concave NMF.<br><span>Automatic rank selection.</span>
 </h1>
 <p class="l0-lead">
-Separate overlapping signals with log-concave nonnegative matrix factorization. Fit a single sample or couple an entire experiment, with automatic rank selection and flexible noise models.
+Fit models to single samples or large multisample experiments, with automatic rank selection, flexible noise models and log-concave shape constraints.
 </p>
 <div class="l0-actions">
 <a class="btn btn-primary" href="articles/log-concave-nmf.html">Get started <span aria-hidden="true">↗</span></a><a class="btn btn-outline-light" href="reference/index.html">Explore the methods</a>
@@ -188,7 +188,7 @@ R · Local likelihood updates · Full spectra · Constant &amp; varying PSFs
 <div class="section level2">
 <h2 id="share-spectra-across-samples">Share spectra across samples<a class="anchor" aria-label="anchor" href="#share-spectra-across-samples"></a>
 </h2>
-<p>In the <a href="articles/coupled-nmf.html#sixteen-samples-with-parallel-fitting">16-sample benchmark</a>, the coupled model recovers all 48 shared compounds and 380 occurrences, with no false calls. The CDF workflow took <strong>63.91 s</strong> with 16 workers. Each sample has 1,200 scans and 258 ion channels, with retention-time drift and concentration-dependent peak shapes. The tutorial shows the recovered areas and timings by stage.</p>
+<p>A <a href="https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html" class="external-link">16-sample GC/MS benchmark</a> uses 100 reference compounds, 1,200 scans and 258 ion channels per sample, including concentration-dependent broadening, sample drift, one acid-like compound and an experimentally derived background and noise scale. The GCMSprime workflow, using logconNMF for its factorization, recovers <strong>734 of 769 true occurrences</strong> (peak F1 <strong>0.922</strong>) in <strong>318.42 s</strong> with 16 sample workers. Its robust adjusted log-area R² is <strong>0.995</strong>. The <a href="https://tomwenseleers.github.io/logconNMF/articles/coupled-nmf.html">coupled tutorial</a> explains shared spectra, sample-specific profiles, missing compounds and the rank-selection objective.</p>
 </div>
 <div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>

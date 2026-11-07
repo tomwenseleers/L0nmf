@@ -6,9 +6,9 @@ Log-concave NMF.\
 Automatic rank selection.
 =========================
 
-Separate overlapping signals with log-concave nonnegative matrix
-factorization. Fit a single sample or couple an entire experiment, with
-automatic rank selection and flexible noise models.
+Fit models to single samples or large multisample experiments, with
+automatic rank selection, flexible noise models and log-concave shape
+constraints.
 
 [Get started
 ↗](https://tomwenseleers.github.io/logconNMF/articles/log-concave-nmf.md)[Explore
@@ -146,13 +146,18 @@ give the objectives, shape constraints and mathematical pseudocode.
 
 ## Share spectra across samples
 
-In the [16-sample
-benchmark](https://tomwenseleers.github.io/logconNMF/articles/coupled-nmf.html#sixteen-samples-with-parallel-fitting),
-the coupled model recovers all 48 shared compounds and 380 occurrences,
-with no false calls. The CDF workflow took **63.91 s** with 16 workers.
-Each sample has 1,200 scans and 258 ion channels, with retention-time
-drift and concentration-dependent peak shapes. The tutorial shows the
-recovered areas and timings by stage.
+A [16-sample GC/MS
+benchmark](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html)
+uses 100 reference compounds, 1,200 scans and 258 ion channels per
+sample, including concentration-dependent broadening, sample drift, one
+acid-like compound and an experimentally derived background and noise
+scale. The GCMSprime workflow, using logconNMF for its factorization,
+recovers **734 of 769 true occurrences** (peak F1 **0.922**) in **318.42
+s** with 16 sample workers. Its robust adjusted log-area R² is
+**0.995**. The [coupled
+tutorial](https://tomwenseleers.github.io/logconNMF/articles/coupled-nmf.html)
+explains shared spectra, sample-specific profiles, missing compounds and
+the rank-selection objective.
 
 ## Citation
 

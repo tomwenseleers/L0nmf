@@ -266,7 +266,7 @@ pulse trains with the L0 penalty</em>. <strong>Analytica Chimica Acta</strong>,
 <span><span class="co">## 2  Deconvolution with an initial PSF guess</span></span>
 <span><span class="co">## ------------------------------------------------------------------------</span></span>
 <span><span class="va">g0</span> <span class="op">&lt;-</span> <span class="fu"><a href="convKernel.html">convKernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="va">L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">6</span><span class="op">)</span><span class="op">)</span>  <span class="co"># initial guess for PSF</span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="l0glmSparseDeco.html">l0glmSparseDeco</a></span><span class="op">(</span><span class="va">y</span>, </span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="l0glmSparseDeco.html">l0glmSparseDeco</a></span><span class="op">(</span><span class="va">y</span>,</span>
 <span>                         kernel <span class="op">=</span> <span class="va">g0</span>,</span>
 <span>                         baseline <span class="op">=</span> <span class="va">baseline</span>,</span>
 <span>                         family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">poisson</a></span><span class="op">(</span><span class="va">identity</span><span class="op">)</span>, </span>
@@ -315,3 +315,4 @@ pulse trains with the L0 penalty</em>. <strong>Analytica Chimica Acta</strong>,
 
 
   </body></html>
+

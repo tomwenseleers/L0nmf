@@ -197,8 +197,8 @@ data(gcmsData1)
 # total ion chromatogram of C9 to C40 alkane ladder
 tic <- attr(gcmsData1, "alkanes_TIC")
 
-plot(x=as.numeric(names(attr(gcmsData1, "alkanes_TIC"))),
-           y=attr(gcmsData1, "alkanes_TIC"),
+plot(x=as.numeric(names(attr(gcmsData1, "alkanes_TIC"))),  
+           y=attr(gcmsData1, "alkanes_TIC"), 
            xlab="Retention time (min)", 
            ylab="Total ion intensity", 
            main="C9 to C40 alkane ladder standard", 
@@ -250,8 +250,9 @@ system.time(fit.mc <- l0nnPois(
   parallelize = TRUE,
   ncores = round(parallel::detectCores(logical = FALSE))
 ))
+# TODO: replace with l0glmFit with quasipoisson or also allow l0nnPois to estimate the dispersion
 
-plotMat(gcmsData1,
+plotMat(gcmsData1, 
         xlab = "Elution time (min)",
         ylab = "Mass (m/z)",
         main = "Section of Cataglyphis iberica\nant queen cuticular GC/MS profile")
@@ -260,8 +261,7 @@ rows = Matrix::rowSums(fit.mc$coefficients)[which(Matrix::rowSums(fit.mc$coeffic
 nrows = rows/max(rows)
 abline(v = which(Matrix::rowSums(fit.mc$coefficients)!=0),
        col = sapply(nrows, function (alpha) adjustcolor("cyan", alpha = alpha)))
-# TODO: cluster together compounds with similar mass spectra when joined elution profiles
-# are log concave
+
 
 hist(Matrix::rowSums(fit.mc$coefficients)[which(Matrix::rowSums(fit.mc$coefficients)!=0)])
 

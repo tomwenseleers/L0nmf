@@ -72,7 +72,9 @@ dependent peak widths and tails. Missing compounds can be simulated explicitly.<
 <span>  acid_fraction <span class="op">=</span> <span class="fl">0.08</span>,</span>
 <span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"poisson"</span>, <span class="st">"quasipoisson"</span>, <span class="st">"nb"</span>, <span class="st">"gaussian"</span>, <span class="st">"Gamma"</span>, <span class="st">"nb1"</span>, <span class="st">"Gamma_scale"</span><span class="op">)</span>,</span>
 <span>  dispersion <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  theta <span class="op">=</span> <span class="fl">20</span></span>
+<span>  theta <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>  retentionIndex <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  retentionMap <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -141,6 +143,19 @@ concentration on peak width, tail and retention time.</p></dd>
 <dt id="arg-dispersion-theta">dispersion, theta<a class="anchor" aria-label="anchor" href="#arg-dispersion-theta"></a></dt>
 <dd><p>Noise parameters.</p></dd>
 
+
+<dt id="arg-retentionindex">retentionIndex<a class="anchor" aria-label="anchor" href="#arg-retentionindex"></a></dt>
+<dd><p>Optional retention indices, one per row of <code>S</code>.
+When <code>retentionMap</code> is supplied, the default is the positional <code>RI</code>
+attribute of the spectral library.</p></dd>
+
+
+<dt id="arg-retentionmap">retentionMap<a class="anchor" aria-label="anchor" href="#arg-retentionmap"></a></dt>
+<dd><p>Optional calibration data frame with increasing
+<code>ri</code> and <code>time</code> columns. Times are reference retention times in minutes.
+Compound locations follow this map and sample drift warps the map for
+each injection. Each sample returns its known calibration.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -148,7 +163,20 @@ concentration on peak width, tail and retention time.</p></dd>
 bin edges and times (minutes), integrated-count means, true spectra,
 profiles, areas, presence indicators and acquisition dates.
 A simulated observation is integrated over its bin; <code>raw_exposure</code> is the
-original bin duration in seconds. For <code><a href="logconNMF.html">logconNMF()</a></code>, supply it as exposure.</p>
+original bin duration in seconds. For <code><a href="logconNMF.html">logconNMF()</a></code>, supply it as exposure.
+With <code>retentionMap</code>, each sample includes <code>retentionIndex</code> and an
+increasing <code>retentionCalibration</code> table incorporating its known drift.
+The <code>onset</code> field records concentration-adjusted leading positions on
+the reference time grid; the sample drift then maps them to observed time.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>In concentration-dependent scenarios, peak width and tail increase
+with concentration while the leading 1%-height position stays approximately
+fixed. The <code>rt_area</code> coefficient optionally adds a small concentration-
+dependent shift to that position. Triangular acid profiles broaden towards
+later times from a fixed leading edge. With a single acid profile it is
+placed in the middle of the chromatogram.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -180,3 +208,4 @@ original bin duration in seconds. For <code><a href="logconNMF.html">logconNMF()
 
 
   </body></html>
+

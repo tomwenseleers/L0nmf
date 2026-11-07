@@ -69,6 +69,9 @@
 - Single- and multisample simulations include drifting retention times,
   concentration-dependent width/tailing, broad profiles and missing
   compounds.
+- Optional retention-index calibration places reference spectra along
+  the chromatogram. Concentration-dependent broadening preserves leading
+  edges, and each sample records its generating retention-time–RI map.
 - Experimental multichannel signals, profile and spectral plots, factor
   extraction, likelihood and information-criterion methods.
 - Tutorials follow PSF estimation, single-sample factorization and

@@ -28,7 +28,9 @@ simulateGCMSSamples(
   acid_fraction = 0.08,
   family = c("poisson", "quasipoisson", "nb", "gaussian", "Gamma", "nb1", "Gamma_scale"),
   dispersion = 1,
-  theta = 20
+  theta = 20,
+  retentionIndex = NULL,
+  retentionMap = NULL
 )
 ```
 
@@ -97,6 +99,19 @@ simulateGCMSSamples(
 
   Noise parameters.
 
+- retentionIndex:
+
+  Optional retention indices, one per row of `S`. When `retentionMap` is
+  supplied, the default is the positional `RI` attribute of the spectral
+  library.
+
+- retentionMap:
+
+  Optional calibration data frame with increasing `ri` and `time`
+  columns. Times are reference retention times in minutes. Compound
+  locations follow this map and sample drift warps the map for each
+  injection. Each sample returns its known calibration.
+
 ## Value
 
 Simulation truth and a list of samples with observations, original bin
@@ -105,7 +120,20 @@ profiles, areas, presence indicators and acquisition dates. A simulated
 observation is integrated over its bin; `raw_exposure` is the original
 bin duration in seconds. For
 [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md),
-supply it as exposure.
+supply it as exposure. With `retentionMap`, each sample includes
+`retentionIndex` and an increasing `retentionCalibration` table
+incorporating its known drift. The `onset` field records
+concentration-adjusted leading positions on the reference time grid; the
+sample drift then maps them to observed time.
+
+## Details
+
+In concentration-dependent scenarios, peak width and tail increase with
+concentration while the leading 1%-height position stays approximately
+fixed. The `rt_area` coefficient optionally adds a small concentration-
+dependent shift to that position. Triangular acid profiles broaden
+towards later times from a fixed leading edge. With a single acid
+profile it is placed in the middle of the chromatogram.
 
 ## See also
 

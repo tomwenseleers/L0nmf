@@ -4,7 +4,7 @@
 <div class="l0-hero-copy">
 <p class="l0-eyebrow">SPARSE NONNEGATIVE MATRIX FACTORIZATION · LOG-CONCAVE PROFILES</p>
 <h1>Log-concave NMF.<br><span>Automatic rank selection.</span></h1>
-<p class="l0-lead">Fit models to single samples or large multisample experiments, with automatic rank selection, flexible noise models and log-concave shape constraints.</p>
+<p class="l0-lead">Fit models to single samples or large multisample experiments, with automatic rank selection, flexible noise models, log-concave shape constraints and correction for sample drift.</p>
 <div class="l0-actions"><a class="btn btn-primary" href="articles/log-concave-nmf.html">Get started <span aria-hidden="true">↗</span></a><a class="btn btn-outline-light" href="reference/index.html">Explore the methods</a></div>
 <p class="l0-hero-note">R · Local likelihood updates · Full spectra · Constant &amp; varying PSFs</p>
 </div>

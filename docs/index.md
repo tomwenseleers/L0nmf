@@ -7,8 +7,8 @@ Automatic rank selection.
 =========================
 
 Fit models to single samples or large multisample experiments, with
-automatic rank selection, flexible noise models and log-concave shape
-constraints.
+automatic rank selection, flexible noise models, log-concave shape
+constraints and correction for sample drift.
 
 [Get started
 ↗](https://tomwenseleers.github.io/logconNMF/articles/log-concave-nmf.md)[Explore

@@ -601,26 +601,25 @@ The scaled active-set quadratic solver uses Cholesky factorizations for
 positive-definite active subproblems. Extended-precision residuals provide
 iterative corrections through the same factor. Conditioning and residual
 checks trigger a rank-revealing QR fallback when needed. The quadratic
-objective and shape constraints
-are unchanged by this numerical choice.
+objective and shape constraints define the numerical subproblem.
 
 For a piecewise-linear log profile, each row of the interpolation matrix
 has at most two nonzero entries. Its weighted Gram matrix is tridiagonal,
 so natural-order sparse Cholesky and sparse slope-constraint products avoid
 dense arithmetic on structural zeros. Successive scoring steps initialize
-the inequality solver at its preceding feasible solution and retain the
-same KKT tolerance.
+the inequality solver at its preceding feasible solution and use a common
+KKT tolerance.
 
 For a fixed component spectrum, a zero loading makes that channel's
 contribution constant in the profile update. Native workspaces therefore
 retain its positive-loading channels in their original order. Spectral
 updates and complete model comparisons still use every original channel.
 
-Small joint conditional Poisson spectral and background refits retain the
-observed-curvature Newton step. Successive steps continue the constrained
+Small joint conditional Poisson spectral and background refits use
+observed-curvature Newton steps. Successive steps continue the constrained
 active set, reuse fixed gradient scales and exploit sparse weighted products
-for localized profiles. The conditional likelihood backtracking, boundary
-checks and convergence tolerance remain the same.
+for localized profiles. Conditional likelihood backtracking verifies each
+step, with boundary checks and a KKT tolerance controlling convergence.
 
 The spectra act as covariates in each local profile update:
 \[
@@ -981,11 +980,8 @@ counts in the validation examples.
 
 The native spectral kernel evaluates each cell's likelihood derivatives once
 and pools them over the sparse profiles in one pass parallelized across
-channels. On a beer chromatogram with 14,949 scans, 518 channels and 325
-profiles, the pooled score took **0.16 s** versus **4.53 s** for
-the profile-wise calculation. Both used eight threads and agreed to
-numerical precision. The **28.3-fold speedup** is for this kernel pass. Cached peak
-geometry also avoids rescanning every profile after each algebraic merge.
+channels. Cached peak geometry avoids rescanning every profile after each
+algebraic merge.
 Shared row-wise weights and offsets retain one vector throughout the coupled
 fit, with channel-specific matrices used when required.
 

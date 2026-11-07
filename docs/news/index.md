@@ -25,16 +25,10 @@
 - Local profile, spectrum and background updates, algebraic candidate
   fusion, conditional deletion and residual additions use
   original-channel criteria.
-- Profile-shape quadratic solves use Cholesky with extended-precision
-  residual correction and a checked rank-revealing QR fallback.
-- Banded sparse shape systems and feasible active-set starts accelerate
-  successive scoring steps while retaining the original likelihood
-  checks.
-- Cached native inputs and compact positive-ion workspaces reduce
-  allocation and repeated access during profile scoring and likelihood
-  checks.
-- Conditional Poisson spectral and background refits use continued
-  constrained Newton solves and sparse local products from L0glm.
+- Native profile fits use banded Cholesky systems with residual checks,
+  iterative correction and a rank-revealing fallback. Cached local
+  workspaces and continued active sets accelerate profile, spectral and
+  background fits.
 - Gaussian, Poisson, quasipoisson, NB2, NB1, censored Gamma and
   common-scale Gamma models, with pooled noise calibration and optional
   temporal adjustment.

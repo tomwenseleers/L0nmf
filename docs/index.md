@@ -158,7 +158,7 @@ uses 100 reference compounds, 1,200 scans and 258 ion channels per
 sample, including concentration-dependent broadening, sample drift, one
 acid-like compound and an experimentally derived background and noise
 scale. The GCMSprime workflow, using logconNMF for its factorization,
-recovers **734 of 769 true occurrences** (peak F1 **0.922**) in **318.42
+recovers **735 of 769 true occurrences** (peak F1 **0.923**) in **292.38
 s** with 16 sample workers. Its robust adjusted log-area R² is
 **0.995**. The [coupled
 tutorial](https://tomwenseleers.github.io/logconNMF/articles/coupled-nmf.html)

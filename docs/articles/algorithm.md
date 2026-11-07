@@ -579,6 +579,13 @@ concave-envelope projection removes numerical constraint residuals.
 Backtracking between feasible log profiles preserves concavity and
 accepts only likelihood improvements.
 
+The scaled active-set quadratic solver uses Cholesky factorizations for
+positive-definite active subproblems. Extended-precision residuals
+provide iterative corrections through the same factor. Conditioning and
+residual checks trigger a rank-revealing QR fallback when needed. The
+quadratic objective and shape constraints are unchanged by this
+numerical choice.
+
 The spectra act as covariates in each local profile update: Y\_{\mathcal
 W}^{T}=S\_{\mathcal B}^{T}H\_{\mathcal W,\mathcal B}^{T} +R\_{\mathcal
 W}^{T}. The current profiles and spectra provide the starts. Fine

@@ -54,6 +54,7 @@
 <ul><li>
 <code><a href="../reference/logconNMF.html">logconNMF()</a></code> estimates nonnegative profiles and loadings with hard log-concavity constraints and automatic best rank tuning.</li>
 <li>Local profile, spectrum and background updates, algebraic candidate fusion, conditional deletion and residual additions use original-channel criteria.</li>
+<li>Profile-shape quadratic solves use Cholesky with extended-precision residual correction and a checked rank-revealing QR fallback.</li>
 <li>Gaussian, Poisson, quasipoisson, NB2, NB1, censored Gamma and common-scale Gamma models, with pooled noise calibration and optional temporal adjustment.</li>
 <li>Optional channel aggregation accelerates initialization; final refinement retains every original outcome channel.</li>
 <li>Permissive initialization and native fine-scale profile/spectrum refinement preserve candidate components for final correlation-aware rank selection.</li>

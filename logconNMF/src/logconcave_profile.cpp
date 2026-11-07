@@ -138,7 +138,7 @@ List slcn_log_profile(NumericMatrix y,NumericMatrix mean,NumericVector profile,
     if(smooth) {
       Eigen::VectorXd rhs=C.transpose()*W.asDiagonal()*target;
       std::vector<char> bounds(q,1);bounds[0]=bounds[1]=0;
-      proposed=C*L0glm::nuisance_qp(G,rhs,bounds);
+      proposed=C*L0glm::nuisance_qp(G,rhs,bounds,true);
     } else {
       Eigen::VectorXd rhs=C.transpose()*(W.array()*target.array()).matrix();
       Eigen::LLT<Eigen::MatrixXd> factor(G);
@@ -155,7 +155,7 @@ List slcn_log_profile(NumericMatrix y,NumericMatrix mean,NumericVector profile,
       if(lo)bound[q-2]=-1e-6;
       if(hi)bound[q-2+lo]=-1e-6;
       Eigen::VectorXd dual_rhs=D*unconstrained-bound;
-      Eigen::VectorXd multiplier=L0glm::nuisance_qp(dual_G,dual_rhs,std::vector<char>(D.rows(),1));
+      Eigen::VectorXd multiplier=L0glm::nuisance_qp(dual_G,dual_rhs,std::vector<char>(D.rows(),1),true);
       Eigen::VectorXd node=unconstrained-inverse_D*multiplier;
       residual=std::max(0.,(D*node-bound).maxCoeff());
       proposed=C*node;

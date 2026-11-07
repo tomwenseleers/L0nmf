@@ -15,6 +15,8 @@
   log-concavity constraints and automatic best rank tuning.
 * Local profile, spectrum and background updates, algebraic candidate fusion,
   conditional deletion and residual additions use original-channel criteria.
+* Profile-shape quadratic solves use Cholesky with extended-precision residual
+  correction and a checked rank-revealing QR fallback.
 * Gaussian, Poisson, quasipoisson, NB2, NB1, censored Gamma and common-scale
   Gamma models, with pooled noise calibration and optional temporal adjustment.
 * Optional channel aggregation accelerates initialization; final refinement

@@ -16,9 +16,9 @@ Description: Separates overlapping ordered signals into nonnegative
 License: GPL (>= 2)
 Encoding: UTF-8
 Depends: R (>= 4.1.0)
-Imports: parallel, RhpcBLASctl, L0glm (>= 0.2.0.9000), Matrix, Rcpp, cobs, gsignal, methods, stats, graphics, grDevices, utils
+Imports: parallel, RhpcBLASctl, L0glm (>= 0.2.0.9001), Matrix, Rcpp, cobs, gsignal, methods, stats, graphics, grDevices, utils
 Suggests: ALS, testthat (>= 3.0.0), knitr, rmarkdown, pkgdown, mgcv
-LinkingTo: L0glm, Rcpp, RcppEigen
+LinkingTo: L0glm (>= 0.2.0.9001), Rcpp, RcppEigen
 SystemRequirements: C++17, OpenMP
 URL: https://tomwenseleers.github.io/logconNMF/, https://github.com/tomwenseleers/logconNMF
 BugReports: https://github.com/tomwenseleers/logconNMF/issues

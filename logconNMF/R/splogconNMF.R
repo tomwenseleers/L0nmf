@@ -227,7 +227,7 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #'   `final_polishes=1L`, `native_sweeps=6L`, `block_sweeps=6L`,
 #'   `psf_width=NULL`, `screen_factor=1`, `censor=0.5`, `linkage="ward"`,
 #'   `joint_trials=NULL`, `profile_cycles=4L`, `fusion_passes=0L`,
-#'   `profile_fusion=TRUE`. `joint_trials` uses direct Poisson fusion for Poisson data
+#'   `profile_fusion=TRUE`, `profile_restarts=TRUE`. `joint_trials` uses direct Poisson fusion for Poisson data
 #'   and joint local refinement for the other families. `psf_width` supplies
 #'   the typical FWHM in scans. When omitted, local updates use the middle design
 #'   column and broad-profile fusion uses the median of up to 21 representative
@@ -239,6 +239,8 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #'   `linkage` may be `"ward"` or `"bregman"`. `joint_trials` allows overlapping
 #'   compounds to adjust together during local fusion refinement.
 #'   `profile_cycles` bounds the smooth shape/background initialization;
+#'   positive values also enable the final likelihood-checked local restarts.
+#'   `profile_restarts=FALSE` disables those alternative starting profiles.
 #'   positive values also enable fine native profile/spectrum refinement.
 #'   Zero skips these shape-polishing cycles. `fusion_passes` optionally adds
 #'   broad-anchor and compatible-tail searches during initialization.
@@ -375,6 +377,19 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #' on the original channels, with noise settings, weights, offsets and the background
 #' fixed. `contained_fusion` stores the trial diagnostics and source groups.
 #'
+#' **Alternative local starts.** Components with nearly coincident modes can
+#' exchange signal during refinement. By default, final refinement also tries
+#' doubling the left, right or both widths about the current mode, interpolating
+#' the log profile to retain log concavity. Mode separation must be at most one
+#' quarter of both starting FWHMs. Preliminary screening and final acceptance
+#' both use every original channel to preserve informative spectral contrasts.
+#' Promising starts are refined locally; an unperturbed control receives at least
+#' the same refinement budget. A restart is accepted only if it improves the complete original-channel
+#' criterion relative to both the current fit and the refined control, with
+#' component count, noise parameters and background fixed. `profile_starts`
+#' records the proposals, accepted changes and time. Component indices in its
+#' audit refer to the factors entering this pass.
+#'
 #' **Noise models.** Gaussian variance is \eqn{\phi}; quasipoisson variance is
 #' \eqn{\phi\mu}; NB2 variance is \eqn{\mu+\mu^2/\theta}; standard Gamma
 #' variance is \eqn{\phi\mu^2}. NB1 has variance \eqn{\phi\mu}, while
@@ -435,7 +450,7 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #'   fitted means `mu`, `rank`, resolved noise settings `spec`, original data,
 #'   offsets and weights, `objective`, `loglik`, stage ledger `history`,
 #'   `ledger_error`, `initialization`, aggregation, `profile_fusion` and
-#'   `contained_fusion` diagnostics, controls and
+#'   `contained_fusion` and `profile_starts` diagnostics, controls and
 #'   timings `seconds`.
 #'   `coef()` returns spectra and `fitted()` the full mean matrix. `logLik()`,
 #'   `AIC()`, `BIC()`, `GIC()`, `EBIC()` and `MBIC()` score the returned model.
@@ -486,7 +501,7 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
   defaults <- list(broad_repeats = 1L, full_sweeps = 1L, final_polishes = 1L,
     native_sweeps = 6L, block_sweeps = 6L, psf_width = NULL, screen_factor = 1,
     censor = .5, linkage = "ward", joint_trials = NULL, profile_fusion = TRUE,
-    profile_cycles = 4L, fusion_passes = 0L, original_cleanup = TRUE)
+    profile_cycles = 4L, fusion_passes = 0L, original_cleanup = TRUE, profile_restarts = TRUE)
   if (!is.list(control) || length(control) && (is.null(names(control)) ||
       any(!nzchar(names(control))) || anyDuplicated(names(control)))) stop("Use a named control list.")
   if (is.list(family) && !is.null(family$scalar) && !"censor" %in% names(control))
@@ -513,6 +528,8 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
     stop("profile_fusion must be TRUE or FALSE.")
   if (!is.logical(control$original_cleanup) || length(control$original_cleanup) != 1L || is.na(control$original_cleanup))
     stop("original_cleanup must be TRUE or FALSE.")
+  if (!is.logical(control$profile_restarts) || length(control$profile_restarts) != 1L || is.na(control$profile_restarts))
+    stop("profile_restarts must be TRUE or FALSE.")
   fusion_width <- control$psf_width
   if (control$profile_fusion && !supplied_width) {
     columns <- unique(round(seq(1, ncol(X), length.out = min(ncol(X), 21L))))
@@ -608,6 +625,16 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
     ok <- is.finite(delta) && delta <= 1e-6
     if (ok) fit <- candidate
     fit$history <- rbind(before$history, data.frame(stage = "contained_broad_fusion",
+      seconds = seconds, delta = delta, accepted = ok, compounds = ncol(candidate$H)))
+    refinement_seconds <- refinement_seconds + seconds
+  }
+  if (control$profile_restarts && control$profile_cycles > 0L && ncol(fit$H) > 1L) {
+    before <- slcn_sync(fit, Y)
+    seconds <- system.time(candidate <- slcn_profile_starts(fit, Y))[["elapsed"]]
+    delta <- candidate$objective - before$objective
+    ok <- is.finite(delta) && delta <= 1e-6
+    if (ok) fit <- candidate
+    fit$history <- rbind(before$history, data.frame(stage = "local_profile_restarts",
       seconds = seconds, delta = delta, accepted = ok, compounds = ncol(candidate$H)))
     refinement_seconds <- refinement_seconds + seconds
   }

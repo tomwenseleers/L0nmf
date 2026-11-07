@@ -193,6 +193,11 @@ also count estimated noise parameters. The single-sample \code{objective}
 drops that constant charge for a fixed noise specification. Local
 refinement and fusion, deletion or addition of candidate components
 provide the approximate rank search.
+Final single-sample refinement also tries broader local starts for nearly
+coincident profiles, with acceptance checked on every original channel
+against the current fit and a refined control. This is enabled
+by default. For one matrix, \code{control=list(profile_restarts=FALSE)} disables
+the pass; coupled fits pass this option through \code{control$initial}.
 
 For a coupled fit, put \code{background}, \code{weights}, \code{offset} and any initial
 \code{fit} in the sample descriptions. \code{path = NULL} uses a new temporary

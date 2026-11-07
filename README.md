@@ -59,6 +59,12 @@ combined profile is log-concave and the criterion improves. The resulting
 `fit$rank` is the estimated number of components or shared spectra. See
 [the mathematical objective](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html#common-rank-objective).
 
+Final refinement also checks broader starting profiles for components with
+nearly coincident modes. These local restarts help redistribute overlapping
+signal while retaining log concavity. Screening and acceptance use every
+original channel, and a restart must improve the criterion relative to both
+the current fit and a refined control.
+
 ## Installation
 
 ```r

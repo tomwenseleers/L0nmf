@@ -33,6 +33,9 @@
 - Permissive initialization and native fine-scale profile/spectrum
   refinement preserve candidate components for final correlation-aware
   rank selection.
+- Likelihood-checked local width restarts resolve signal allocation
+  between nearly coincident profiles. Screening and acceptance retain
+  all original channels and compare with an equally refined control.
 - Contained broad-peak fragments are compared with equally refined
   unmerged controls. Complete local supports, reconstructed
   original-channel means and separate initialization/final-criterion

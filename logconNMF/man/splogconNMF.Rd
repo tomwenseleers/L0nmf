@@ -129,7 +129,7 @@ a number between zero and 0.49 supplies the lag-one correlation.}
 \code{final_polishes=1L}, \code{native_sweeps=6L}, \code{block_sweeps=6L},
 \code{psf_width=NULL}, \code{screen_factor=1}, \code{censor=0.5}, \code{linkage="ward"},
 \code{joint_trials=NULL}, \code{profile_cycles=4L}, \code{fusion_passes=0L},
-\code{profile_fusion=TRUE}. \code{joint_trials} uses direct Poisson fusion for Poisson data
+\code{profile_fusion=TRUE}, \code{profile_restarts=TRUE}. \code{joint_trials} uses direct Poisson fusion for Poisson data
 and joint local refinement for the other families. \code{psf_width} supplies
 the typical FWHM in scans. When omitted, local updates use the middle design
 column and broad-profile fusion uses the median of up to 21 representative
@@ -141,6 +141,8 @@ constructor provides its own detection limit unless overridden here.
 \code{linkage} may be \code{"ward"} or \code{"bregman"}. \code{joint_trials} allows overlapping
 compounds to adjust together during local fusion refinement.
 \code{profile_cycles} bounds the smooth shape/background initialization;
+positive values also enable the final likelihood-checked local restarts.
+\code{profile_restarts=FALSE} disables those alternative starting profiles.
 positive values also enable fine native profile/spectrum refinement.
 Zero skips these shape-polishing cycles. \code{fusion_passes} optionally adds
 broad-anchor and compatible-tail searches during initialization.
@@ -169,7 +171,7 @@ An object of class \code{splogconNMF}, containing sparse unit-sum profiles
 fitted means \code{mu}, \code{rank}, resolved noise settings \code{spec}, original data,
 offsets and weights, \code{objective}, \code{loglik}, stage ledger \code{history},
 \code{ledger_error}, \code{initialization}, aggregation, \code{profile_fusion} and
-\code{contained_fusion} diagnostics, controls and
+\code{contained_fusion} and \code{profile_starts} diagnostics, controls and
 timings \code{seconds}.
 \code{coef()} returns spectra and \code{fitted()} the full mean matrix. \code{logLik()},
 \code{AIC()}, \code{BIC()}, \code{GIC()}, \code{EBIC()} and \code{MBIC()} score the returned model.
@@ -296,6 +298,19 @@ component and its overlapping neighbours, and the same refinement budget
 is applied to the unmerged control. Acceptance uses the complete criterion
 on the original channels, with noise settings, weights, offsets and the background
 fixed. \code{contained_fusion} stores the trial diagnostics and source groups.
+
+\strong{Alternative local starts.} Components with nearly coincident modes can
+exchange signal during refinement. By default, final refinement also tries
+doubling the left, right or both widths about the current mode, interpolating
+the log profile to retain log concavity. Mode separation must be at most one
+quarter of both starting FWHMs. Preliminary screening and final acceptance
+both use every original channel to preserve informative spectral contrasts.
+Promising starts are refined locally; an unperturbed control receives at least
+the same refinement budget. A restart is accepted only if it improves the complete original-channel
+criterion relative to both the current fit and the refined control, with
+component count, noise parameters and background fixed. \code{profile_starts}
+records the proposals, accepted changes and time. Component indices in its
+audit refer to the factors entering this pass.
 
 \strong{Noise models.} Gaussian variance is \eqn{\phi}; quasipoisson variance is
 \eqn{\phi\mu}; NB2 variance is \eqn{\mu+\mu^2/\theta}; standard Gamma

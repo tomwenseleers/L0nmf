@@ -103,7 +103,7 @@ The [GCMSprime CDF
 workflow](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#sixteen-simulated-chromatograms),
 built on logconNMF, recovers **734 true occurrences with 90 false
 positives** (peak F1 **0.922**), including the acid in all seven samples
-where it occurs. It takes **318.42 s** with 16 single-threaded workers
+where it occurs. It takes **405.97 s** with 16 single-threaded workers
 on an HP ZBook Fury G8 with an Intel Core i9-11950H, eight physical
 cores and 16 logical threads. The common 32-group map accelerates
 initialization; final spectra retain all 258 original channels.

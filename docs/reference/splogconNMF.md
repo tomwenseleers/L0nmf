@@ -186,22 +186,25 @@ print(x, ...)
   `native_sweeps=6L`, `block_sweeps=6L`, `psf_width=NULL`,
   `screen_factor=1`, `censor=0.5`, `linkage="ward"`,
   `joint_trials=NULL`, `profile_cycles=4L`, `fusion_passes=0L`,
-  `profile_fusion=TRUE`. `joint_trials` uses direct Poisson fusion for
-  Poisson data and joint local refinement for the other families.
-  `psf_width` supplies the typical FWHM in scans. When omitted, local
-  updates use the middle design column and broad-profile fusion uses the
-  median of up to 21 representative design columns. `screen_factor`
-  scales the initial selection penalty. `censor` is the Gamma detection
-  limit: recorded zero intensities are left-censored below this value;
-  positive values must be at least the limit. Zero requests an
-  uncensored Gamma model. A supplied Gamma family constructor provides
-  its own detection limit unless overridden here. `linkage` may be
-  `"ward"` or `"bregman"`. `joint_trials` allows overlapping compounds
-  to adjust together during local fusion refinement. `profile_cycles`
-  bounds the smooth shape/background initialization; positive values
-  also enable fine native profile/spectrum refinement. Zero skips these
-  shape-polishing cycles. `fusion_passes` optionally adds broad-anchor
-  and compatible-tail searches during initialization. `profile_fusion`
+  `profile_fusion=TRUE`, `profile_restarts=TRUE`. `joint_trials` uses
+  direct Poisson fusion for Poisson data and joint local refinement for
+  the other families. `psf_width` supplies the typical FWHM in scans.
+  When omitted, local updates use the middle design column and
+  broad-profile fusion uses the median of up to 21 representative design
+  columns. `screen_factor` scales the initial selection penalty.
+  `censor` is the Gamma detection limit: recorded zero intensities are
+  left-censored below this value; positive values must be at least the
+  limit. Zero requests an uncensored Gamma model. A supplied Gamma
+  family constructor provides its own detection limit unless overridden
+  here. `linkage` may be `"ward"` or `"bregman"`. `joint_trials` allows
+  overlapping compounds to adjust together during local fusion
+  refinement. `profile_cycles` bounds the smooth shape/background
+  initialization; positive values also enable the final
+  likelihood-checked local restarts. `profile_restarts=FALSE` disables
+  those alternative starting profiles. positive values also enable fine
+  native profile/spectrum refinement. Zero skips these shape-polishing
+  cycles. `fusion_passes` optionally adds broad-anchor and
+  compatible-tail searches during initialization. `profile_fusion`
   enables algebraic profile fusion, retained contained-fragment
   proposals and a final broad-fragment pass on every original channel.
   Broad fusions are compared with an equally refined unmerged local
@@ -237,10 +240,11 @@ An object of class `splogconNMF`, containing sparse unit-sum profiles
 fitted means `mu`, `rank`, resolved noise settings `spec`, original
 data, offsets and weights, `objective`, `loglik`, stage ledger
 `history`, `ledger_error`, `initialization`, aggregation,
-`profile_fusion` and `contained_fusion` diagnostics, controls and
-timings `seconds`. [`coef()`](https://rdrr.io/r/stats/coef.html) returns
-spectra and [`fitted()`](https://rdrr.io/r/stats/fitted.values.html) the
-full mean matrix. [`logLik()`](https://rdrr.io/r/stats/logLik.html),
+`profile_fusion` and `contained_fusion` and `profile_starts`
+diagnostics, controls and timings `seconds`.
+[`coef()`](https://rdrr.io/r/stats/coef.html) returns spectra and
+[`fitted()`](https://rdrr.io/r/stats/fitted.values.html) the full mean
+matrix. [`logLik()`](https://rdrr.io/r/stats/logLik.html),
 [`AIC()`](https://rdrr.io/r/stats/AIC.html),
 [`BIC()`](https://rdrr.io/r/stats/AIC.html),
 [`GIC()`](https://tomwenseleers.github.io/L0glm/reference/model_criteria.html),
@@ -373,6 +377,21 @@ control. Acceptance uses the complete criterion on the original
 channels, with noise settings, weights, offsets and the background
 fixed. `contained_fusion` stores the trial diagnostics and source
 groups.
+
+**Alternative local starts.** Components with nearly coincident modes
+can exchange signal during refinement. By default, final refinement also
+tries doubling the left, right or both widths about the current mode,
+interpolating the log profile to retain log concavity. Mode separation
+must be at most one quarter of both starting FWHMs. Preliminary
+screening and final acceptance both use every original channel to
+preserve informative spectral contrasts. Promising starts are refined
+locally; an unperturbed control receives at least the same refinement
+budget. A restart is accepted only if it improves the complete
+original-channel criterion relative to both the current fit and the
+refined control, with component count, noise parameters and background
+fixed. `profile_starts` records the proposals, accepted changes and
+time. Component indices in its audit refer to the factors entering this
+pass.
 
 **Noise models.** Gaussian variance is \\\phi\\; quasipoisson variance
 is \\\phi\mu\\; NB2 variance is \\\mu+\mu^2/\theta\\; standard Gamma

@@ -960,19 +960,40 @@ resulting initialization under <span class="math inline">J</span>. Test
 contained fragments of broad components against equally refined unmerged
 local controls. Accept only complete original-channel improvements under
 this fixed final criterion.</li>
+<li>For nearly coincident modes, screen left-, right- and two-sided
+width restarts. Refine promising starts and an unperturbed control on
+the original channels, retaining a restart only when its complete <span class="math inline">J</span> improves on both the current fit and the
+refined control.</li>
 <li>Return temporally ordered <span class="math inline">H,S</span>,
 background, family/noise parameters, likelihood, rank criterion, stage
 acceptance ledger and timings.</li>
 </ol>
 <p><code>profile_cycles</code>, <code>fusion_passes</code> and the other
 stage controls bound the work; local solvers also stop when their
-score/step change is sufficiently small. The initialization ledger
-records its unadjusted criterion. When the final information multiplier
-differs from one, the final ledger begins at the completed
-initialization and uses the fixed adjusted criterion throughout. The
-noise scale remains on its marginal variance scale. The reduced-space
-search supplies an initializer; final rank checks use every original
-channel.</p>
+score/step change is sufficiently small. The final restart pass is
+enabled by default when <code>profile_cycles&gt;0</code> and can be
+disabled with <code>control=list(profile_restarts=FALSE)</code>.</p>
+<p>For a profile <span class="math inline">h</span> with mode <span class="math inline">a</span>, define <span class="math display">
+T_{l,r}(i)=a+\frac{i-a}{l\,\mathbf1\{i&lt;a\}+r\,\mathbf1\{i\geq a\}},
+\qquad h_i'=\frac{\exp\{\eta(T_{l,r}(i))\}}
+{\sum_t\exp\{\eta(T_{l,r}(t))\}},\quad\eta=\log h.
+</span> The three starts use <span class="math inline">(l,r)=(2,1),(1,2),(2,2)</span>, with
+piecewise-linear interpolation of <span class="math inline">\eta</span>.
+Concave slopes remain nonincreasing on each side, and their change from
+nonnegative to nonpositive at the mode preserves log concavity across
+the join. Candidate pairs have mode separation at most one quarter of
+both FWHMs. Preliminary screening, refinement and acceptance use the
+original channels and fixed noise, weights, offsets, background and
+component count. Thus <span class="math inline">\Delta
+J=-2\Delta\ell_\nu</span> for an accepted restart. The
+<code>profile_starts</code> audit records the input component index,
+chosen start, score changes and time.</p>
+<p>The initialization ledger records its unadjusted criterion. When the
+final information multiplier differs from one, the final ledger begins
+at the completed initialization and uses the fixed adjusted criterion
+throughout. The noise scale remains on its marginal variance scale. The
+reduced-space search supplies an initializer; final rank checks use
+every original channel.</p>
 <p><strong>Subroutine Q — local likelihood and shape update</strong></p>
 <ol style="list-style-type: decimal">
 <li>Subtract the focus component from the current mean to obtain the

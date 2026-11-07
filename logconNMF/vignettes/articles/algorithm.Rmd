@@ -790,11 +790,33 @@ decisions use \(J\) with the specified observation model.
    initialization under \(J\). Test contained fragments of broad components
    against equally refined unmerged local controls. Accept only complete
    original-channel improvements under this fixed final criterion.
-7. Return temporally ordered \(H,S\), background, family/noise parameters,
+7. For nearly coincident modes, screen left-, right- and two-sided width
+   restarts. Refine promising starts and an unperturbed control on the original
+   channels, retaining a restart only when its complete \(J\) improves on both
+   the current fit and the refined control.
+8. Return temporally ordered \(H,S\), background, family/noise parameters,
    likelihood, rank criterion, stage acceptance ledger and timings.
 
 `profile_cycles`, `fusion_passes` and the other stage controls bound the work;
 local solvers also stop when their score/step change is sufficiently small.
+The final restart pass is enabled by default when `profile_cycles>0` and can
+be disabled with `control=list(profile_restarts=FALSE)`.
+
+For a profile \(h\) with mode \(a\), define
+\[
+T_{l,r}(i)=a+\frac{i-a}{l\,\mathbf1\{i<a\}+r\,\mathbf1\{i\geq a\}},
+\qquad h_i'=\frac{\exp\{\eta(T_{l,r}(i))\}}
+ {\sum_t\exp\{\eta(T_{l,r}(t))\}},\quad\eta=\log h.
+\]
+The three starts use \((l,r)=(2,1),(1,2),(2,2)\), with piecewise-linear
+interpolation of \(\eta\). Concave slopes remain nonincreasing on each side,
+and their change from nonnegative to nonpositive at the mode preserves log
+concavity across the join. Candidate pairs have mode separation at most one
+quarter of both FWHMs. Preliminary screening, refinement and acceptance use the original
+channels and fixed noise, weights, offsets, background and component count.
+Thus \(\Delta J=-2\Delta\ell_\nu\) for an accepted restart. The `profile_starts`
+audit records the input component index, chosen start, score changes and time.
+
 The initialization ledger records its unadjusted criterion. When the final
 information multiplier differs from one, the final ledger begins at the
 completed initialization and uses the fixed adjusted criterion throughout.

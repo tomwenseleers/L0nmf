@@ -121,6 +121,7 @@ R · Local likelihood updates · Full spectra · Constant &amp; varying PSFs
 </table>
 <p>Each shared spectrum has unit sum, giving <code>m − 1</code> spectral coordinates, and each occurrence contributes one amplitude. In one sample, each spectrum has one occurrence, so <code>G = L = K</code> and the counts agree. Profile shapes and background coefficients carry no separate rank charge. The reported information criteria also count estimated noise parameters.</p>
 <p>The search refines candidate profiles and compares alternative ranks using the criterion. For example, overlapping components can fuse when their combined profile is log-concave and the criterion improves. The resulting <code>fit$rank</code> is the estimated number of components or shared spectra. See <a href="articles/algorithm.html#common-rank-objective">the mathematical objective</a>.</p>
+<p>Final refinement also checks broader starting profiles for components with nearly coincident modes. These local restarts help redistribute overlapping signal while retaining log concavity. Screening and acceptance use every original channel, and a restart must improve the criterion relative to both the current fit and a refined control.</p>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>

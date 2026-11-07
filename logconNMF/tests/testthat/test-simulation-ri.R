@@ -39,3 +39,19 @@ test_that("RI simulation rejects incoherent calibration metadata", {
     retentionMap=data.frame(ri=c(650,1900),time=c(20,30))),
     "inside the scan window")
 })
+
+test_that("supplied baseline intensities retain their scale and scan grids", {
+  S<-matrix(c(1,0,0,1),2,2,dimnames=list(NULL,c("43","44")))
+  b<-rbind(c(1,3),c(4,6))
+  sim<-simulateGCMSSamples(samples=2L,n=c(80L,100L),k=2L,S=S,
+    background=b,presence=0,irregular=0,seed=13)
+  for(s in sim$samples) {
+    expected<-cbind(1+3*s$reference_time*60/100,3+3*s$reference_time*60/100)
+    expect_equal(s$background/s$exposure,expected)
+    expect_equal(unname(s$mean),unname(s$background))
+  }
+  flat<-simulateGCMSSamples(samples=1L,n=80L,k=2L,S=S,background=c(2,5))
+  expect_equal(flat$samples[[1L]]$background/flat$samples[[1L]]$exposure,
+    matrix(c(2,5),80L,2L,byrow=TRUE))
+  expect_error(simulateGCMSSamples(k=2L,S=S,background=-1),"nonnegative")
+})

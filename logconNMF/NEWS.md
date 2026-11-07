@@ -49,6 +49,8 @@
 * Optional retention-index calibration places reference spectra along the
   chromatogram. Concentration-dependent broadening preserves leading edges,
   and each sample records its generating retention-time–RI map.
+* Simulation baselines can be supplied as common levels, channel-specific
+  intensities or smooth reference matrices on the original intensity scale.
 * Experimental multichannel signals, profile and spectral plots, factor
   extraction, likelihood and information-criterion methods.
 * Tutorials follow PSF estimation, single-sample factorization and coupled

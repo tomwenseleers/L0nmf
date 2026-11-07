@@ -33,6 +33,10 @@ cpl_emg_start <- function(sigma, tail) {
 #' @param acid_fraction Fraction of broad triangular acid profiles.
 #' @param family Signal distribution name supported by [logconNMF()].
 #' @param dispersion,theta Noise parameters.
+#' @param background Optional nonnegative baseline intensity per unit exposure:
+#'   a scalar, one value per mass channel, or a reference-time-by-channel matrix.
+#'   Matrix rows are interpolated across the reference chromatogram for each
+#'   sample's scan grid. The default uses a random low-dimensional spline.
 #' @param retentionIndex Optional retention indices, one per row of `S`.
 #'   When `retentionMap` is supplied, the default is the positional `RI`
 #'   attribute of the spectral library.
@@ -67,7 +71,7 @@ simulateGCMSSamples <- function(samples=3L,n=600L,k=26L,S=NULL,
     absent=NULL,irregular=.12,drift=2,area=2e5,seed=811,
     width_time=.5,width_area=.45,tail_time=1,tail_area=1.5,rt_area=.25,acid_fraction=.08,
     family=c("poisson","quasipoisson","nb","gaussian","Gamma","nb1","Gamma_scale"),dispersion=1,theta=20,
-    retentionIndex=NULL,retentionMap=NULL) {
+    retentionIndex=NULL,retentionMap=NULL,background=NULL) {
   preset<-match.arg(preset);family<-match.arg(family)
   if((family=="nb1"&&dispersion<1)||samples<1||k<2||any(rep_len(n,samples)<50)||presence<0||presence>1||
     irregular<0||irregular>.5||dispersion<=0||theta<=0) stop("Invalid simulation parameters.")
@@ -87,6 +91,13 @@ simulateGCMSSamples <- function(samples=3L,n=600L,k=26L,S=NULL,
   ids<-sample(nrow(S),k)
   if(!is.null(retentionMap)) ids<-ids[order(retentionIndex[ids])]
   P<-S[ids,,drop=FALSE];P<-P/rowSums(P);m<-ncol(P)
+  baseline<-background
+  if(!is.null(baseline)) {
+    if(!is.numeric(baseline)||any(!is.finite(baseline))||any(baseline<0)||
+      (is.null(dim(baseline))&&!length(baseline)%in%c(1L,m))||
+      (!is.null(dim(baseline))&&(length(dim(baseline))!=2L||nrow(baseline)<2L||ncol(baseline)!=m)))
+      stop("Use a nonnegative scalar, channel vector or time-by-channel baseline matrix.")
+  }
   # Include a close pair with distinct spectra; the matching algorithm never sees truth IDs.
   centers<-seq(30,duration-35,length.out=k)
   if(is.null(retentionMap)) {
@@ -136,7 +147,10 @@ simulateGCMSSamples <- function(samples=3L,n=600L,k=26L,S=NULL,
       H[,j]<-H[,j]/sum(H[,j]*e);sigmas[j]<-sigma;tails[j]<-tau
       onsets[j]<-if(j%in%acid)acid_start else leading[j]+concentration_shift
     }
-    B<-splines::bs(u,df=4L,intercept=TRUE);background<-B%*%backgrounds
+    B<-splines::bs(u,df=4L,intercept=TRUE)
+    background<-if(is.null(baseline))B%*%backgrounds else if(is.null(dim(baseline)))
+      matrix(rep_len(baseline,m),ns[s],m,byrow=TRUE) else
+      apply(baseline,2L,function(v)stats::approx(seq(0,duration,length.out=length(v)),v,u,rule=2)$y)
     rates<-H%*%(P*A[,s])+background;mu<-rates*e
     Y<-switch(family,poisson=matrix(rpois(length(mu),mu),ns[s],m),
       quasipoisson=matrix(rpois(length(mu),mu/dispersion)*dispersion,ns[s],m),

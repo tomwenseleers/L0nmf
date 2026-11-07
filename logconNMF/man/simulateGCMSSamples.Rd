@@ -24,7 +24,9 @@ simulateGCMSSamples(
   acid_fraction = 0.08,
   family = c("poisson", "quasipoisson", "nb", "gaussian", "Gamma", "nb1", "Gamma_scale"),
   dispersion = 1,
-  theta = 20
+  theta = 20,
+  retentionIndex = NULL,
+  retentionMap = NULL
 )
 }
 \arguments{
@@ -59,6 +61,15 @@ concentration on peak width, tail and retention time.}
 \item{family}{Signal distribution name supported by \code{\link[=logconNMF]{logconNMF()}}.}
 
 \item{dispersion, theta}{Noise parameters.}
+
+\item{retentionIndex}{Optional retention indices, one per row of \code{S}.
+When \code{retentionMap} is supplied, the default is the positional \code{RI}
+attribute of the spectral library.}
+
+\item{retentionMap}{Optional calibration data frame with increasing
+\code{ri} and \code{time} columns. Times are reference retention times in minutes.
+Compound locations follow this map and sample drift warps the map for
+each injection. Each sample returns its known calibration.}
 }
 \value{
 Simulation truth and a list of samples with observations, original
@@ -66,11 +77,23 @@ bin edges and times (minutes), integrated-count means, true spectra,
 profiles, areas, presence indicators and acquisition dates.
 A simulated observation is integrated over its bin; \code{raw_exposure} is the
 original bin duration in seconds. For \code{\link[=logconNMF]{logconNMF()}}, supply it as exposure.
+With \code{retentionMap}, each sample includes \code{retentionIndex} and an
+increasing \code{retentionCalibration} table incorporating its known drift.
+The \code{onset} field records concentration-adjusted leading positions on
+the reference time grid; the sample drift then maps them to observed time.
 }
 \description{
 Generate exponentially modified Gaussian and optional triangular acid peaks,
 smooth backgrounds, irregular scan grids, sample drift and concentration-
 dependent peak widths and tails. Missing compounds can be simulated explicitly.
+}
+\details{
+In concentration-dependent scenarios, peak width and tail increase
+with concentration while the leading 1\%-height position stays approximately
+fixed. The \code{rt_area} coefficient optionally adds a small concentration-
+dependent shift to that position. Triangular acid profiles broaden towards
+later times from a fixed leading edge. With a single acid profile it is
+placed in the middle of the chromatogram.
 }
 \examples{
 sim <- simulateGCMSSamples(samples=3L,n=c(180L,190L,200L),k=8L,

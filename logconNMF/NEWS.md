@@ -19,6 +19,8 @@
   correction and a checked rank-revealing QR fallback.
 * Banded sparse shape systems and feasible active-set starts accelerate
   successive scoring steps while retaining the original likelihood checks.
+* Cached native inputs and compact positive-ion workspaces reduce allocation
+  and repeated access during profile scoring and likelihood checks.
 * Gaussian, Poisson, quasipoisson, NB2, NB1, censored Gamma and common-scale
   Gamma models, with pooled noise calibration and optional temporal adjustment.
 * Optional channel aggregation accelerates initialization; final refinement

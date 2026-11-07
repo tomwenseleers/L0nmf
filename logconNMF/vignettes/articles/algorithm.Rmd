@@ -611,6 +611,11 @@ dense arithmetic on structural zeros. Successive scoring steps initialize
 the inequality solver at its preceding feasible solution and retain the
 same KKT tolerance.
 
+For a fixed component spectrum, a zero loading makes that channel's
+contribution constant in the profile update. Native workspaces therefore
+retain its positive-loading channels in their original order. Spectral
+updates and complete model comparisons still use every original channel.
+
 The spectra act as covariates in each local profile update:
 \[
 Y_{\mathcal W}^{T}=S_{\mathcal B}^{T}H_{\mathcal W,\mathcal B}^{T}

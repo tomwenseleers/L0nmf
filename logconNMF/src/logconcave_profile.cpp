@@ -34,9 +34,14 @@ List slcn_log_profile(NumericMatrix y,NumericMatrix mean,NumericVector profile,
      !(phi.size()==1||phi.size()==m)||!(theta.size()==1||theta.size()==m))
     stop("Invalid log-profile inputs.");
   for(double a:profile)if(!std::isfinite(a)||a<=0)stop("Positive finite profile required.");
-  auto w=[&](int i,int j){return weights[weights.size()==1?0:first+i+(weights.size()==full_n?0:full_n*j)];};
-  auto p=[&](int j){return phi[phi.size()==1?0:j];};
-  auto th=[&](int j){return theta[theta.size()==1?0:j];};
+  const auto nw=weights.size(),np=phi.size(),nt=theta.size();
+  const double *wp=weights.begin(),*pp=phi.begin(),*tp=theta.begin();
+  const double *yp=y.begin(),*mp=mean.begin(),*sp=spectrum.begin(),*ep=e.begin(),*initial=profile.begin();
+  std::vector<int> active;
+  for(int j=0;j<m;++j)if(sp[j]>0)active.push_back(j);
+  auto w=[&](int i,int j){return wp[nw==1?0:first+i+(nw==full_n?0:full_n*j)];};
+  auto p=[&](int j){return pp[np==1?0:j];};
+  auto th=[&](int j){return tp[nt==1?0:j];};
   std::vector<int> knots;Eigen::MatrixXd C,D;bool lo=false,hi=false;
   if(smooth) {
     // Integrating nonnegative, piecewise-constant curvature twice gives a
@@ -95,37 +100,40 @@ List slcn_log_profile(NumericMatrix y,NumericMatrix mean,NumericVector profile,
   Eigen::SparseMatrix<double> sparse_C,sparse_D;
   if(!smooth){sparse_C=C.sparseView();sparse_D=D.sparseView();}
   Eigen::VectorXd previous_qp;
-  NumericMatrix rest(n,m);NumericVector h=clone(profile);
+  std::vector<double> storage((size_t)n*active.size());
+  std::vector<double*> rest_data(m,nullptr);
+  for(size_t a=0;a<active.size();++a)rest_data[active[a]]=storage.data()+n*a;
+  NumericVector h=clone(profile);
   Eigen::VectorXd eta(n),gradient(n),information(n),target(n),W(n);
   for(int i=0;i<n;++i) {
     if(!std::isfinite(h[i])||h[i]<=0)stop("Positive finite profile required.");
     eta[i]=std::log(h[i]);
   }
-  for(int j=0;j<m;++j)for(int i=0;i<n;++i)rest(i,j)=std::max(0.,mean(i,j)-e[i]*profile[i]*spectrum[j]);
+  for(int j:active)for(int i=0;i<n;++i)rest_data[j][i]=std::max(0.,mp[(size_t)n*j+i]-ep[i]*initial[i]*sp[j]);
   auto change=[&](const NumericVector& old,const NumericVector& next) {
-    std::vector<double> sums(n);
+    std::vector<double> sums(n);const double *old_data=old.begin(),*next_data=next.begin();
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static) num_threads(nthreads)
 #endif
     for(int i=0;i<n;++i) {
       long double sum=0;
-      for(int j=0;j<m;++j)if(w(i,j)>0&&spectrum[j]>0)
-        sum+=w(i,j)*L0glmScalar::change(y(i,j),rest(i,j)+e[i]*old[i]*spectrum[j],
-          rest(i,j)+e[i]*next[i]*spectrum[j],family,p(j),th(j),censor);
+      for(int j:active)if(w(i,j)>0)
+        sum+=w(i,j)*L0glmScalar::change(yp[(size_t)n*j+i],rest_data[j][i]+ep[i]*old_data[i]*sp[j],
+          rest_data[j][i]+ep[i]*next_data[i]*sp[j],family,p(j),th(j),censor);
       sums[i]=(double)sum;
     }
     long double sum=0;for(double a:sums)sum+=a;return (double)sum;
   };
   std::vector<double> history;double residual=0;
-  for(int iteration=0;iteration<maxit;++iteration) {
+  for(int iteration=0;iteration<maxit;++iteration) {const double* hp=h.begin();
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static) num_threads(nthreads)
 #endif
     for(int i=0;i<n;++i) {
       long double g=0,I=0;
-      for(int j=0;j<m;++j)if(w(i,j)>0&&spectrum[j]>0) {
-        const double signal=e[i]*h[i]*spectrum[j],mu=std::max(1e-15,rest(i,j)+signal);
-        const auto a=L0glmScalar::derivatives(y(i,j),mu,family,p(j),th(j),censor);
+      for(int j:active)if(w(i,j)>0) {
+        const double signal=ep[i]*hp[i]*sp[j],mu=std::max(1e-15,rest_data[j][i]+signal);
+        const auto a=L0glmScalar::derivatives(yp[(size_t)n*j+i],mu,family,p(j),th(j),censor);
         g+=w(i,j)*signal*a.gradient;I+=w(i,j)*signal*signal*a.information;
       }
       gradient[i]=(double)g;information[i]=(double)I;

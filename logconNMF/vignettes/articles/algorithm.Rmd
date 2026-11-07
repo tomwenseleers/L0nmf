@@ -604,6 +604,13 @@ checks trigger a rank-revealing QR fallback when needed. The quadratic
 objective and shape constraints
 are unchanged by this numerical choice.
 
+For a piecewise-linear log profile, each row of the interpolation matrix
+has at most two nonzero entries. Its weighted Gram matrix is tridiagonal,
+so natural-order sparse Cholesky and sparse slope-constraint products avoid
+dense arithmetic on structural zeros. Successive scoring steps initialize
+the inequality solver at its preceding feasible solution and retain the
+same KKT tolerance.
+
 The spectra act as covariates in each local profile update:
 \[
 Y_{\mathcal W}^{T}=S_{\mathcal B}^{T}H_{\mathcal W,\mathcal B}^{T}

@@ -92,6 +92,9 @@ List slcn_log_profile(NumericMatrix y,NumericMatrix mean,NumericVector profile,
   if(lo){D.row(next_constraint)=C.row(apex_lo-1)-C.row(apex_lo);D.row(next_constraint)/=D.row(next_constraint).norm();++next_constraint;}
   if(hi){D.row(next_constraint)=C.row(apex_hi+1)-C.row(apex_hi);D.row(next_constraint)/=D.row(next_constraint).norm();}
   }
+  Eigen::SparseMatrix<double> sparse_C,sparse_D;
+  if(!smooth){sparse_C=C.sparseView();sparse_D=D.sparseView();}
+  Eigen::VectorXd previous_qp;
   NumericMatrix rest(n,m);NumericVector h=clone(profile);
   Eigen::VectorXd eta(n),gradient(n),information(n),target(n),W(n);
   for(int i=0;i<n;++i) {
@@ -132,20 +135,25 @@ List slcn_log_profile(NumericMatrix y,NumericMatrix mean,NumericVector profile,
       W[i]=information[i]/top+1e-8;
       target[i]=(whole?eta[i]:0)-gradient[i]/(smooth?std::max(information[i],top*1e-8):(information[i]+top*1e-8));
     }
-    Eigen::MatrixXd G=C.transpose()*W.asDiagonal()*C;
+    Eigen::MatrixXd G;
+    if(smooth)G=C.transpose()*W.asDiagonal()*C;
+    else G=Eigen::MatrixXd(sparse_C.transpose()*W.asDiagonal()*sparse_C);
     G.diagonal().array()+=std::max(1e-12,1e-10*G.diagonal().maxCoeff());
     Eigen::VectorXd proposed;
     if(smooth) {
       Eigen::VectorXd rhs=C.transpose()*W.asDiagonal()*target;
       std::vector<char> bounds(q,1);bounds[0]=bounds[1]=0;
-      proposed=C*L0glm::nuisance_qp(G,rhs,bounds,true);
+      previous_qp=L0glm::nuisance_qp(G,rhs,bounds,true,
+        previous_qp.size()?&previous_qp:nullptr);
+      proposed=C*previous_qp;
     } else {
-      Eigen::VectorXd rhs=C.transpose()*(W.array()*target.array()).matrix();
-      Eigen::LLT<Eigen::MatrixXd> factor(G);
+      Eigen::VectorXd rhs=sparse_C.transpose()*(W.array()*target.array()).matrix();
+      Eigen::SimplicialLLT<Eigen::SparseMatrix<double>,Eigen::Lower,Eigen::NaturalOrdering<int>> factor;
+      factor.compute(G.sparseView());
       if(factor.info()!=Eigen::Success)stop("Log-profile Gram failed.");
       Eigen::VectorXd unconstrained=factor.solve(rhs);
       Eigen::MatrixXd inverse_D=factor.solve(D.transpose());
-      Eigen::MatrixXd dual_G=D*inverse_D;dual_G=(dual_G+dual_G.transpose()).eval()*.5;
+      Eigen::MatrixXd dual_G=sparse_D*inverse_D;dual_G=(dual_G+dual_G.transpose()).eval()*.5;
       Eigen::VectorXd bound=Eigen::VectorXd::Zero(D.rows());
       if(!whole)for(int j=0;j<q-2;++j) {
         const int k=knots[j+1];
@@ -154,11 +162,13 @@ List slcn_log_profile(NumericMatrix y,NumericMatrix mean,NumericVector profile,
       }
       if(lo)bound[q-2]=-1e-6;
       if(hi)bound[q-2+lo]=-1e-6;
-      Eigen::VectorXd dual_rhs=D*unconstrained-bound;
-      Eigen::VectorXd multiplier=L0glm::nuisance_qp(dual_G,dual_rhs,std::vector<char>(D.rows(),1),true);
+      Eigen::VectorXd dual_rhs=sparse_D*unconstrained-bound;
+      Eigen::VectorXd multiplier=L0glm::nuisance_qp(dual_G,dual_rhs,std::vector<char>(D.rows(),1),true,
+        previous_qp.size()?&previous_qp:nullptr);
+      previous_qp=multiplier;
       Eigen::VectorXd node=unconstrained-inverse_D*multiplier;
       residual=std::max(0.,(D*node-bound).maxCoeff());
-      proposed=C*node;
+      proposed=sparse_C*node;
       if(!whole)proposed+=eta;
     }
     // Remove numerical inequality residuals on the full grid.
